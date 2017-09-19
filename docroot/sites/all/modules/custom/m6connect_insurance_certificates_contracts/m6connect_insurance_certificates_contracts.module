@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Insurance Certificates and Contracts feature.
+ */
+
+include_once 'm6connect_insurance_certificates_contracts.features.inc';

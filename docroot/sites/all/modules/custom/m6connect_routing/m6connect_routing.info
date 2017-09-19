@@ -1,0 +1,5 @@
+name = M6Connect Routing
+description = Routing Slip Functionality for M6CONNECT
+package = CUSTOM
+core = 7.x
+files[] = m6connect_routing.module 

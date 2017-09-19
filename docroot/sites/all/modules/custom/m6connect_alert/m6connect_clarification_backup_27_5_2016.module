@@ -1,0 +1,2952 @@
+<?php
+function m6connect_clarification_menu() {
+  $items['rfp-proposal/%node'] = array(
+    'title' => '', 
+    'page callback' => 'rfp_proposal_content', 
+	'page arguments' => array(  1  ), 
+    'access callback' => 'check_rfp_clarification_access', 
+	'access arguments' => array( 1 ), 
+  );
+  
+  $items['rfp-clarification/%node/%'] = array(
+    'title' => '', 
+    'page callback' => 'rfp_clarification_content', 
+	'page arguments' => array( 1,2 ), 
+    'access callback' => 'check_rfp_clarification_access', 
+	'access arguments' => array( 1 ), 
+  );
+  
+  $items['view-clarification/%node/%node/%ctools_js'] = array(
+    'title' => '', 
+    'page callback' => 'view_clarification_callback', 
+	'page arguments' => array( 1,2,3 ), 
+    'access callback' => 'check_rfp_clarification_access', 
+	'access arguments' => array( 1 ), 
+  );
+  
+  $items['send-clarification-msg/%/%node/%ctools_js'] = array(
+    'title' => '', 
+    'page callback' => 'send_clarification_msg_callback', 
+	'page arguments' => array( 1,2,3 ), 
+    'access callback' => 'check_rfp_clarification_access', 
+	'access arguments' => array( 2 ), 
+  );
+  
+  $items['get-all-company-ajax'] = array(
+    'title' => 'Get all Company Deatails', 
+    'page callback' => 'get_company_detail_ajax', 
+    'access callback' => TRUE, 
+  );
+  
+  $items['get-all-company-email-ajax'] = array(
+    'title' => 'Get Company Deatails From User Mail', 
+    'page callback' => 'get_company_form_email_ajax', 
+    'access callback' => TRUE, 
+  );
+  
+  $items['test-files'] = array(
+    'title' => 'Get all RFP Document', 
+    'page callback' => 'drupal_get_form', 
+	'page arguments' => array( 'get_rfp_document_download' ), 
+    'access callback' => TRUE, 
+  );
+  
+  $items['download-file/%file'] = array(
+    'page callback' => 'mymodule_download_file', 
+	'page arguments' => array( 1 ), 
+    //'access arguments' => array( 'administer site configuration' ), 
+	'access callback' => TRUE, 
+    'type' => MENU_CALLBACK, 
+  );
+  $items['all-document-download'] = array(
+    'page callback' => 'document_download_by_fids', 
+	'access callback' => TRUE, 
+    'type' => MENU_CALLBACK, 
+  );
+  
+  $items['my_module/batch_fix/%/%'] = array(
+    'title' => 'Batch fix', 
+	'page arguments' => array( 2,3 ), 
+    'page callback' => 'my_module_batch_fix', 
+    'access arguments' => array( 'administer users' ), 
+  );
+  
+  $items['agreeduser/%/%/%'] = array(
+    'page callback' => 'rfp_agreed_user', 
+	'page arguments' => array( 1,2,3 ), 
+	'access callback' => TRUE, 
+    'type' => MENU_CALLBACK, 
+  );
+  
+  $items['custom-batch-import'] = array(
+    'title' => 'Batch fix', 
+    'page callback' => 'custom_batch_import', 
+	'access callback' => TRUE, 
+    'type' => MENU_CALLBACK, 
+  );
+
+  // menu for sms alert service
+  $items['alerts'] = array(
+    'page callback' => 'alert_group_list_callback', 
+	'access callback' => TRUE, 
+    'type' => MENU_CALLBACK, 
+  );
+  // mew for add new group
+  $items['m6alert/new'] = array(
+    'title' => 'Add New Alert', 
+    'page callback' => 'drupal_get_form', 
+	'page arguments' => array( 'add_new_alert_form',1), 
+    'access callback' => TRUE, 
+  );
+
+  $items['m6alert/edit/%'] = array(
+    'title' => 'Add New Alert', 
+    'page callback' => 'drupal_get_form',  
+	'page arguments' => array( 'add_new_alert_form',1,2 ), 
+    'access callback' => TRUE, 
+  );
+  	// menu item for send sms
+  	$items['alert-send-sms/%ctools_js/%'] = array(
+        'page callback' => 'alert_send_sms_callback', 
+        'page arguments' => array( 1,2 ), 
+        'access callback' => TRUE, 
+        'type' => MENU_CALLBACK, 
+    );
+
+    // menu item for delete group    
+    $items['alert-group-delete/%ctools_js/%'] = array(
+        'page callback' => 'alert_delete_group_callback', 
+        'page arguments' => array( 1,2 ), 
+        'access callback' => TRUE, 
+        'type' => MENU_CALLBACK, 
+    );
+    // menu item for bulk upload entry in group   
+    $items['alert-bulk-upload/%ctools_js/%'] = array(
+        'page callback' => 'alert_bulk_upload_callback', 
+        'page arguments' => array( 1,2 ), 
+        'access callback' => TRUE, 
+        'type' => MENU_CALLBACK, 
+    );
+  
+  return $items;
+} 
+
+function m6connect_clarification_views_pre_execute(&$view){
+	//drupal_set_message('<pre>'.print_r($view, 1).'</pre>');
+}
+
+function m6connect_clarification_page_alter(&$page){
+	//drupal_set_message('<pre>'.print_r($view, 1).'</pre>');
+	//$status = drupal_get_http_header("status");
+	//print ($status);
+}
+
+function check_rfp_clarification_access($node){
+  return user_access('m6connect_authenticate_user') && ($node->type=='rfp');
+}
+
+function m6connect_clarification_init(){
+  $mapping = array( );
+  if(!isset($_SESSION['mapping'])){
+	$_SESSION['mapping'] = array( ); 
+  }
+  if(isset($_SESSION['custom_bidding'])){
+    //drupal_set_message('<pre>'.print_r($_SESSION['custom_bidding'], 1).'</pre>');
+	unset($_SESSION['custom_bidding']);  
+  }
+}
+
+function m6connect_clarification_node_insert($node) {
+  global $company;
+  if($node->type == 'clarification'){
+	set_claification_read_flag_for_company_user($node);
+	_send_clarification_mail($node);
+	
+	//pre($node, 1);
+	$m6connect_notification_table_exist = db_table_exists('m6connect_notification');
+	
+	
+	if ($m6connect_notification_table_exist) {
+	  $req_clarification = node_load($node->field_rfp_reference['und'][0]['target_id']);
+	  $sent_notification_datas = _get_invited_user_data_by_entity_id($req_clarification->nid);
+	  if($node->field_message_type['und'][0]['value']=='public'){
+		foreach($sent_notification_datas as $datas){
+		  $companyNid='';
+		  $invitedusers = array( );
+		  if(is_numeric($datas->field_rfp_company_nid_email_value)){
+			$companyNid = $datas->field_rfp_company_nid_email_value;
+			$invitedusers = explode(',', $datas->field_co_invite_manager_uid_value); 
+		  }else if($muser = user_load_by_mail($datas->field_rfp_company_nid_email_value)){ 
+		    $companyNid = _get_individual_company_by_uid($muser->uid);
+			$invitedusers = array( $muser->uid ); 
+		  }
+		  if($companyNid){
+			foreach($invitedusers as $index => $uid){
+			  if($uid ==$node->uid){
+				continue;  
+			  }
+			  $m6connect_notification = array(
+				'type' => $node->type, 
+				'event' => $node->field_message_type['und'][0]['value'], 
+				'entity_id' => $node->field_rfp_reference['und'][0]['target_id'], 
+				'company_nid' => $companyNid, 
+				'message' => NULL, 
+				'request_from' => $node->uid, 
+				'request_to' => $uid, 
+				'status' => 1, 
+				'timestamp' => time(), 
+			  );
+			  entity_save('m6connect_notification',  (object) $m6connect_notification);	
+			}
+		  }
+		}
+	  }else{
+		if(isset($node->field_recipient_company['und']) && !empty($node->field_recipient_company['und'])){
+		  $companyNid='';
+		  foreach($node->field_recipient_company['und'] as $delta => $invited){
+			$companyNid[] = $invited['target_id'];
+		  }
+		  $companyNid = array_values($companyNid);
+		  if(!empty($companyNid)){
+			foreach($sent_notification_datas as $datas){
+			  if(in_array( $datas->field_rfp_company_nid_email_value, $companyNid) ){
+				$invitedusers = explode(',', $datas->field_co_invite_manager_uid_value); 
+				foreach($invitedusers as $index => $uid){
+				  $m6connect_notification = array(
+					'type' => $node->type, 
+					'event' => $node->field_message_type['und'][0]['value'], 
+					'entity_id' => $node->field_rfp_reference['und'][0]['target_id'], 
+					'company_nid' => $datas->field_rfp_company_nid_email_value, 
+					'message' => NULL, 
+					'request_from' => $node->uid, 
+					'request_to' => $uid, 
+					'status' => 1, 
+					'timestamp' => time(), 
+				  );
+				  entity_save('m6connect_notification',  (object) $m6connect_notification);
+				}
+			  }
+			}  
+		  }
+		}
+	  }
+	}
+  }
+}
+
+function custom_handle_for_attachement_filefield_after_build($element, &$form_state){
+  foreach($element['und'] as $delta => $data){
+	if(is_numeric($delta)){
+      $element['und'][$delta]['#upload_event'] = 'auto';	
+	}
+  }
+  return $element;
+}
+
+function description_field_remove_format_filter_after_build($element,  &$form_state){
+  $element['und'][0]['format']['#attributes']['style'] = 'display:none';
+  return $element;	
+}
+
+function m6connect_clarification_field_widget_form_alter(&$element, &$form_state,  $context) { 
+  // If this is an image field type of instance 'field_image_top'
+  if ($context['field']['field_name'] == 'field_rfp_logo') { //pre($element, 1);
+    // Loop through the element children (there will always be at least one).
+    foreach (element_children($element) as $key => $child) {
+      // Add the new process function to the element
+      //dpm($element);
+      $element[$key]['#process'][] = 'm6connect_clarification_image_field_widget_process';
+    }
+  }
+  
+  // Remove Format Filter Fieldset from Deccription type field; 
+  if (isset($element['#field_name']) && $element['#field_name'] == 'field_rfp_documents' && $context['instance']['bundle'] == 'rfp') {
+	if(isset($element['field_rfp_comments'])){
+	  $element['field_rfp_comments']['#after_build'][] = 'description_field_remove_format_filter_after_build';	
+	}
+    //kpr($element);
+  }
+  
+  if (isset($element['#field_name']) && $element['#field_name'] == 'field_comp_locations' && $context['instance']['bundle'] == 'organization') {
+	if(isset($element['field_location_business_desc'])){
+	  $element['field_location_business_desc']['#after_build'][] = 'description_field_remove_format_filter_after_build';	
+	}
+	/*if(isset($element['remove_button'])){
+	  $element['remove_button']['#access']= FALSE; 	
+	}*/
+    //kpr($element);
+  }
+}
+
+
+//function m6connect_clarification_field_widget_form_alter(&$element, &$form_state,  $context) {
+  
+//}
+
+
+
+
+
+function m6connect_clarification_form_alter(&$form, &$form_state,  $form_id) { 
+  global $user;
+  
+  $removeDescriptionFilter = array(
+    'rfp_node_form'=> array(
+	  'field_rfp_description', 
+	), 
+	'organization_node_form'=> array(
+	  'field_description', 
+	  'field_service_description', 
+	), 
+	'project_node_form'=>array(
+	  'field_public_description', 
+	  'field_complete_description', 
+	), 
+	'clarification_node_form'=>array(
+	  'body'
+	), 
+  );
+  
+  if(in_array( $form_id,  array_keys($removeDescriptionFilter)) ){
+	 foreach($removeDescriptionFilter[$form_id] as $fieldName){
+	   if(isset($form[$fieldName])){
+		 $form[$fieldName]['#after_build'][] = 'description_field_remove_format_filter_after_build';   
+	   }
+	 }
+  }
+ 
+  if($form_id == 'clarification_node_form'){
+	if(empty($form['nid']['#value'])){
+	  //$form_state['build_info']['args'][0]->field_clarification_attachment['und'][0]=(array)(file_load(1139));	
+	}
+	
+	$form['actions']['submit']['#attributes']['class'][]= 'custom-attach-document-submit';
+	$form['field_clarification_attachment']['#after_build'][] = 'custom_handle_for_attachement_filefield_after_build';
+	//$form['field_clarification_attachment']['#limit_validation_errors'] =array( 'title', 'body' );
+	//$form['field_choose_a_recipient_2']['und']['#validated'] =TRUE;
+    $form['field_choose_a_recipient']['#access']=FALSE;
+	$form['field_choose_a_recipient_2']['#access']=FALSE;
+	$form['field_recipient_company']['#access']=FALSE;
+	form_load_include($form_state, 'inc', 'node',  'node.pages');
+	$clarificationNode = $form_state['build_info']['args'][0];
+	if(isset($clarificationNode->field_message_type['und']) && $clarificationNode->field_message_type['und'][0]['value']=='private'){
+	  if(!(isset($clarificationNode->field_recipient_company['und']) && !empty($clarificationNode->field_recipient_company['und'][0]['target_id']))){
+		if(!empty($clarificationNode->choose_company_options)){
+		  $form['field_choose_a_recipient_2']['und']['#options'] = $clarificationNode->choose_company_options;	
+		  $form['field_choose_a_recipient_2']['und']['#multiple'] =TRUE;
+		  $form['field_choose_a_recipient_2']['#access']=TRUE;
+		}
+	  }
+	}
+    
+	if(arg(0)=='send-clarification-msg'){ 
+	  $type= arg(1);
+	  $rfpNode = node_load(arg(2));
+	  
+	  //$invitedOption = get_invited_users_mapping_rfp($rfpNode);
+	  $formType = 'larger';
+	  if(isset($_REQUEST['attr']) && is_numeric($_REQUEST['attr'])){
+	    $companyRecipient = $_REQUEST['attr'];
+		$formType = 'small';   
+	  }
+	  $rfpOwner = in_array( $user->uid, _get_current_company_users($rfpNode->uid) );
+	  if(!$rfpOwner){
+		/*****Changed*****/
+	    //$companyRecipient =  _get_user_company_nid($rfpNode->uid);
+		$companyRecipient =  _get_company_nid_by_group_content($rfpNode);
+		$formType = 'small'; 
+	    $type= 'private';
+		/*if($companyRecipient && is_numeric($companyRecipient)){
+		  $form['field_recipient_company']['und']['#default_value'] =  $companyRecipient; 
+		}*/
+	  }
+	  $formType = ($type=='public')?'small':$formType;
+	  $form['#attributes']['class'][] = 'clarification-msg-'.$formType.'-form';
+	  $submitDefault = ($type == 'public')?'Send New Message':'Send Private Message';
+	  if($type!= 'public'){
+		if(!($companyRecipient && is_numeric($companyRecipient))){
+		  //$form['actions']['submit']['#attributes']['disabled'] = TRUE;  
+		  //$autocomplete_script_path = drupal_get_path('module',  'm6connect_clarification').'/js/autocomplete_recipient.js';
+		  //$form['field_choose_a_recipient']['#access']=FALSE;
+		  $form['field_choose_a_recipient_2']['#access']=TRUE;
+		  
+		  if(isset($form['field_choose_a_recipient_2']['und'])){
+		    $form['field_choose_a_recipient_2']['und']['#title_display']='invisible';
+			$form['field_choose_a_recipient_2']['und']['#prefix']='<div class="form-group"><label for="edit-recipient">Choose a Recipient <span class="form-required" title="This field is required.">*</span></label><div>Choose from the list of the invited companies/individuals,  to send a private clarification message to them.</div>'; 
+			$form['field_choose_a_recipient_2']['und']['#suffix'] ='</div>';
+		  }
+		}
+	  }
+	  
+	  $form['rfp-node-id']= array(
+	    '#type'=> 'hidden', 
+	    '#title' => '', 
+	    '#default_value' => $rfpNode->nid, 
+	    '#attributes'=> array( 'class'=> array('clarification-rfp-nid') ), 
+	  );
+	  $form['actions']['submit']['#value'] = $submitDefault;
+	  $form['actions']['close']= array(
+	    '#markup' => '&nbsp;&nbsp;'.l('<input type="button" class="btn btn primary form-submit" value="Cancel" />','javascript:void(0);', array( 'external'=> TRUE, 'html'=> TRUE, 'attributes'=> array('class'=> array('calrification-msg-popup-close'),'onclick'=>'jQuery("span.popups-close").click();')) ), 
+		'#weight' => 10, 
+	  );
+	  if(isset($form['additional_settings'])){
+	    $form['additional_settings']['#access']= FALSE;	
+	  }
+	}
+	$form['title']['#prefix']= '<div class="form-group">';
+	$form['title']['#suffix']= '</div>';
+	$form['body']['#prefix']= '<div class="form-group">';
+	$form['body']['#suffix']= '</div>';
+	$form['field_clarification_attachment']['#prefix']= '<div class="form-group">';
+	$form['field_clarification_attachment']['#suffix']= '</div>';
+	$form['title']['#attributes']['class'][] = 'form-control';
+	$form['body']['und'][0]['#attributes']['class'][] = 'form-control';
+	$form['body']['und'][0]['value']['#attributes']['required'] = 'required';
+	$form['title']['#attributes']['required'] = 'required';
+	
+	$form['actions']['submit']['#attributes']['class'][] = 'clarification-msg-submit';
+	$form['actions']['submit']['#submit'][] = 'custom_clarification_submit_handler';
+	$form['actions']['submit']['#validate'][] = 'custom_clarification_validate_handler';
+	
+	unset($form['field_clarification_attachment']['und']['#file_upload_description']);
+	unset($form['field_clarification_attachment']['und'][0]['#file_upload_description']);
+	$form['field_clarification_attachment']['und'][0]['#upload_event'] = 'auto';
+	
+  }
+  
+  $clarificatioids = array(
+    'views-exposed-form-rfp-clarification-data-page-1', 
+	'views-exposed-form-rfp-clarification-data-page-2', 
+	'views-exposed-form-rfp-clarification-data-page-3', 
+	'views-exposed-form-rfp-clarification-data-page-4', 
+	'views-exposed-form-rfp-clarification-data-page-5', 
+	'views-exposed-form-rfp-clarification-data-page-6', 
+  );
+  if($form_id=='views_exposed_form' && in_array( $form['#id'], $clarificatioids) ){
+	$form['#attributes']['class'][] = 'clarification-exposed-filter';
+    $form['title']['#attributes']['placeholder'] = 'Search Proposals';
+	$form['title']['#attributes']['class'][] ='exposed_title_clarification';
+	$form['sort_by']['#title_display']= 'invisible';
+    $form['sort_by']['#attributes']['class'][] ='exposed_sort_clarification';
+	$form['sort_by']['#attributes']['onchange'] = 'jQuery(".exposed_submit_clarification").click();';
+	$form['submit']['#attributes']['class'][] ='exposed_submit_clarification';
+  }
+  if($form_id=='views_exposed_form' && $form['#id']== 'views-exposed-form-rfp-proposal-data-page'){
+	$form['#attributes']['class'][] = 'proposal-exposed-filter';
+    $form['combine']['#attributes']['placeholder'] = 'Search Proposals';
+	$form['combine']['#attributes']['class'][] ='exposed_search_proposal';
+	$form['submit']['#attributes']['class'][] ='exposed_submit_proposal';
+	$form['sort_by']['#title_display']= 'invisible';
+    $form['sort_by']['#attributes']['class'][] ='exposed_sort_clarification';
+	$form['sort_by']['#attributes']['onchange'] = 'jQuery(".exposed_submit_proposal").click();';	  
+  }
+  
+  $peoplesviewIds = array(
+    'views-exposed-form-people-join-requests-page', 
+	'views-exposed-form-people-invite-listing-page', 
+  );
+  if($form_id=='views_exposed_form' && in_array( $form['#id'], $peoplesviewIds) ){
+	$form['#attributes']['class'][] = 'people-exposed-filter';
+    $form['combine']['#attributes']['placeholder'] = 'Search';
+    $form['submit']['#attributes']['value'] = 'Search';
+	$form['combine']['#attributes']['class'][] ='exposed_search_people';
+	$form['submit']['#attributes']['class'][] ='exposed_submit_people';
+	$form['sort_by']['#title_display']= 'invisible';
+    $form['sort_by']['#attributes']['class'][] ='exposed_sort_people';
+	$form['sort_by']['#attributes']['onchange'] = 'jQuery(".exposed_submit_people").click();';	  
+  }
+  
+  if($form_id == 'proposal_node_form'){
+	if(isset($form['field_rfp']) && isset($form['field_rfp']['und']) && isset($form['field_rfp']['und']['#options']) && is_array( $form['field_rfp']['und']['#options']) ){
+	  $accessRfpNids = get_public_or_invited_rfp_nids();
+	  $options = $form['field_rfp']['und']['#options'];
+	  foreach($options as $key => $val){
+	    if($key != '_none' && !in_array( $key,  $accessRfpNids) ){
+		  unset($form['field_rfp']['und']['#options'][$key]);
+		}
+	  }
+	}
+  }
+  if($form_id == 'system_emails_node_form'){
+	//kpr($form);
+	$form['additional_settings']['#access']= FALSE;  
+	$form['revision_information']['#access']= FALSE;
+	$form['field_email_event']['und']['#attributes']['class'][] = 'sys_mail_event';
+	$form['body']['und'][0]['#title_display'] = 'invisible';
+	$form['#after_build'][] = 'custom_node_form_after_build';
+	if(!(isset($form['nid']) && isset($form['nid']['#value']) && is_numeric($form['nid']['#value']))){
+	  $options = array( );
+	  $options['_none'] = t('Choose a Email Event');
+	  $optGroup = array(
+		'project_mail'=> 'PROJECT', 
+		'rfp_mail' => 'RFP', 
+		'people_mail' => 'PEOPLE', 
+		'company_mail' => 'COMPANY', 
+		'admin_mail' => 'ADMIN', 
+		'clarification_mail' => 'CLARIFICATION', 
+	  );
+	  $optGroupKeys = array_keys($optGroup);
+	  $existingValues = get_existing_system_email_types_values();
+	  
+	  foreach($form['field_email_event']['und']['#options'] as $delta => $text){
+		if($existingValues && is_array( $existingValues) && in_array($delta, $existingValues) ){
+		  continue;
+	    }
+		if($delta != '_none' && !in_array( $delta,  $existingValues) ){
+		    $exdelta = explode('___', $delta);
+			if(in_array( $exdelta[0], $optGroupKeys) ){
+			  $options[$optGroup[$exdelta[0]]][$delta] = $text;  
+			}else{
+			  $options[$delta] = $text; 
+			}
+		}
+	  }
+	  $form['field_email_event']['und']['#options'] = $options;
+	}else{
+	  $form['field_email_event']['und']['#disabled'] = TRUE;
+	}
+	$form['body_title']= array(
+	  '#markup'=> '<label for="edit-body-und-0-value">Message <span class="form-required" title="This field is required.">*</span></label>', 
+	);
+	$form['body_token_rfp'] = array(
+	  '#type'=> 'container', 
+	  '#states' => array(
+        'visible' => array(
+		  'select[name="field_email_event[und]"]' => array(
+		     array( 'value' => 'rfp_mail___user_invite_rfp' ), 
+			 array( 'value' => 'rfp_mail___invite_user_rfp_updated' ), 
+		   ), 
+		), 
+      ), 
+	);
+	$form['body_token_rfp']['rfp_token']= array(
+	  '#markup' => '<div><strong>Token Available: </strong>[RFP:Name], [RFP:Link], [RFP:Description], [RFP:OwnerName], [RFP:OwnerEmail], [RFP:InvitedCompanyOwnerName], [RFP:UpdateMessage], [RFP:ForwordLink], [COMPANY:Name], [COMPANY:Link],[COMPANY:Logo], [SITE:SignupLINK], [SITE:Link]</div>', 
+	);
+	//[RFP:ForwordLink]
+	$form['body_token_project'] = array(
+	  '#type'=> 'container', 
+	  '#states' => array(
+        'visible' => array(
+		  'select[name="field_email_event[und]"]' => array(
+		     array( 'value' => 'project_mail___user_invite_project' ), 
+			 array( 'value' => 'project_mail___invite_user_project_updated' ), 
+			 array( 'value' => 'project_mail___collaborate_user_invite_project' ),  
+			 array( 'value' => 'project_mail___show_interest_in_project' ), 
+			 array( 'value' => 'project_mail___interested_bidding_project' ),    
+		   ), 
+		), 
+      ), 
+	);
+	$form['body_token_project']['project_token']= array(
+	  '#markup' => '<div><strong>Token Available: </strong>[PROJECT:Name], [PROJECT:Link], [PROJECT:PublicDescription], [PROJECT:CompleteDescription], [PROJECT:OwnerName], [PROJECT:OwnerEmail], [PROJECT:InvitedCompanyOwnerName], [PROJECT:UpdateMessage], [COMPANY:Name], [COMPANY:Link],[COMPANY:Logo], [SITE:SignupLINK], [SITE:Link], [CURRENT_USER:CompanyLogo], [CURRENT_USER:CompanyLink], [CURRENT_USER:CompanyName]</div>', 
+	);
+	
+	$form['body_token_company'] = array(
+	  '#type'=> 'container', 
+	  '#states' => array(
+        'visible' => array(
+		  'select[name="field_email_event[und]"]' => array(
+		     array( 'value' => 'company_mail___invite_user_by_company' ), 
+		   ), 
+		), 
+      ), 
+	);
+	$form['body_token_company']['company_token']= array(
+	  '#markup' => '<div><strong>Token Available: </strong>[COMPANY:Name], [COMPANY:Link],[COMPANY:Logo], [COMPANY:AdminName], [SITE:SignupLINK], [SITE:Link]</div>', 
+	);
+	
+	$form['body_token_admin'] = array(
+	  '#type'=> 'container', 
+	  '#states' => array(
+        'visible' => array(
+		  'select[name="field_email_event[und]"]' => array(
+		     array( 'value' => 'admin_mail___user_request_join_company' ), 
+		   ), 
+		), 
+      ), 
+	);
+	$form['body_token_admin']['admin_token']= array(
+	  '#markup' => '<div><strong>Token Available: </strong>[COMPANY:Name], [COMPANY:Link],[COMPANY:Logo], [USER:Name], [USER:Email], [SITE:SignupLINK], [SITE:Link], [CURRENT_USER:CompanyName], [CURRENT_USER:CompanyLogo], [CURRENT_USER:CompanyLink] </div>', 
+	);
+	
+	$form['body_token_clarification'] = array(
+	  '#type'=> 'container', 
+	  '#states' => array(
+        'visible' => array(
+		  'select[name="field_email_event[und]"]' => array(
+		     array( 'value' => 'clarification_mail___owner_public_clarification_msg' ), 
+			 array( 'value' => 'clarification_mail___owner_private_clarification_msg' ), 
+			 array( 'value' => 'clarification_mail___users_private_clarification_msg' ),  
+		   ), 
+		), 
+      ), 
+	);
+	
+	$form['body_token_clarification']['admin_token']= array(
+	  '#markup' => '<div><strong>Token Available: </strong>[CLARIFICATION:MessageId], [CLARIFICATION:PostDate], [CLARIFICATION:Subject], [CLARIFICATION:SenderName], [CLARIFICATION:SenderCompanyName], [CLARIFICATION:SenderCompanyLogo], [RFP:Name], [RFP:Link], [RFP:OwnerName], [RFP:OwnerEmail], [SITE:SignupLINK], [SITE:Link]</div>', 
+	);
+	
+	$form['field_email_event']['#weight'] = 1;
+	$form['field_sender']['#weight'] = 2;
+	$form['title']['#weight'] = 3;
+	$form['body_title']['#weight'] = 4;
+	$form['body_token_rfp']['#weight'] = 5;
+	$form['body_token_project']['#weight'] = 5;
+	$form['body_token_company']['#weight'] = 5;
+	$form['body_token_admin']['#weight'] = 5;
+	$form['body_token_clarification']['#weight'] = 5;
+	$form['body']['#weight'] = 6;
+	$form['field_attachments']['#weight'] = 7;
+  }
+}
+
+// afterbuild function
+function custom_node_form_after_build($form) {
+  //kpr($form);  
+  $form['body']['und']['0']['format']['#attributes']['style'] = 'display:none';
+  return $form;
+}
+
+
+
+function get_existing_system_email_types_values(){
+  $query =  db_select('node',  'n');
+  $query->join('field_data_field_email_event', 'et',  'n.nid = et.entity_id');
+  $query->fields('et',  array( 'field_email_event_value') );
+  $query->condition('n.type','system_emails', '=');
+  $result = $query->execute()->fetchCol();
+  return $result; 	
+}
+
+function custom_clarification_validate_handler(&$form,  &$form_state){
+  //pre($form_state, 1);
+  $values = $form_state['values'];
+  if($values['field_message_type']['und'][0]['value']=='private'){
+	if(empty($values['field_recipient_company']['und'][0]['target_id'])){
+	  if(empty($values['field_choose_a_recipient_2']['und'][0]['value'])) {
+	    form_set_error('field_choose_a_recipient_2',  'Choose Valid Company Recipient');		
+	  }
+	}
+  }
+}
+
+function custom_clarification_submit_handler(&$form,  &$form_state){
+  //pre($form_state['values'], 1);
+  if((isset($form_state['ajax']))?(($form_state['ajax']==1)?true:false):false) {
+    $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+	$form_state['ajax_commands'][] = array( "command" => 'clarificationViewRefresh', 'viewref'=>TRUE );
+	$form_state['ajax_commands'][] = array( "command" => 'openSuccessdialog', 'viewref'=>TRUE );
+  }
+  $msg = theme('status_messages');
+}
+
+function custom_submit_after_build_handler($form,  &$form_state){
+  //kpr($form);
+  /*if(isset($form['actions']['submit']['#submit']) && !in_array( 'custom_clarification_submit_handler', $form['actions']['submit']['#submit']) ){
+	$form['actions']['submit']['#submit'][] = 'custom_clarification_submit_handler';
+  }*/
+}
+ 
+function m6connect_clarification_block_info() {
+  $blocks['rfp-clarification-content'] = array(
+    'info' => t('RFP clarification tab content'), 
+  );
+  $blocks['rfp-proposal-content'] = array(
+    'info' => t('RFP Proposal tab content'), 
+  );	
+  $blocks['rfp-document-content'] = array(
+    'info' => t('RFP Document tab content'), 
+  );
+  return $blocks;
+}
+
+function m6connect_clarification_block_view($delta='') {
+  global $user;	
+  $block = array( );
+  switch ($delta) {
+    case 'rfp-clarification-content':
+	  $block['subject'] = t('');
+	  $block['content'] = rfp_clarification_content();
+	break;
+	case 'rfp-proposal-content':
+	  $block['subject'] = t('');
+	  $block['content'] = rfp_proposal_content();
+	break;
+	case 'rfp-document-content':
+	  $block['subject'] = t('');
+	  $block['content'] = drupal_get_form('get_rfp_document_download');
+	break;
+  }
+  return $block;
+}
+
+function rfp_clarification_content($rfpNode='',  $action=''){
+  global $base_url, $user;
+ // drupal_add_library('system',  'ui.autocomplete');
+ drupal_add_library('system',  'ui.dialog');
+ drupal_add_js(array( 'm6connect_clarification' => array('clarification_success'=>1)),  'setting' );
+ drupal_add_js(drupal_get_path('module',  'm6connect_clarification').'/m6connect_clarification.js');
+ // drupal_add_js(drupal_get_path('module',  'm6connect_clarification').'/m6connect_clarification.js');
+  clarification_msg_ctools_popup_style();
+  if(arg(1)) {
+    $rfpnid = arg(1);
+	$rfpnode = node_load($cnid);
+	$rfpuid = $rfpnode->uid;
+  }
+  //style="display:none;"
+  $output = '';
+  $output .= '<div class="cust-clarication-content">';
+  $output .= '<div id="clarification-msg-success-dialog"><div class="text-left clarification-msg-success"><i class="fa fa-check"></i>  Clarification Message Sent</div></div>';
+  $output .= '<div class="row">';
+  
+  $output .= '<div class="cust-clari-nodeform col-md-3 col-sm-12 col-xs-12">';
+  $block = module_invoke('block', 'block_view',  '48');
+  $output .= render($block['content']);
+  $output .= '</div>';
+  
+  $output .= '<div id="cust-clari-lists" class="col-md-9 col-sm-12 col-xs-12">';
+  
+  $action = 'inbox';
+  $actionArr = array( 'inbox' => 'page_1','sent' => 'page_2','unread' => 'page_3','read' => 'page_4','public' => 'page_5','all' => 'page_6',  );
+  if(arg(0)=='rfp-clarification'){
+    $action= arg(2);  
+  }else if(arg(0) == 'node' && isset($_REQUEST['action']) && !empty($_REQUEST['action'])){
+	$action = trim($_REQUEST['action']); 
+  }
+  
+  $output .= '<div class="rfp-clarification-section" id="rfp-clarification-section">';
+  if($action && in_array( $action,  array_keys($actionArr)) ){
+    $output .= views_embed_view('rfp_clarification_data', $actionArr[$action],  arg(1));
+  }
+  $output .= '</div>';
+  
+  $output .= '</div>'; //#cust-clari-lists
+  
+  $output .= '</div>'; //.row
+  $output .= '</div>'; //.cust-clarication-content
+  
+  return $output; 
+}
+
+function is_current_node_company($cnid,  $cuid= null){
+  global $user;	
+  $cnode = node_load($cnid);
+  $cnodeUid = $cnode->uid;
+  $companyusers = get_company_users_list_by_uid($cnodeUid); 
+  if($cuid) {
+    $cusr = user_load($cuid);	  
+  } else {
+	$cusr = $user;  
+  }
+  if((in_array( $cusr->uid, $companyusers)) || (array_key_exists(3, $cusr->roles)) || (array_key_exists(6,  $cusr->roles)) ) {
+	return true;  
+  } else {
+	return false;  
+  }
+}
+
+function get_company_users_list_by_uid($uid=null){
+  if($uid){
+    $user = user_load($uid);  
+  }
+  $companyUsers = array( );
+  $user_groups = og_get_groups_by_user($user,  'node');
+  if(is_array( $user_groups) && count($user_groups)>0 ){
+    $userCmpyNids = array_values($user_groups);
+    $companyNode = node_load($userCmpyNids[0]);
+    $cmpyUserUids = og_get_group_members_properties($companyNode, array( ), 'members__' . OG_STATE_ACTIVE,  'node' );
+    $companyUsers= $cmpyUserUids;
+  }
+   return $companyUsers;	
+}
+
+function m6connect_clarification_image_field_widget_process($element, &$form_state,  $form) {
+  // Change the title field label and description
+  //dpm($element);
+  $element['title']['#title'] = 'NEW TITLE';
+  $element['title']['#description'] = 'SOME NEW DESCRIPTION HERE.';
+
+  // Return the altered element
+  return $element;
+}
+
+
+
+function m6connect_clarification_preprocess_views_view(&$variables) {
+  //$view = $variables['view'];
+  //kpr($variables);
+}
+
+function view_clarification_callback_2($rfpNode, $clarificationNode,  $ajax= FALSE){
+  if ($ajax) {
+    ctools_include('ajax');
+    ctools_include('modal');
+    $form_state = array(
+      'ajax' => TRUE, 
+      'title' => t('Edit Category'), 
+	  'tid_custom' => $tid, 
+    );
+    $output = ctools_modal_form_wrapper('edit_taxonomy_term_form',  $form_state);
+    if (!empty($form_state['ajax_commands'])) {
+      $output = $form_state['ajax_commands'];
+    }
+    print ajax_render($output);
+    drupal_exit();
+  }
+  else {
+    return drupal_get_form('edit_taxonomy_term_form', $tid);
+  }	
+}
+
+function view_clarification_callback($rfpNode, $clarificationNode,  $ajax = NULL) {
+  
+    //$node = node_load($nid);
+  
+    if(!$ajax) {
+        return render(node_view($clarificationNode));
+    }
+  
+    ctools_include('modal');
+    ctools_include('ajax');
+    //$contents = render(node_view($clarificationNode));
+	$contents =theme('clarification_msg_view', array( 'rfpNode' => $rfpNode,  'clarificationNode' => $clarificationNode) ); 
+    return ctools_modal_render('',  $contents) ;  
+}
+
+function m6connect_clarification_theme() {
+  $path = drupal_get_path('modules',  'm6connect_clarification');
+  return array(
+    'clarification_msg_view' => array(
+      'variables' => array( 'data' => array() ), 
+	  'template' => $path.'/theme/clarification-msg-view', 
+    ), 
+    'm6sms_alert_theme'=> array(
+		'render element' => 'form', 
+	), 
+  );
+}
+
+/**
+*Popup’s setings function.
+*/
+function clarification_msg_ctools_popup_style() {
+   static $added = FALSE;
+   if ($added == FALSE) {
+       $added = TRUE;
+       // Adding the necessary libraries
+       ctools_include('modal');
+       ctools_include('ajax');
+       ctools_modal_add_js();
+       // Setting up the preferences for the popup
+       $clarification_msg_popup_style = array(
+           'clarification-msg-popup-style' => array(
+               'modalSize' => array(
+                   'type' => 'fixed',  // Popup type.
+                   'width' => 650,  // Width
+                   'height' => 560,//auto',  // Height
+                   //'addHeight' => 700,  // Maximum height
+               ), 
+               'modalOptions' => array(
+                   'opacity' => (float) 0.85,  // Backgroung opacity
+                   'background-color' => '#000000',  // Background color
+               ), 
+               'closeText' => '',  // Text for the «close» button
+               'loadingText' => '',  // Text with the popup downloading
+               'animation' => 'fadeIn',  // Animation type
+               'modalTheme' => 'ClarificationMsgPopup',//'custom_clarification_msg_theme',  // Name of theme to be added
+               'animationSpeed' => 'fast',  // Popup animation speed
+			   //'throbber' => theme('image', array( 'path' => ctools_image_path('ajax-loader.gif', 'happy'), 'alt' => t('Loading...'), 'title' => t('Loading')) ), 
+               //'closeImage' => theme('image', array( 'path' => ctools_image_path('modal-close.png', 'happy'), 'alt' => t('Close window'), 'title' => t('')) ), 
+           ), 
+       );
+	   
+	   $clarification_private_popup_style = array(
+           'clarification-private-form-popup-style' => array(
+               'modalSize' => array(
+                   'type' => 'fixed',  // Popup type.
+                   'width' => 530,  // Width
+                   'height' => 570,//auto',  // Height
+                   //'addHeight' => 700,  // Maximum height
+               ), 
+               'modalOptions' => array(
+                   'opacity' => (float) 0.85,  // Backgroung opacity
+                   'background-color' => '#000000',  // Background color
+               ), 
+               'closeText' => '',  // Text for the «close» button
+               'loadingText' => '',  // Text with the popup downloading
+               'animation' => 'fadeIn',  // Animation type
+               'modalTheme' => 'ClarificationFormsPopup',//'custom_clarification_msg_theme',  // Name of theme to be added
+               'animationSpeed' => 'fast',  // Popup animation speed
+			   //'throbber' => theme('image', array( 'path' => ctools_image_path('ajax-loader.gif', 'happy'), 'alt' => t('Loading...'), 'title' => t('Loading')) ), 
+               //'closeImage' => theme('image', array( 'path' => ctools_image_path('modal-close.png', 'happy'), 'alt' => t('Close window'), 'title' => t('')) ), 
+           ), 
+       );
+	   
+	   $clarification_public_popup_style = array(
+           'clarification-public-form-popup-style' => array(
+               'modalSize' => array(
+                   'type' => 'fixed',  // Popup type.
+                   'width' => 530,  // Width
+                   'height' => 465,//auto',  // Height
+                   //'addHeight' => 700,  // Maximum height
+               ), 
+               'modalOptions' => array(
+                   'opacity' => (float) 0.85,  // Backgroung opacity
+                   'background-color' => '#000000',  // Background color
+               ), 
+               'closeText' => '',  // Text for the «close» button
+               'loadingText' => '',  // Text with the popup downloading
+               'animation' => 'fadeIn',  // Animation type
+               'modalTheme' => 'ClarificationFormsPopup',//'custom_clarification_msg_theme',  // Name of theme to be added
+               'animationSpeed' => 'fast',  // Popup animation speed
+			   //'throbber' => theme('image', array( 'path' => ctools_image_path('ajax-loader.gif', 'happy'), 'alt' => t('Loading...'), 'title' => t('Loading')) ), 
+               //'closeImage' => theme('image', array( 'path' => ctools_image_path('modal-close.png', 'happy'), 'alt' => t('Close window'), 'title' => t('')) ), 
+           ), 
+       );
+	   
+       drupal_add_js($clarification_msg_popup_style,  'setting'); // Adding the preferences
+	   drupal_add_js($clarification_private_popup_style,  'setting'); // Adding the preferences
+       drupal_add_js($clarification_public_popup_style,  'setting'); // Adding the preferences
+       ctools_add_js('m6connect_clarification_modal', 'm6connect_clarification'); // Adding the theme (the first parameter is the theme file name,  the second is the name of the module where this file is)
+   }
+}
+//clarification_msg_form_ctools_popup_style
+
+
+
+function send_clarification_msg_callback($type, $rfpNode ,  $ajax=NULL){
+  global $user, $company;
+  $companyRecipient = '';
+  $recipientOptions = array( '_none'=>'- None -' );
+  /*****Changed*****/
+  //$rfpCompanyNid = _get_user_company_nid($rfpNode->uid);
+  //$rfpownerCompany = in_array( $user->uid, _get_current_company_users($rfpNode->uid) );
+  $rfpCompanyNid = _get_company_nid_by_group_content($rfpNode);
+  $rfpownerCompany = in_array( $user->uid, _get_company_users_by_group_content($rfpNode) );
+  if(!$rfpownerCompany){
+	$type = 'private';  
+  }
+  ctools_include('node.pages', 'node',  '');
+  $node = (object) array(
+    'uid' => $user->uid, 
+    'name' => (isset($user->name) ? $user->name : ''), 
+    'type' => 'clarification', 
+    'language' => LANGUAGE_NONE, 
+	'field_rfp_reference'=> array( 'und'=> array(0=> array('target_id'=>$rfpNode->nid)) ), 
+	'field_message_type'=> array( 'und'=> array(0=> array('value'=>$type)) ), 
+	'status' => 1, 
+	'choose_company_options' => $recipientOptions, 
+  );
+  if((!$rfpownerCompany) && $rfpCompanyNid && is_numeric($rfpCompanyNid)){
+	$node->field_recipient_company['und'][0]['target_id'] = $rfpCompanyNid;
+  }
+  /*if($company && is_object($company)){
+	$node->og_group_ref['und'][0]['target_id'] = $company->nid;  
+  }*/
+  if($type=='private' && $rfpownerCompany){
+	$recipientOptions = get_invited_users_mapping_rfp($rfpNode);
+	$node->choose_company_options = $recipientOptions;  
+  }
+  
+  /*echo '<pre>';
+  print_r($node);
+  die;*/
+  /*if(isset($_REQUEST['event']) && $_REQUEST['event']=='forward' && isset($_REQUEST['cnid']) && is_numeric($_REQUEST['cnid'])){
+	$cnode = node_load($_REQUEST['cnid']);
+	$node->title = 'Fwd:'.$cnode->title;
+	$node->body['und'][0]['value'] = br2nl('<br><br>Forwarded from message received on '.date('m/d/Y H:i:s', $cnode->created).'<br>').$cnode->body['und'][0]['value'];
+	if(isset($cnode->field_clarification_attachment['und']) && !empty($cnode->field_clarification_attachment['und'])){
+	  foreach($cnode->field_clarification_attachment['und'] as $delta => $fileArr){
+		$objFile = file_copy((object)$fileArr, 'temporary://',  FILE_EXISTS_RENAME);
+		$objFile->status=0;
+		file_save($objFile);
+		$node->field_clarification_attachment['und'][$delta]=(array)$objFile;  
+	  }
+	  //Fwd:
+	}
+  }
+  if(isset($_REQUEST['attr']) && is_numeric($_REQUEST['attr'])){
+	//$node->  
+  }*/
+  $form_state = array(
+	'ajax' => TRUE, 
+	'title' => ($type != 'public')?'Send Private Clarification Message':'Send Clarification Request', 
+	'clarification_type' => $type, 
+	'clarification_rfpownerCmp' => $rfpCompanyNid, 
+	'clarification_isRFPCmpuser' => $rfpownerCompany, 
+	'clarification_RFPNode' => $rfpNode, 
+	'field_recipient_company'=> $rfpCompanyNid, 
+  );
+  
+  /*****Changed*****/
+  //$rfpOwner = in_array( $user->uid, _get_current_company_users($rfpNode->uid) );
+  $rfpOwner = in_array( $user->uid, _get_company_users_by_group_content($rfpNode) );
+  if(!$rfpOwner){
+	$form_state['title'] =  'Send Clarification Request'; 
+  }
+  
+  
+  $form_state['build_info']['args'] = array( $node );
+  if(!$ajax) {
+	return drupal_get_form('clarification_node_form', $node);
+  }
+  ctools_include('modal');
+  ctools_include('ajax');
+  $output = ctools_modal_form_wrapper('clarification_node_form',  $form_state);
+  $output[0]['output'] = '<h3 class="clarification-form-title">'.$form_state['title'].'</h3>'.$output[0]['output'];
+  /*$autocomplete_script_path = drupal_get_path('module',  'm6connect_clarification').'/js/autocomplete_recipient.js';
+  $output[0]['output'] .= '<script src="/'.$autocomplete_script_path.'" type="text/javascript"></script>';*/
+  if (!empty($form_state['ajax_commands'])) {
+	$output = $form_state['ajax_commands'];
+  }
+  print ajax_render($output);
+  drupal_exit();
+}
+
+function br2nl($string)
+{
+    return preg_replace('/\<br(\s*)?\/?\>/i', "\n",  $string);
+} 
+
+
+function get_company_form_email_ajax(){
+  $return = array( 'status'=>0, 'cmpnid'=>'' );
+  $term = (isset($_REQUEST['term']) && !empty($_REQUEST['term']))?$_REQUEST['term']:'';
+  if(!valid_email_address($term))	{
+	drupal_json_output($return);
+    drupal_exit();   
+  }
+  if(isset($_REQUEST['check']) && $_REQUEST['check']!=''){
+	$temp = trim($_REQUEST['check']);
+	if(is_numeric($temp)){
+	  $rfpNid = $temp;
+	}
+  }
+  if(!is_numeric($rfpNid)){
+	drupal_json_output($return);
+    drupal_exit();  
+  }
+  $is_public = get_rfp_invited_companies_nids($rfpNid);
+  if($is_public && is_array( $is_public) ){
+	foreach($is_public as $index => $userCmpNid){
+	  $cmpNode = node_load($userCmpNid);
+	  $userDetails = _get_company_users_details_by_companyNid_autocomplete($term,$cmpNode->nid,$cmpNode, $emailFixed=TRUE);
+	  if($userDetails && is_array( $userDetails) && !empty($userDetails) ){
+		$return['status'] = 1;
+		$return['email'] = $userDetails[0]->mail;
+		$return['uid'] = $userDetails[0]->uid;
+		$return['cmpnid'] = _get_user_company_nid($userDetails[0]->uid);
+	  }
+	}
+  }
+  drupal_json_output($return);
+  drupal_exit();
+}
+
+function get_company_detail_ajax(){
+  $companies = array( );
+  $rfpNid='';
+  $term = (isset($_REQUEST['term']) && !empty($_REQUEST['term']))?$_REQUEST['term']:'';
+  if(isset($_REQUEST['check']) && $_REQUEST['check']!=''){
+	$temp = trim($_REQUEST['check']);
+	if(is_numeric($temp)){
+	  $rfpNid = $temp;
+	}
+  }
+  //$rfpNid = (isset($_REQUEST['check']) && !empty(trim($_REQUEST['check'])) && is_numeric(trim($_REQUEST['check'])))?trim($_REQUEST['check']):'';
+  if(!is_numeric($rfpNid)){
+	drupal_json_output($companies);
+    drupal_exit();
+  }
+  
+  $is_public = get_rfp_invited_companies_nids($rfpNid);
+  $cmpNid = _get_user_company_nid();
+  $query =  db_select('node',  'n');
+  //$query->join('users', 'u',  'u.uid = n.uid');
+  $query->fields('n', array( 'nid','uid', 'title') );
+  $query->condition('n.type', 'organization', '=');
+  if($is_public && is_array( $is_public) ){
+	$query->condition('n.nid', array_values($is_public), 'IN');
+  }
+  if($cmpNid && is_numeric($cmpNid)){
+    $query->condition('n.uid', array( $cmpNid), 'NOT IN' );
+  }
+  if($term){
+	$query->condition('n.title','%'. db_like($term) . '%',  'LIKE');
+	$query->orderBy('title',  'ASC');
+  }
+  $result = $query->execute()->fetchAll();
+  if($result && is_array( $result) && !empty($result) ){
+	$companies = array( );
+    foreach($result as $delta => $cmpy){
+	  $cmpyNode = node_load($cmpy->nid);
+	  $cmpuAdmin = user_load($cmpyNode->uid);
+	  $userName = _get_user_full_name($cmpy->uid, $cmpuAdmin);
+	  $imagePath ='<i class="fa fa-building"></i>';
+	  if(isset($cmpyNode->field_logo['und']) && !empty($cmpyNode->field_logo['und'][0]['uri'])){
+		$imagePath = image_style_url('autocomplete_company_logo', $cmpyNode->field_logo['und'][0]['uri']);
+		$imagePath = '<img src="'.$imagePath.'" />';  
+	  }
+	  // Add Company in Clarification AutoComplete
+	  $companies[] = array(
+	    'label'=> $cmpy->title.' - '.$userName, 
+		'value'=> $cmpy->nid, 
+		'image'=> $imagePath, 
+	  );
+    }
+  }
+  if($is_public && is_array( $is_public) ){
+	foreach($is_public as $index => $userCmpNid){
+	  $cmpNode = node_load($userCmpNid);
+	  $userDetails = _get_company_users_details_by_companyNid_autocomplete($term,$cmpNode->nid, $cmpNode);
+	  if($userDetails && is_array( $userDetails) && !empty($userDetails) ){
+		$imagePath ='<i class="fa fa-building"></i>';
+	    if(isset($cmpyNode->field_logo['und']) && !empty($cmpyNode->field_logo['und'][0]['uri'])){
+		  $imagePath = image_style_url('autocomplete_company_logo', $cmpyNode->field_logo['und'][0]['uri']);
+		  $imagePath = '<img src="'.$imagePath.'" />';  
+		}
+		foreach($userDetails as $userkey => $usrobj){
+		  $userName = _get_user_full_name($usrobj->uid);  
+		  $companies[] = array(
+	        'label'=> $usrobj->mail.' - '.$userName, 
+	        'value'=> $cmpNode->nid, 
+	        'image'=> $imagePath, 
+          );
+		}
+	  }
+	}
+  }
+  $label = array( );
+  foreach ($companies as $key => $row) {
+    $label[$key]  = strtolower($row['label']);
+  }
+  array_multisort($label, SORT_ASC,  $companies);
+  drupal_json_output($companies);
+  drupal_exit();	
+}
+
+function _get_company_users_details_by_companyNid_autocomplete($term,$cmpNid,$cmpNode='', $emailFixed=FALSE){
+  if($cmpNode==''){
+    $cmpNode = node_load($cmpNid);
+  }
+  if($term){
+    $companyusers = get_company_users_list_by_uid($cmpNode->uid);
+    $query =  db_select('users',  'u');
+    $query->fields('u', array( 'uid', 'mail') );
+	if($emailFixed){
+	  $query->condition('u.mail', $term,  '=');		
+	}else{
+	  $query->condition('u.mail', db_like($term) . '%',  'LIKE');	
+	}
+    $query->condition('u.status', 1 ,  '=');
+    $query->condition('u.uid', array_values($companyusers), 'IN');
+    $rerult = $query->execute()->fetchAll();
+    if($rerult && is_array( $rerult) && !empty($rerult) ){
+	  return $rerult;   
+    }
+  }
+  return array( );
+}
+
+function get_rfp_invited_companies_nids($rfpNid){	
+  $return = array( );
+  $return[] =0;
+  $rfpNode = node_load($rfpNid);
+  if(isset($rfpNode->field_public['und']) && $rfpNode->field_public['und'][0]['value']==1){
+	return FALSE;  
+  }
+  $invitedCompany =  get_rfp_invited_companies_or_emails_nids($rfpNid);
+  if($invitedCompany && is_array( $invitedCompany) && !empty($invitedCompany) ){
+	foreach($invitedCompany as $index => $nidEmail){
+	  if(is_numeric($nidEmail) && !in_array( $nidEmail,  $return) ){
+		$return[] = $nidEmail;  
+	  }else{
+		$inviUser = user_load_by_mail($nidEmail);
+		if($inviUser && is_object($inviUser)){
+		  $companyNid = _get_user_company_nid($inviUser->uid);
+		  if($companyNid && is_numeric($companyNid) && !in_array( $companyNid,  $return) ){
+			$return[] = $companyNid;  
+		  }
+		}
+	  }
+	}
+  }
+  return $return;
+}
+
+function get_rfp_invited_companies_or_emails_nids($rfpNid){	
+  $query = db_select('node',  'n');
+  $query->leftJoin('field_data_field_rfp_invite_comapnies', 'ric',  'n.nid = ric.entity_id');
+  $query->leftJoin('field_data_field_rfp_company_nid_email', 'rcne',  'ric.field_rfp_invite_comapnies_value = rcne.entity_id');
+  $query->leftJoin('field_data_field_rfp_invite_status', 'ris',  'ric.field_rfp_invite_comapnies_value = ris.entity_id');
+  $query->distinct()
+		->fields('rcne',  array( 'field_rfp_company_nid_email_value') )
+		->condition('ris.field_rfp_invite_status_value',0, '=')
+		->condition('n.type','rfp', '=')
+		->condition('n.nid',$rfpNid, '=')
+		->condition('n.status',1, '=');
+		
+  $result = $query->execute()->fetchCol();
+  if($result && is_array( $result) && !empty($result) ){
+	$return = array_filter(array_map('trim',  $result));
+	return $return;  
+  }
+  return array( );
+}
+
+
+function get_invited_companies_from_rfp_nid($nid){
+  $node = node_load($nid);
+  $cmpNid = array( );
+  if(isset($node->field_public['und']) && $node->field_public['und'][0]['value']==1){
+	return $cmpNid; 
+  }else{
+	if(isset($node->field_rfp_invite_comapnies['und']) && count($node->field_rfp_invite_comapnies['und'])>0){
+	  foreach($node->field_rfp_invite_comapnies['und'] as $delta => $itemid){
+		$fc = field_collection_item_load($itemid['value']);
+		if(isset($fc->field_rfp_company_nid_email['und']) && is_numeric($fc->field_rfp_company_nid_email['und'][0]['value'])){
+		  $cmpNid[] =$fc->field_rfp_company_nid_email['und'][0]['value'];	
+		}  
+	  }
+	}
+  }
+  return '';
+}
+
+/*function get_company_location_by_company_nid($cnid){
+  $location = '';
+  if($cnid && is_numeric($cnid)){
+    $cmpNode = node_load($cnid);
+	if($cmpNode && is_object($cmpNode) && isset($cmpNode->type) && $cmpNode->type=='organization' && isset($cmpNode->field_org_address['und'][0])) {
+	  if(!empty($cmpNode->field_org_address['und'][0]['locality'])) {	
+		$location .= $cmpNode->field_org_address['und'][0]['locality'];
+	  }
+	  if(!empty($cmpNode->field_org_address['und'][0]['administrative_area'])) {	
+		$location .= '  '.$cmpNode->field_org_address['und'][0]['administrative_area'];
+	  }
+	}
+  }
+  return $location;	
+}*/
+
+function get_company_location_by_company_nid($cnid){
+  $location = '';
+  if($cnid && is_numeric($cnid)){
+    $cmpNode = node_load($cnid);
+	if($cmpNode && is_object($cmpNode) && isset($cmpNode->type) && $cmpNode->type=='organization') {
+	  $location = _get_company_region_address($cmpNode);
+	}
+  }
+  return $location;	
+}
+
+function mymodule_download_file($file) {
+  if($file) {
+	$headers = array(
+	  'Content-Type'              => 'force-download', 
+	  'Content-Disposition'       => 'attachment; filename="' . $file->filename . '"', 
+	  'Content-Length'            => $file->filesize, 
+	  'Content-Transfer-Encoding' => 'binary', 
+	  'Pragma'                    => 'no-cache', 
+	  'Cache-Control'             => 'must-revalidate, post-check=0, pre-check=0', 
+	  'Expires'                   => '0', 
+	  'Accept-Ranges'             => 'bytes'
+	);
+    file_transfer($file->uri,  $headers);
+  }
+  else {
+    return drupal_access_denied();
+  }
+}
+
+function set_claification_read_flag_for_company_user($clarificationNode){
+  global $user;
+  $flag = flag_get_flag('clarifiction_read');
+  /*****Changed*****/
+  //$cmpyUser = _get_current_company_users($user->uid);
+  $cmpyUser = _get_company_users_by_group_content($clarificationNode);
+  if($cmpyUser && is_array( $cmpyUser) && !empty($cmpyUser) )	{
+	 foreach($cmpyUser as $delta => $userUid){
+		if($flag && !$flag->is_flagged($clarificationNode->nid,  $userUid)){
+		  $flag->flag('flag', $clarificationNode->nid,  user_load($userUid)); 
+		}  
+	 }
+  }else{
+	 if($flag && !$flag->is_flagged($clarificationNode->nid)){
+	   $flag->flag('flag',  $clarificationNode->nid); 
+     }   
+  }
+}
+
+
+function _get_comppany_diversity_names($cmpNid){
+  $diversityNames = array( );
+  $cmpNode = node_load($cmpNid);
+  if(isset($cmpNode->field_diversity_credentials['und']) && !empty($cmpNode->field_diversity_credentials['und']) && count($cmpNode->field_diversity_credentials['und'])>0){
+	foreach($cmpNode->field_diversity_credentials['und'] as $delta => $value){
+	  $diversityNames[] = _get_title_of_node($value['target_id']);
+	}
+  }
+  return implode('<br>', $diversityNames); 
+}
+
+//********************************************************************************************************************************************//
+//**********************************************************************  Proposal ***********************************************************//
+//********************************************************************************************************************************************//
+function rfp_proposal_content($rfpNode=''){
+  /*****Changed*****/
+  global $user, $company;
+    
+  if(arg(0)=='node' && is_numeric(arg(1))){
+	/*****Changed*****/
+	//$cmpyUser = _get_current_company_users();
+	$cmpyUser = _get_company_users_by_group_company($company);
+	$node = node_load(arg(1));
+    $cmpcall2 = in_array( $user->uid,  m6connect_projects_uids_from_list($node) );
+	if(!is_user_administrator() && (!is_array( $cmpyUser) || (is_array($cmpyUser) && !in_array($node->uid, $cmpyUser)) ) && !($cmpcall2) ){
+	  return '';
+	}
+  }
+  $output = '<div class="cust-proposal-content">';
+  $output .= '<div id="cust-proposal-lists">';
+  $output .= '<div class="rfp-proposal-section" id="rfp-proposal-section">';
+  $output .= views_embed_view('rfp_proposal_data', 'page',  arg(1));
+  $output .= '</div></div></div>';
+  return $output;
+}
+
+function get_proposal_nodes_detail_from_rfp($rfpNid){
+  if(is_numeric($rfpNid)){
+	$query = db_select('node',  'n');
+	$query->join('field_data_field_rfp', 'f',  'n.nid = f.entity_id');
+	$result = $query->fields('n', array( 'nid', 'title') )
+		  ->condition('n.type', 'proposal', '=')
+		  ->condition('f.field_rfp_target_id', $rfpNid, '=')
+		  ->execute()->fetchAllKeyed(0, 1);
+	return $result; 	
+  }else{
+	return array( );  
+  }
+}
+
+function get_public_or_invited_rfp_nids(){
+  global $user;
+  $companyNid = _get_user_company_nid();
+  if($companyNid && is_numeric($companyNid)){
+	$dbor = db_or()->condition('p.field_public_value', 1, '=')
+				   ->condition('rcne.field_rfp_company_nid_email_value', $companyNid, '=')
+				   ->condition('rcne.field_rfp_company_nid_email_value', $user->mail,  '=');
+	$query = db_select('node',  'n');
+	$query->leftJoin('field_data_field_public', 'p',  'n.nid = p.entity_id');
+	$query->leftJoin('field_data_field_rfp_invite_comapnies', 'ric',  'n.nid = ric.entity_id');
+	$query->leftJoin('field_data_field_rfp_company_nid_email', 'rcne',  'ric.field_rfp_invite_comapnies_value = rcne.entity_id');
+	$query->leftJoin('field_data_field_rfp_invite_status', 'ris',  'ric.field_rfp_invite_comapnies_value = ris.entity_id');
+	$query->distinct()
+	      ->fields('n',  array( 'nid') )
+		   ->condition('ris.field_rfp_invite_status_value',0, '=')
+		   ->condition('n.type','rfp', '=')
+		   ->condition('n.status',1, '=')
+		   ->condition($dbor);	 
+	$result =	$query->execute()->fetchCol();
+	return $result;
+  }else if(is_user_administrator()){
+	$query = db_select('node',  'n');
+	$query->leftJoin('field_data_field_public', 'p',  'n.nid = p.entity_id');
+	$query->distinct()
+	      ->fields('n',  array( 'nid') )
+		  ->condition('p.field_public_value', 1, '=')
+		   ->condition('n.type','rfp', '=')
+		   ->condition('n.status',1, '='); 
+	$result =	$query->execute()->fetchCol();
+	return $result;  
+  }else{
+	 array( ); 
+  }
+}
+
+function get_rfp_document_download($form, $form_state){
+  /*****Changed*****/
+  global $user, $company;	
+  $node =  node_load(arg(1));
+  $nid = arg(1);
+  $entered = 0;
+  $options = array( );
+  $header = array(
+	'document_name' => array( 'data' => t('Document Name') ), 
+	'document_type' => array( 'data' => t('Document Type') ), 
+	'document_comment' => array( 'data' => t('Document Comment') ), 
+	'document_timestamp'=> array( 'data' => t('Uploaded At') ), 
+  );
+  if(isset($node->field_rfp_documents['und']) && is_array( $node->field_rfp_documents['und']) && !empty($node->field_rfp_documents['und']) ){
+	foreach($node->field_rfp_documents['und'] as $deleta => $itemVal){
+	  $item = field_collection_item_load($itemVal['value']);
+	  if(isset($item->field_rfp_document['und']) && !empty($item->field_rfp_document['und'])){
+		$entered = 1;
+		$documentcomment = isset($item->field_rfp_comments['und'])?$item->field_rfp_comments['und'][0]['value']:'';
+		$documentType = isset($item->field_rfp_document_type['und'])?$item->field_rfp_document_type['und'][0]['value']:'';
+		foreach($item->field_rfp_document['und'] as $index => $data){
+		  $options[$data['fid']] = array(
+			/*'document_name' => array(
+			  'data' => array(
+				'#type' => 'link', 
+				'#title' => isset($item->field_rfp_document['und'])?$item->field_rfp_document['und'][0]['filename']:'', 
+				'#href' => 'download-file/'.$item->field_rfp_document['und'][0]['fid'], 
+			  ), 
+			), */
+			/*'document_name' => (isset($item->field_rfp_document['und']) && isset($item->field_rfp_document['und'][$index]))?$item->field_rfp_document['und'][$index]['filename']:'', 
+			'document_type' => isset($item->field_rfp_document_type['und'])?$item->field_rfp_document_type['und'][0]['value']:'', 
+			'document_comment' => isset($item->field_rfp_comments['und'])?$item->field_rfp_comments['und'][0]['value']:'', 
+			'#attributes' => array( 'class' => array('document-view-row') ), */
+			'document_name' => $data['filename'], 
+			'document_type' => $documentType, 
+			'document_comment' => $documentcomment, 
+			'document_timestamp' => date('F d, Y H:i A T',$data['timestamp']), 
+			'#attributes' => array( 'class' => array('document-view-row') ), 
+		
+		  );
+		}
+	  }
+	}
+  } 
+  $form['tableselet'] = array(
+	'#type' => 'tableselect', 
+	'#header' => $header, 
+	'#options' => $options, 
+	'#empty' => t('No Document available.'), 
+	'#attributes' => array( 'class'=> array('table','document-view-rfp') ), 
+  );
+  if($entered){
+    $form['download-selected'] = array(
+      '#markup' => '<input type="button" value="Download Selected documents" class="btn btn-default form-submit download-selected-documents is-rfp-documents" onclick="jQuery(this).focusout();" /><span class="rfpNode-nid-hidden"><input type="hidden" value="'.$node->nid.'" class="rfpNode-nid"><input type="hidden" value="'.$user->uid.'" class="agreeduser-uid"></span>', 
+      '#prefix' => '<div class="download-document-section">', 
+      '#suffix' => '</div>', 
+    );
+  }
+  
+  
+  /*****Changed*****/
+  //$CompNid = _get_user_company_nid();
+  //$CompName = node_load($CompNid)->title;
+  $CompNid = $company->nid;
+  $CompName = $company->title;
+  
+  $notAvailabeFree = check_rfp_document_popup_required($node);
+  drupal_add_js(array( 'm6connect_rfp' => array('mupgrade_dialog_js' => 1,'not_available_free' => $notAvailabeFree)),  'setting' );
+  
+  $form['#attached']['library'][] = array( 'system',  'ui.dialog' );
+  $form['membership-upgrade-confirm-dialog'] = array(
+    '#markup' => '<div>
+  <div class="text-center">
+    <div class="dialog-heading"><strong>Membership Upgrade Required</strong></div>
+    <div class="dialog-description"><br />Your company, '.$CompName.',  agrees that you will purchase a Gold M6Connect membership if you receive the Notice of Award email for this work.</div>
+  </div>
+  <div class="form-element"><input type="checkbox" value="1" id="hide-mupgrade-access-popup" /><strong>&nbsp;&nbsp;Do not show in the future.</strong></div>
+  <span class="data-id" style="display:none;">'.$nid .'</span>
+<div>', 
+    '#prefix' => '<div id="membership-upgrade-confirm">', 
+    '#suffix' => '</div>', 
+  );
+  return $form;
+}
+
+function get_clarification_document_download($form,$form_state, $clarificationNode){
+  $form['#attributes'] = array(
+    'id' => 'clarification-document-download-form', 
+	'class' => array( 'clarification-document-download-form' ), 
+  );
+  $entered = 0;
+  $options = array( );
+  $header = array(
+	'document_name' => array( 'data' => t('Document Name') ), 
+	'document_type' => array( 'data' => t('Type') ), 
+	'document_upload' => array( 'data' => t('Upload Date') ), 
+  );
+  if(isset($clarificationNode->field_clarification_attachment['und']) && !empty($clarificationNode->field_clarification_attachment['und'])){
+	foreach($clarificationNode->field_clarification_attachment['und'] as $delta => $fileObj){
+	   $info = pathinfo($fileObj['filename']);
+	   $filePath = l($info['filename'], 'download-file/'.$fileObj['fid']);  //array( 'attributes'=> array('target'=>'_blank') )
+	   $entered = 1;
+	   //$options[$fileObj['fid']] = array( $filePath, theme_file_icon(array('file'=>(object)$fileObj,'icon_directory'=> NULL)), date('m/d/Y H:i A', $fileObj['timestamp']) ); 
+	   $options[$fileObj['fid']] = array(
+		  'document_name' => $filePath, 
+		  'document_type' => theme_file_icon(array( 'file'=>(object)$fileObj,'icon_directory'=> NULL) ), 
+		  'document_upload' => date('m/d/Y H:i A',$fileObj['timestamp']), 
+		  '#attributes' => array( 'class' => array('document-view-row') ), 
+		);
+	}
+  } 
+  $form['tableselet'] = array(
+	'#type' => 'tableselect', 
+	'#header' => $header, 
+	'#options' => $options, 
+	'#empty' => t('No Document available.'), 
+	'#attributes' => array( 'class'=> array('calrification-document-table','table','table-bordered'), 'id' => 'calrification-document-table' ), 
+  );
+  if($entered){
+    $form['download-selected'] = array(
+      '#markup' => '<input type="button" value="Download Selected documents" class="btn btn-default form-submit download-selected-documents" onclick="jQuery(this).focusout();" />', 
+      '#prefix' => '<div class="download-document-section-clarification"><span class="document-node-name" style="display:none;">'.$node->title.'</span>', 
+      '#suffix' => '</div>', 
+    );
+  }
+  return $form;
+}
+
+function document_download_by_fids(){
+  global $base_path,$base_url, $user;
+  $uid = uniqid();
+  $dir = 'sites/default/files/';
+  $fids = array( );
+  $check = 0;
+  $tsmp = time();
+  //$zipFilename = 'M6connect-'.$tsmp.'.zip';
+  $zipFilename = 'M6connect-'.$tsmp.'-'.$uid.'.zip';
+  $zip = new ZipArchive();
+  $zipname = $dir.$zipFilename; 
+  $zip->open( $zipname,  ZIPARCHIVE::CREATE | ZIPARCHIVE::OVERWRITE );
+  if(isset($_REQUEST['fids']) && !empty($_REQUEST['fids'])){
+	$fids =  $_REQUEST['fids']; 
+  }
+  if(!empty($fids)){
+	$result = file_load_multiple(array_values($fids));
+	if(is_array( $result) && !empty($result) ){
+	  foreach($result as $delta => $fileObj) {
+		$fileName = explode('.', $fileObj->filename);
+		$objFile = file_copy($fileObj, $destination = 'temporary://'.$fileName[0].$uid.'.'.$fileName[1],  $replace = FILE_EXISTS_RENAME);
+		$objFile->status=0;
+		file_save($objFile);
+		if($objFile){
+		   $path = drupal_realpath($objFile->uri);
+           if(file_exists($path)){
+		      $zip->addFile($path, $fileObj->filename);
+		      $check++;	
+		   }
+		}
+	  }
+    }
+  }
+  $zip->close();
+  if($check && file_exists($zipname)){
+	$file = file_save_data(file_get_contents($zipname), 'public://'.$zipFilename,  $replace = FILE_EXISTS_REPLACE);
+	$file->status=0;
+	$file_Url = str_replace($base_url.$base_path,'',  file_create_url($file->uri));
+	file_save($file);
+    drupal_goto($file_Url);
+  }
+  drupal_exit();
+}
+
+function document_download_by_fids_4(){
+  global $base_path, $base_url;
+  $dir = 'sites/default/files/';
+  $fids = array( );
+  $check = 0;
+  $tsmp = time();
+  $zipFilename = 'M6connect-'.$tsmp.'.zip';
+  $zip = new ZipArchive();
+  $zipname = $dir.$zipFilename;
+  //$scheme = file_default_scheme();
+  //$scheme = ($scheme == 'public')?'':$scheme.'/';
+  $zip->open( $zipname,  ZIPARCHIVE::CREATE | ZIPARCHIVE::OVERWRITE );
+  if(isset($_REQUEST['fids']) && !empty($_REQUEST['fids'])){
+	$fids =  $_REQUEST['fids']; 
+  }
+  if(!empty($fids)){
+	$result = file_load_multiple(array_values($fids));
+	
+	if(is_array( $result) && !empty($result) ){
+	  foreach($result as $delta => $fileObj) {
+		//echo '<pre>';
+		//$wrapper = file_stream_wrapper_get_instance_by_uri($fileObj->uri);
+		
+		//$realpath = $wrapper->realpath();
+		//$url = $wrapper->getExternalUrl();
+		//print_r($url);
+		//echo '<hr>';
+		//print_r($wrapper);
+		//die;
+		$fileObj = file_copy($fileObj, $destination = 'public://',  $replace = FILE_EXISTS_RENAME);
+		echo '<pre>';
+		print_r($fileObj);
+		die;
+		$uri = explode('://', $fileObj->uri);
+		$scheme = $uri[0];
+		$scheme = ($scheme == 'public')?'':$scheme.'/';
+		$path = 'sites/default/files/'.$scheme.$fileObj->filename;
+		
+		//$path = 'sites/default/files/CDS150.jpg';
+         if(file_exists($path)){
+		    $zip->addFile($path, $fileObj->filename);
+		    $check++;	
+		 }
+	  }
+    }
+  }
+  $zip->close();
+  if($check && file_exists($zipname)){
+	  $file_Url = $zipname;
+	//$file = file_save_data(file_get_contents($zipname), 'public://'.$zipFilename,  $replace = FILE_EXISTS_REPLACE);
+	
+	//$file->status=0;
+	//$file_Url = str_replace($base_url.$base_path,'',  file_create_url($file->uri));
+	//file_save($file);
+	 
+	ignore_user_abort(true);
+    set_time_limit(0);
+    header('Content-Type: application/zip');
+    header('Content-disposition: attachment; filename='.basename($file_Url));
+    header('Content-Length: ' . filesize($file_Url));
+    if(readfile($file_Url) !==FALSE || connection_aborted()){
+      //file_unmanaged_delete($file_Url);
+    }
+    //drupal_goto($file_Url);
+  }else{
+	  
+  }
+  drupal_exit();	
+}
+
+
+/**
+ * The batch callback.
+ */
+function my_module_batch_fix($vid, $csvNumber) {
+  //ini_set('max_execution_time',  0);
+  $_SESSION['mapping'] = array( );
+  set_time_limit(0);
+  $csvNames = array(
+    1=>'csv1.csv', 
+	2=>'csv2.csv', 
+	3=>'csv3.csv', 
+	4=>'csv4.csv', 
+	5=>'csv5.csv', 
+	45=> 'csv45.csv', 
+	50=>'JobTitles.txt', 
+  );
+  if(!in_array( $csvNumber,  array_keys($csvNames)) ){
+	return 'Not Valid Csv';  
+  }
+  $filePath = 'sites/all/modules/custom/m6connect_clarification/'.$csvNames[$csvNumber];
+  $csv = array_map('str_getcsv',  file($filePath));	
+  $batch = array(
+    'operations' => array( ), 
+    'finished' => 'my_module_batch_fix_finished', 
+    'title' => t('Batch fix'), 
+    'init_message' => t('Fix is starting...'), 
+    'progress_message' => t('Processed @current out of @total.'), 
+    'error_message' => t('Fix has encountered an error.')
+  );
+  /*$results = array( "Hello",  "World" );
+  foreach ($results as $result) {
+    $batch['operations'][] = array( 'my_module_batch_fix_process',  array($result) );
+  }*/
+  $mapping = db_select('taxonomy_term_data','t') ->fields('t', array( 'name','tid'))->condition('t.vid',16,'=')->execute()->fetchAllKeyed(0, 1 );
+  foreach($csv as $delta => $rows){
+	if($csvNumber!=50){
+	  $batch['operations'][] = array( 'my_module_batch_fix_process2', array($rows, $vid) );  
+	}else{
+	  $batch['operations'][] = array( 'my_module_batch_fix_process3', array(implode(',',$rows),$vid, $mapping) );  
+	}
+  }
+  //print $vid;
+ 
+  batch_set($batch);
+  batch_process('user'); // The path to redirect to when done.
+}
+
+/**
+ * The batch processor.
+ */
+function my_module_batch_fix_process($word,  &$context) {
+  // Do heavy lifting here...
+  // Display a progress message...
+  $context['message'] = "Now processing $word...";
+}
+
+/**
+ * The batch processor.
+ */
+
+function my_module_batch_fix_process3($rows,$vid,$mapping , &$context){
+  if(!isset($mapping[$rows])){
+    $termId = _create_new_texonomy_term($vid,$rows, 0);
+  }
+  $context['message'] = "Now processing $rows...";
+}
+ 
+function my_module_batch_fix_process2($rows,$vid , &$context) {
+  $mapping = $_SESSION['mapping'];
+  $termId ='';
+  $termName = '';
+  $parent = 0;
+  foreach($rows as $delta => $row){
+	if($delta == 0){
+	  continue;	
+	}
+	$row = str_replace("'",'', $row);
+	if(isset($mapping[$row])){
+	  $parent = $mapping[$row];	
+	}else{
+	  $termId = _create_new_texonomy_term($vid,$row, $parent);
+	  $termName = $row;
+	  $mapping[$row] = $termId;
+	  $_SESSION['mapping'] = $mapping;
+	}
+  }
+  $context['message'] = "Now processing $termName...";
+}
+
+/**
+ * The batch finish handler.
+ */
+function my_module_batch_fix_finished($success, $results,  $operations) {
+  if ($success) {
+    drupal_set_message('Fix is complete!');
+  }
+  else {
+    $error_operation = reset($operations);
+    $message = t('An error occurred while processing %error_operation with arguments: @arguments',  array(
+      '%error_operation' => $error_operation[0], 
+      '@arguments' => print_r($error_operation[1],  TRUE)
+    ));
+    drupal_set_message($message,  'error');
+  }
+  //unset($_SESSION['mapping']);
+  drupal_set_message(l('Run again',  'custom-batch-import'));
+}
+
+function _create_new_texonomy_term($vid,$catNameId, $parent){
+  $term = new stdClass();
+  $term->name = $catNameId;
+  $term->vid = $vid;
+  $term->parent = $parent;  
+  taxonomy_term_save($term);
+  return $term->tid;	
+}
+
+function _get_tid_from_term_name($vid, $name){
+  $query =  db_select('taxonomy_term_data',  't');
+  $query->fields('t',  array( 'tid') );
+  $query->condition('t.vid', $vid, '=');
+  $query->condition('t.name',$name, '=');
+  $result = $query->execute()->fetchCol();
+  if(is_array( $result) && count($result)>0 ){
+	return $result[0];  
+  }
+  return '';
+}
+
+function m6connect_clarification_node_presave($node){
+  if($node->type == 'clarification' && isset($node->is_new) && $node->is_new==1){
+	if($node->status ==0){
+	  $node->status =1;	
+	}
+	//Create Clarification Id
+	$clarificationId = _get_clarification_id($node);
+	if($clarificationId && is_numeric($clarificationId)){
+	  $node->field_clarification_id['und'][0]['value']= $clarificationId;
+	}
+	
+	//Fill Recipient
+	if($node->field_message_type['und'][0]['value']=='private'){
+	  if(!(isset($node->field_recipient_company['und']) && !empty($node->field_recipient_company['und'][0]['target_id']))){
+		foreach($node->field_choose_a_recipient_2['und'] as $deleta => $item){
+		  $node->field_recipient_company['und'][$deleta]['target_id']= $item['value'];	
+		}
+	  }
+    }
+  }
+}
+
+//Gentting new Id of the Clarification
+function _get_clarification_id($clarificationNode){
+  $nextClariFicationId = '';
+  if(isset($clarificationNode->field_rfp_reference['und']) && !empty($clarificationNode->field_rfp_reference['und'][0]['target_id'])){
+	$rfpNid = $clarificationNode->field_rfp_reference['und'][0]['target_id'];
+	//Getting Highest Clarification Id 
+	$nextClariFicationId = 1; 
+	$query =  db_select('node',  'n');
+	$query->leftJoin('field_data_field_rfp_reference', 'rfp',  'n.nid = rfp.entity_id');
+	$query->leftJoin('field_data_field_clarification_id', 'clar',  'n.nid = clar.entity_id');
+	$query->addExpression('MAX(CAST(clar.field_clarification_id_value AS UNSIGNED))',  'max_clarification_id');
+    $query->condition('rfp.field_rfp_reference_target_id', $rfpNid, '=');
+	$query->condition('n.type','clarification', '=');
+    $result = $query->execute()->fetchAssoc();
+	if($result && is_array( $result) && isset($result['max_clarification_id']) && !empty($result['max_clarification_id']) && is_numeric($result['max_clarification_id']) ){
+	  $nextClariFicationId = $result['max_clarification_id'];
+	  $nextClariFicationId++;
+	}
+  }
+  return $nextClariFicationId;
+}
+
+// Update existing Clarification ID,  only called for filst time (manually Called)
+/*function _update_existing_clarification_id(){
+  $query =  db_select('node',  'n'); 
+  $query->fields('n',  array( 'nid') );
+  $query->condition('n.type','clarification', '=');
+  $query->orderBy('created',  'ASC');
+  $result = $query->execute()->fetchCol();
+  if($result && is_array( $result) && !empty($result) ){
+	foreach($result as $delta => $nid){
+	  $node = node_load($nid);
+	  $clarificationId = _get_clarification_id($node);
+	  if($clarificationId && is_numeric($clarificationId)){
+	    $node->field_clarification_id['und'][0]['value']= $clarificationId;
+		node_save($node);
+	  }
+	}
+  }
+}*/
+
+function m6connect_clarification_flag_flag($flag, $entity_id, $account,  $flagging) {
+  
+  if($flag->entity_type =='node' && $flag->name=='interested'){
+    $node = node_load($entity_id);
+	if($node->type == 'project'){
+	  //$projectNodeUser = user_load($node->uid);
+	  //$to = $projectNodeUser->mail;
+	  $collbaratedUids = m6connect_projects_uids_from_list($node);
+	  $companyNid = _get_company_nid_by_group_content($node);
+	  $collbaratedUids[] = $node->uid;
+	  $collbaratedUids = array_unique($collbaratedUids);
+	  $recipientMailAddress = _get_multiple_user_company_email_realname_mapping($collbaratedUids,  $companyNid);
+	  $mailkey = 'project_mail___show_interest_in_project';
+      $params = _get_mail_variables($mailkey, $type = 'project', $node,  $other = array( ) );
+	  if(!empty($recipientMailAddress)){
+		foreach($recipientMailAddress as $collabateUserMail => $realname){
+		  $paramsTemp = $params;
+		  $paramsTemp['body'] = str_replace('[PROJECT:CollabaratedUserName]',$realname, $paramsTemp['body']);
+		  $return = drupal_mail($paramsTemp['module'], $paramsTemp['key'], $collabateUserMail, $paramsTemp['language'],  $paramsTemp);	
+		}
+	  }
+	}  
+  }
+  if($flag->entity_type =='field_collection_item' && $flag->name == 'project_bidding'){
+	$fieldCollection = entity_load_single('field_collection_item',  $entity_id);
+    $node = $fieldCollection->hostEntity();
+	if($node->type == 'project'){
+	  //$projectNodeUser = user_load($node->uid);
+	  //$to = $projectNodeUser->mail;
+	  $collbaratedUids = m6connect_projects_uids_from_list($node);
+	  $companyNid = _get_company_nid_by_group_content($node);
+	  $collbaratedUids[] = $node->uid;
+	  $collbaratedUids = array_unique($collbaratedUids);
+	  $recipientMailAddress = _get_multiple_user_company_email_realname_mapping($collbaratedUids,  $companyNid);
+	  $mailkey = 'project_mail___interested_bidding_project';
+      $params = _get_mail_variables($mailkey, $type = 'project', $node,  $other = array( ) );
+	  if(!empty($recipientMailAddress)){
+		foreach($recipientMailAddress as $collabateUserMail => $realname){
+		  $paramsTemp = $params;
+		  //$paramsTemp['body'] = str_replace('[PROJECT:CollabaratedUserName]',$realname, $paramsTemp['body']);
+		  $return = drupal_mail($paramsTemp['module'], $paramsTemp['key'], $collabateUserMail, $paramsTemp['language'],  $paramsTemp);	
+		}
+	  }
+      //$return = drupal_mail($params['module'], $params['key'], $to, $params['language'],  $params);
+	}
+  }
+}
+
+
+function _send_clarification_mail($clarificationNode){
+  global $user;
+
+  $return = array( );
+  $result = array( );
+  $type = $clarificationNode->field_message_type['und'][0]['value'];
+  $rfpNode = node_load($clarificationNode->field_rfp_reference['und'][0]['target_id']);
+  $rfpCompanyNid = _get_user_company_nid($rfpNode->uid);
+  /*****Changed*****/
+  //$clarificationCompanyNid = _get_user_company_nid($clarificationNode->uid);
+  $clarificationCompanyNid = _get_company_nid_by_group_content($clarificationNode);
+  if($type =='public'){
+	$invitedUsers =  _get_rfp_invited_companies_manager_uids_emails_by_nids($rfpNode->nid);
+    $biddingUsers=  _get_users_mails_list_of_rfp_bidding_flag($rfpNode->nid);
+	$allUserUids = array_merge((array)$invitedUsers,  (array)$biddingUsers);
+	$allUserUids = array_unique($allUserUids);
+	if($allUserUids && is_array( $allUserUids) && !empty($allUserUids) ){	
+	  $to = implode(',', $allUserUids);
+	  $mailKey ='clarification_mail___owner_public_clarification_msg'; 
+	  $params = _get_mail_variables($mailKey, $type = 'clarification', $clarificationNode,  $other = array( 'rfpNode'=>$rfpNode) );
+	  $return = drupal_mail($params['module'], $params['key'], $to, $params['language'], $params, $user->mail); 
+	}	  
+  }else if($type=='private'){
+	 //$recipientCmp = (isset($clarificationNode->field_recipient_company['und']) && !empty($clarificationNode->field_recipient_company['und'][0]['target_id']))?$clarificationNode->field_recipient_company['und'][0]['target_id']:'';
+	 if(isset($clarificationNode->field_recipient_company['und']) && !empty($clarificationNode->field_recipient_company['und'])){
+	   foreach($clarificationNode->field_recipient_company['und'] as $delta => $item){
+		 $recipientCmp = $item['target_id'];
+		 if($recipientCmp && is_numeric($recipientCmp)){ 
+		   $recipientCmpNode = node_load($recipientCmp);
+		   $recipientCmpOwner = user_load($recipientCmpNode->uid);
+		   $mailKey = ($rfpCompanyNid == $clarificationCompanyNid)?'clarification_mail___owner_private_clarification_msg':'clarification_mail___users_private_clarification_msg';
+		   $params = _get_mail_variables($mailKey, $type = 'clarification', $clarificationNode,  $other = array( 'rfpNode'=>$rfpNode) );
+		   $return = drupal_mail($params['module'], $params['key'], $recipientCmpOwner->mail, $params['language'], $params, $user->mail);
+		   	   			   
+		 }
+	   }
+	  
+	 }
+	 
+  }
+}
+
+function _get_users_mails_list_of_rfp_bidding_flag($rfpNid){
+  $result= array( );
+  $biddingFlag = flag_get_flag('rfps_bidding');
+  if($biddingFlag){
+	$query =  db_select('flagging',  'fl');
+	$query->leftJoin('users','u', 'fl.uid=u.uid');
+	$query->distinct()
+		   ->fields('u',  array( 'mail') )
+		   ->condition('fl.fid', $biddingFlag->fid, '=')
+		   ->condition('fl.entity_type','node', '=')
+		   ->condition('fl.entity_id',$rfpNid, '=');
+	$result = $query->execute()->fetchCol();
+  }
+  return $result;	
+}
+
+function _get_rfp_invited_companies_manager_uids_emails_by_nids($rfpNid){	
+  $return = array( );
+  $query = db_select('node',  'n');
+  $query->leftJoin('field_data_field_rfp_invite_comapnies', 'ric',  'n.nid = ric.entity_id');
+  $query->leftJoin('field_data_field_rfp_company_nid_email', 'ricne',  'ric.field_rfp_invite_comapnies_value = ricne.entity_id');
+  $query->leftJoin('field_data_field_co_invite_manager_uid', 'ricmu',  'ric.field_rfp_invite_comapnies_value = ricmu.entity_id');
+  $query->leftJoin('field_data_field_rfp_invite_status', 'ris',  'ric.field_rfp_invite_comapnies_value = ris.entity_id');
+  $query->distinct()
+        ->fields('ricne',  array( 'field_rfp_company_nid_email_value') )
+		->fields('ricmu',  array( 'field_co_invite_manager_uid_value') )
+		->condition('ris.field_rfp_invite_status_value',0, '=')
+		->condition('n.type','rfp', '=')
+		->condition('n.nid',$rfpNid, '=')
+		->condition('n.status',1, '=');	
+  $result = $query->execute()->fetchAll();
+  //return $result;
+  $userUids = array( );
+  $usermails = array( );
+  if($result && is_array( $result) && !empty($result) ){
+	 foreach($result as $delta => $datas){
+	   $cmpnidEmail = trim($datas->field_rfp_company_nid_email_value);
+	   $cmpmgruids = trim($datas->field_co_invite_manager_uid_value);
+	   if(!empty($cmpnidEmail)){
+		  if(is_numeric($cmpnidEmail) && !empty($cmpmgruids)){
+			$mangerUids = array_filter(explode(',', $cmpmgruids));
+			$userUids = array_merge((array)$userUids,  (array)$mangerUids);  
+		  }else{
+			$usermails[] = $cmpnidEmail;  
+		  }
+	   }
+	 }
+	 if(!empty($userUids)){
+	   $query =  db_select('users',  'u');
+	   $query->fields('u',  array( 'mail') )
+	        ->condition('u.uid',$userUids, 'IN');
+       $return = $query->execute()->fetchCol(); 
+	 }
+	 $return = array_merge((array)$return,  (array)$usermails);
+  }
+  return array_unique($return);
+}
+
+function is_user_or_company_has_subscription($uid){
+  $status = array( 'status' => 0 );
+  $usr = user_load($uid);
+  if (isset($usr->roles[7]) || isset($usr->roles[8]) || isset($usr->roles[9]) || isset($usr->roles[14])) {
+    $status['status'] = 1;
+  }	
+  if ($status['status'] != 1) {
+    $usercmpNid = _get_user_company_nid($uid);
+    if ($usercmpNid && is_numeric($usercmpNid)) {
+      $usercmpNode = node_load($usercmpNid);
+      $usercmpAdminUser = user_load($usercmpNode->uid);
+      if (isset($usercmpAdminUser->roles[7]) || isset($usercmpAdminUser->roles[8]) || isset($usercmpAdminUser->roles[9]) || isset($usercmpAdminUser->roles[14])) {
+        $status['status'] = 1;
+      }
+    }
+  }
+  return $status['status'];
+}
+
+function rfp_agreed_user($rfpnid, $agreeduid,  $hide_popup){
+  $query = db_select('field_revision_field_subscription_agreed_user',  'au');
+  $query->fields('au',  array( 'entity_id') )
+    ->condition('au.entity_id', $rfpnid,  '=')
+    ->condition('au.field_subscription_agreed_user_target_id', $agreeduid,  '=');
+  $result = $query->execute()->fetchAll();
+  if (!($result && is_array( $result) && !empty($result) && count($result) > 0) ) {	
+    $node = node_load($rfpnid);
+    $node->field_subscription_agreed_user[$node->language][]['target_id'] = $agreeduid; 
+    node_save($node); 
+  }
+  // hide popup on document download popup
+  //$hide_popup = (isset($_REQUEST['hide_popup']) && $_REQUEST['hide_popup'])?1:0;
+  if(db_table_exists('m6connect_rfp_agreed_membership_payment')){
+	$keys = array( 'uid'=>$agreeduid, 'entity_id'=>$rfpnid );
+	$fields = array( 'uid'=>$agreeduid,'entity_id'=>$rfpnid, 'hide_doc_popup'=>$hide_popup );
+	db_merge('m6connect_rfp_agreed_membership_payment')->key($keys)->fields($fields)->execute();
+	//$_SESSION['rfp_access_'.$node->nid.'_'.$user->uid] =1;
+  }
+  exit();	
+}
+
+function get_invited_users_mapping_rfp($entityNode){
+  $options = array( );
+  if(isset($entityNode->field_rfp_invite_comapnies['und']) && !empty($entityNode->field_rfp_invite_comapnies['und'])){
+	foreach($entityNode->field_rfp_invite_comapnies['und'] as $delta => $item){
+	  $fc = field_collection_item_load($item['value']);
+	  $inviteddata = (isset($fc->field_rfp_company_nid_email['und'])) ? trim($fc->field_rfp_company_nid_email['und'][0]['value']) : '';
+	  if(!empty($inviteddata)){
+		if(is_numeric($inviteddata)){
+		  $cmpNode = node_load($inviteddata);
+		  $compMgr = isset($fc->field_co_invite_manager_uid['und']) ? explode(',',  $fc->field_co_invite_manager_uid['und'][0]['value']) : array( );
+		  $compMgr = array_filter(array_map('trim', $compMgr));
+		  $mgrName = array( );
+		  foreach($compMgr as $index => $cmpUid){
+			$mgrName[] = _get_user_full_name($cmpUid);  
+		  }
+		  if(!empty($mgrName)){
+			$key_val = $cmpNode->nid;
+			$options[$key_val] .= $cmpNode->title;  
+		  }
+		}else{
+		  $mgrMail = trim($fc->field_rfp_company_nid_email['und'][0]['value']);
+		  if($mgrUser = user_load_by_mail($mgrMail)){
+			/***** Changed *****/
+			/*$cmpNid =  _get_user_company_nid($mgrUser->uid); 
+			if($cmpNid && is_numeric($cmpNid)){
+			  $cmpNode = node_load($cmpNid);
+			  $key_val = $cmpNode->nid;
+			  $options[$key_val] = $cmpNode->title;
+			}*/
+			$cmpNid = _get_individual_company_by_uid($mgrUser->uid);
+			if($cmpNid && is_numeric($cmpNid)){
+			  $key_val = $cmpNid;
+			  $options[$key_val] = $mgrUser->mail.'(Individual)';
+			}
+		  }
+		}
+	  }
+	}
+  }
+  return $options;		
+}
+
+/*function rfp_upgrade_popup_status($nid, $uid,  $type = 'node'){
+  $status = 0;	
+  $query = db_select('m6connect_rfp_agreed_membership_payment',  'mp');
+  $query->fields('mp')
+    ->condition('mp.entity_id', $nid,  '=')
+    ->condition('mp.uid', $uid,  '=');
+  $result = $query->execute()->fetchAll();
+  if ($result && count($result) > 0) {
+    foreach($result as $k=>$v){ //pre($v);
+	  if($type == 'doc') {	
+	    $status = $v->hide_doc_popup;	
+	  } else {
+	    $status = $v->hide_popup;	  
+	  }
+	}
+  }
+  return $status;
+}*/
+
+function check_rfp_document_popup_required($node) {
+  /*****Changed*****/
+  global $user, $company;
+  $entity_nids = array( );
+  $status = 1;
+  $nodeAceessByCompnayRoles = array( );
+  $nodeAceessByuUserRoles = array_intersect(array_keys($user->roles), array( 3, 6, 7, 8, 9,  14) );
+  /*****Changed*****/
+  //$companyusers = get_company_users_list_by_uid($node->uid);
+  //$usercmpNid = _get_user_company_nid($user->uid);
+  $companyusers = _get_company_users_by_group_content($node);
+  $usercmpNid = $company->nid;
+  if ($usercmpNid && is_numeric($usercmpNid)) {
+	/*****Changed*****/
+	//$usercmpNode = node_load($usercmpNid);
+	//$usercmpAdminUser = user_load($usercmpNode->uid);
+	$usercmpNode = $company;
+	$usercmpAdminUser='';
+	if($user->uid == $usercmpNode->uid){
+	  $usercmpAdminUser = $user;	
+	}else{
+	  $usercmpAdminUser = user_load($usercmpNode->uid);
+	}
+	$nodeAceessByCompnayRoles = array_intersect(array_keys($usercmpAdminUser->roles), array( 7, 8, 9,  14) );
+  }
+  if (($user->uid == $node->uid) || in_array( $user->uid,  $companyusers) || !empty($nodeAceessByuUserRoles) || !empty($nodeAceessByCompnayRoles) || (isset($node->field_public['und']) && $node->field_public['und'][0]['value']==1) ) {
+	  $status = 0;
+  }
+  
+  if ($status!= 0 && db_table_exists('m6connect_rfp_agreed_membership_payment')) {
+	  $agree_or =  db_or()->condition('ramp.hide_popup', 1, '=')->condition('ramp.hide_doc_popup', 1,  '=');
+	  $agreedObject = db_select('m6connect_rfp_agreed_membership_payment', 'ramp')->fields('ramp', array( 'id'))->condition('ramp.uid', $user->uid, '=')->condition('ramp.entity_id', $node->nid,  '=')->condition($agree_or)->execute()->fetchColumn(0 );
+	  if ($agreedObject && is_numeric($agreedObject)) {
+		$status= 0;
+	  }
+  }
+  
+  if ($status != 0) {
+	/*****Changed*****/
+	//$cmpNid = _get_user_company_nid($node->uid);
+	$cmpNid = _get_company_nid_by_group_content($node);
+	if ($cmpNid && is_numeric($cmpNid)) {
+		$entity_nids[] = $cmpNid;
+		$projectNid = (isset($node->field_project['und']) && !empty($node->field_project['und'][0]['target_id'])) ? $node->field_project['und'][0]['target_id'] : '';
+		if ($projectNid && is_numeric($projectNid)) {
+			$entity_nids[] = $projectNid;
+		}
+		if (!empty($entity_nids)) {
+		  $dbor = db_or()->condition('aff.field_available_for_free_value', 1, '=')->condition('paff.field_available_for_free_proj_value', '1', '=')->condition('pp.field_project_public_value', '1',  '=');
+					
+		  $query = db_select('node',  'n');
+		  $query->leftjoin('field_data_field_available_for_free', 'aff',  'aff.entity_id = n.nid');
+		  $query->leftjoin('field_data_field_available_for_free_proj', 'paff',  'paff.entity_id = n.nid');
+		  $query->leftjoin('field_data_field_project_public', 'pp',  'pp.entity_id = n.nid');
+		  $query->fields('n',  array( 'nid') );
+		  $query->condition('n.nid', $entity_nids,  'IN');
+		  $query->condition('n.type', array( 'organization','project'),  'IN' );
+		  $query->condition($dbor);
+		  $result = $query->execute()->fetchCol();
+		  if ($result && is_array( $result) && !empty($result) && count($result) > 0 ) {
+			  $status = 0;
+		  }	
+		}
+	  }
+  }
+  return $status;
+}
+
+function custom_batch_import(){
+  $query = db_select('node', 'n');
+  $query->leftJoin('field_data_field_type_of_company', 'tc',  'tc.entity_id = n.nid');
+  $query->fields('n',  array( 'title') );
+  $query->condition('type', 'organization',  '=');
+  $query->condition('tc.field_type_of_company_value', 'company',  '=');
+  $companyMapping = $query->execute()->fetchCol();
+  $query2 = db_select('users', 'u');
+  $query2->fields('u',  array( 'mail') );
+  $query2->condition('u.mail','', '!=');
+  $userMapping = $query2->execute()->fetchCol();
+  $filePath = 'sites/all/modules/custom/m6connect_clarification/NewYorkCompanies.csv';
+  $csv = array_map('str_getcsv',  file($filePath));
+  $batch = array(
+    'operations' => array( ), 
+    'finished' => 'my_module_batch_fix_finished', 
+    'title' => t('Batch fix'), 
+    'init_message' => t('Fix is starting...'), 
+    'progress_message' => t('Processed @current out of @total.'), 
+    'error_message' => t('Fix has encountered an error.')
+  );
+  $index = 0;
+  foreach($csv as $delta => $rows){
+	if($delta!=0 && !(in_array( $rows[0],$companyMapping) || in_array($rows[14], $userMapping)) ){
+	  $batch['operations'][] = array( 'my_module_batch_fix_import1', array($delta, $rows) );
+	  $index++;
+	  if($index==100){
+	    break;
+	  }
+	}
+  }
+  batch_set($batch);
+  batch_process('user'); // The path to redirect to when done.
+}
+
+function my_module_batch_fix_import1($delta,$rows, &$context){
+  //$diversity = db_select('node','n')->fields('n', array( 'title','nid'))->condition('n.type','diversity','=')->execute()->fetchAllKeyed(0, 1 );
+//print_r($diversity);
+  $diversityMapping= array( );
+  if (isset($_SERVER['PANTHEON_ENVIRONMENT']) & $_SERVER['PANTHEON_ENVIRONMENT'] === 'live') {
+	$diversityMapping = array(
+	  'DBE' => 2161, 
+	  'MBE'=> 2162, 
+	  'MDBE' => 2163, 
+	  'MSBE' => 2164, 
+	  'MSDBE' => 2165, 
+	  'MWBE' => 2166, 
+	  'MWDBE' => 2167, 
+	  'MWSBE' => 2168, 
+	  'MWSDBE' => 2169, 
+	  'SBE' => 2171, 
+	  'SDBE' => 2172, 
+	  'WBE' => 2173, 
+	  'WDBE' => 2174, 
+	  'WSBE' => 2175, 
+	  'WSDBE' => 2176, 
+	); 
+  }else if(isset($_SERVER['PANTHEON_ENVIRONMENT']) & $_SERVER['PANTHEON_ENVIRONMENT'] === 'test'){
+     $diversityMapping = array(
+	  'DBE' => 2084, 
+	  'MBE'=> 2085, 
+	  'MDBE' => 2086, 
+	  'MSBE' => 2087, 
+	  'MSDBE' => 2088, 
+	  'MWBE' => 2089, 
+	  'MWDBE' => 2090, 
+	  'MWSBE' => 2091, 
+	  'MWSDBE' => 2092, 
+	  'SBE' => 2093, 
+	  'SDBE' => 2094, 
+	  'WBE' => 2095, 
+	  'WDBE' => 2096, 
+	  'WSBE' => 2097, 
+	  'WSDBE' => 2098, 
+	);  
+  }else if(isset($_SERVER['PANTHEON_ENVIRONMENT']) & $_SERVER['PANTHEON_ENVIRONMENT'] === 'dev'){
+	$diversityMapping = array(
+	  'DBE' => 2115, 
+	  'MBE'=> 2116, 
+	  'MDBE' => 2117, 
+	  'MSBE' => 2118, 
+	  'MSDBE' => 2119, 
+	  'MWBE' => 2120, 
+	  'MWDBE' => 2121, 
+	  'MWSBE' => 2122, 
+	  'MWSDBE' => 2123, 
+	  'SBE' => 2124, 
+	  'SDBE' => 2125, 
+	  'WBE' => 2126, 
+	  'WDBE' => 2127, 
+	  'WSBE' => 2128, 
+	  'WSDBE' => 2129, 
+	);  
+  }
+  //Create user
+  $user = array(
+	'name' => $rows[14], 
+	'pass' => $rows[15], 
+	'mail' => $rows[14], 
+	'status' => 1, 
+	'timezone' => 'America/New_York', 
+	'init' => $rows[14], 
+  );
+  $user['roles'] = array( DRUPAL_AUTHENTICATED_RID=> 'authenticated user' );
+  $user['field_first_name']['und'][0]['value'] = $rows[11];
+  $user['field_last_name']['und'][0]['value'] = $rows[12];
+  if(!empty($rows[13])){
+	$user['field_phone']['und'][0]['value'] =$rows[13];
+  }
+  $user['field_service_agreement']['und'][0]['value'] =1;
+  $account= user_save(NULL,  $user);
+  if(isset($account->uid) && !empty($account->uid) && is_numeric($account->uid)){
+	//Create Company  
+	$node = new stdClass();
+	$node->type = 'organization';
+	node_object_prepare($node);
+	$node->uid = $account->uid;
+	$node->title =$rows[0];
+	$node->field_show_company_in_search['und'][0]['value'] = 1; 
+	$node->field_type_of_company['und'][0]['value'] = 'company';
+	$node->field_company_email['und'][0]['email']= $rows[14];
+	$node->field_legal_name['und'][0]['value'] = $rows[1];
+	$node->field_org_address['und'][0]['thoroughfare'] = $rows[4];
+	$node->field_org_address['und'][0]['premise'] = '';
+	$node->field_org_address['und'][0]['locality'] = $rows[5];
+	$node->field_org_address['und'][0]['administrative_area'] = $rows[6];
+	$node->field_org_address['und'][0]['postal_code'] = $rows[7];
+	$node->field_org_address['und'][0]['country'] = 'US';
+	$node->field_owner_name['und'][0]['value'] = $rows[11].' '.$rows[12];
+	$node->field_legal_structure['und'][0]['value'] = $rows[2];
+	if(!empty($rows[13])){
+	  $node->field_org_phone['und'][0]['value'] = $rows[13];
+    }
+	if(in_array( $rows[8],  array_keys($diversityMapping)) ){
+	  //Diversity Node
+	  $credentials = new stdClass();
+      $credentials->type = 'credentials';
+      node_object_prepare($credentials);
+	  $credentials->uid = $account->uid;
+	  $credentials->title = 'Credential'.uniqid();
+	  $credentials->field_cred_for_diversity['und'][0]['target_id'] = $diversityMapping[$rows[8]];
+      $credentials->field_accredited_by['und'][0]['value'] = $rows[9];
+	  node_save($credentials);
+	  if(isset($credentials->nid) && !empty($credentials->nid) && is_numeric($credentials->nid)){
+	    $node->field_diversity_credentials['und'][0]['target_id']=$diversityMapping[$rows[8]];
+	    $fieldname = 'field_dcrednid_'.$diversityMapping[$rows[8]];
+	    $node->{$fieldname}['und'][0]['target_id']=$credentials->nid;
+	  }
+	}
+	node_save($node);
+  }
+  $context['message'] = "Now processing $delta...";
+}
+
+function m6connect_clarification_mail_alter(&$message){
+	//drup_msg($message);
+  if($message['id']=='system_action_send_email' && $message['key']=='action_send_email' && isset($message['params']['context']['hook']) && $message['params']['context']['hook'] == 'user_insert'){
+
+  	/*$message['to'] = 'boharahunny@gmail.com';
+
+    $message['send'] = FALSE;*/  
+  }
+}
+
+//alert callback function (listing of groups)
+function alert_group_list_callback()
+{
+	global $company;
+  	global $user;
+  	$nid = $company->nid;
+  	$uid = $user->uid;
+  	$result = db_select('m6connect_alert_group',  'g')
+		    ->fields('g')
+		    ->condition('company_nid', $nid,  '=')
+		    ->condition('uid', $uid,  '=')
+		    ->execute()
+		    ->fetchAll();
+	foreach ($result as $detailValue) {		
+		$gTitle = $detailValue->title;
+		$gId = $detailValue->id;
+		$actionButton = get_action_button_dropdown($gId);
+		$rows[] = array(
+			'data' => array(
+				array( 'data' => $gTitle ), 
+				array( 'data' => $actionButton ), 
+				), 
+			);
+	}
+	$output = '';
+	$header = array( 'Alert Name',  'Action' );	
+	$output .= theme('table', array( 'header' => $header, 'rows' => $rows, 'attributes'=> array('class'=> array('list-group-workflow-table','table','table-hover','m6connect-custom-table', 'm6connect-table-border'))) );
+  	$output .= drupal_render_children($element);
+  	return $output;
+}
+// action button dropdown
+function get_action_button_dropdown($groupId){
+  	//$projectId = empty($projectId)?0:$projectId;
+  	return '<div class="btn-group alert-submit-dropdown-'.$groupId.'">
+				<div class="dropdown">
+				  <button id="request_action_" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+				  <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="request_action_">
+					<li>'.l('Send SMS', url('alert-send-sms/nojs/'.$groupId), array( 'external'=>TRUE, 'attributes'=> array('class'=>array('use-ajax ctools-modal-assign-dashboard-popup-style ctools-use-modal'))) ).'</li>
+					<li>'.l('Edit', url('m6alert/edit/'.$groupId), array( 'external'=>TRUE, 'attributes'=> array('class'=>array(''))) ).'</li>
+					<li>'.l('Delete', url('alert-group-delete/nojs/'.$groupId), array( 'external'=>TRUE, 'attributes'=> array('class'=>array('use-ajax ctools-modal-assign-dashboard-popup-style ctools-use-modal'))) ).'</li>
+				  </ul>
+				</div>
+			</div>';
+}
+
+// alert send sms callback
+function alert_send_sms_callback($ajax,  $group_id = 0)
+{
+	if ($ajax){
+    	ctools_include('ajax');
+    	ctools_include('modal');
+
+	    $form_state = array(
+	      'ajax' => TRUE, 
+	      //'title' => t('Signature'), 
+	      'group_id' => $group_id, 
+	    );
+    	$output = ctools_modal_form_wrapper('group_sms_form',  $form_state);
+	    if (!empty($form_state['ajax_commands'])) {
+	      $output = $form_state['ajax_commands'];
+	    }    
+    	print ajax_render($output);
+    	drupal_exit();
+  	}
+  	else {
+    	return drupal_get_form('group_sms_form',  $group_id);
+  	}
+}
+// form for insert message for sms
+function group_sms_form($form, &$form_state,  $group_id = 0){ 
+    global $user;
+    if(!$group_id)
+    {
+    	$group_id = $form_state['group_id'];
+    }
+    $form = array( ); 
+    $form['main-container']= array(
+      '#type' => 'container', 
+      '#attributes' => array( 'class'=>array('row') ), 
+      '#prefix' => '<div class="clearfix"><div id="alert_message_main_container" class="alert-message-detail col-md-12 col-sm-12 col-xs-12">',  
+    );    
+    $form['main-container']['message'] = array(
+        '#title' => 'Add Message', 
+        '#type' => 'textarea',
+        '#attributes' => array('required'=>'required'),
+ 		'#required' => TRUE,
+    );    
+    $form['close'] = array(
+        '#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array( 'external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('assign-bid-packages-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();')) ), 
+        '#weight' => 10, 
+    );
+    $form['submit'] = array(
+        '#value' => 'Submit', 
+        '#type' => 'submit', 
+    );    
+    return $form;
+}
+// submit message and send sms to group users
+function group_sms_form_submit($form,  &$form_state)
+{
+	$form_values = $form_state['values'];
+	$group_id = $form_state['group_id'];
+	$message = $form_values['message'];
+	if(!empty($group_id))
+	{
+		if(!empty($message))
+		{
+			$group_data = db_select('m6connect_alert_group_detail', 'mgd')
+						->fields('mgd')
+						->condition('group_id', $group_id, '=')
+						->execute()
+						->fetchAll();
+			foreach ($group_data as $gDataValue) {
+				$phone = $gDataValue->phone;
+				$country_code = $gDataValue->country_code;
+				if(!empty($phone) && !empty($country_code))
+				{
+					$new_phone = str_replace($country_code, '', $phone);
+					$sms_response[] = m6connect_twilio_send($new_phone, $message, $country_code);
+					$error_msg = array('sms_error' => 0);
+					if(!empty($sms_response['error_msg']))
+					{
+						$message = ($errorCount['sms_error'] == 0)?'Message not sent for'.$new_phone:'';
+						$errorCount['sms_error']++;						
+					}
+				}
+			}	
+			if($errorCount > 0)		
+			{
+				drupal_set_message($message, 'error');
+			}
+			else
+			{
+				$insert_message = db_insert('m6connect_alert_group_message')
+								->fields(array(
+									'group_id' => $group_id,
+									'message' => $message,
+									'created_dt' => date('Y-m-d H:i:s'),
+									))
+								->execute();	
+				drupal_set_message('SMS sent successfully', 'status');
+			}
+		}		
+	}
+	if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+ 		$form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+ 		$form_state['ajax_commands'][] =ctools_ajax_command_redirect('/alerts');  
+  	}
+}
+// function for delete group
+function alert_delete_group_callback($ajax, $group_id = 0)
+{	
+	if ($ajax) {
+		ctools_include('ajax');
+		ctools_include('modal');
+		$form_state = array(
+				'ajax' => TRUE,
+				'group_id' => $group_id,
+		);
+		$output = ctools_modal_form_wrapper('group_delete_form', $form_state);
+		if (!empty($form_state['ajax_commands'])) {
+			$output = $form_state['ajax_commands'];
+		}
+		print ajax_render($output);
+		drupal_exit();
+	}
+  	return drupal_get_form('group_delete_form', $group_id);
+}
+// group delete popup form
+function group_delete_form($form, &$form_state, $group_id = 0) {
+	if(!$group_id)
+    {
+    	$group_id = $form_state['group_id'];
+    }	
+ 
+	$form['group_action_title'] = array(
+			'#type' => 'markup',
+			'#title' => t('status'),
+			'#markup' => '<div class="group-action-status"><p>Are you sure you want to delete this Group ?</p></div>',
+			//'#prefix'=> '<div class="node-action-con-title"><strong><h4>Delete status</h4></strong></div>',
+	);
+	
+	$form['group_id'] = array(
+    	'#type' => 'hidden', 
+    	'#value' => $group_id, 
+   	);	
+	
+	$form['submit_action_dgroup'] = array(
+		'#type' => 'submit',
+		'#value' => t('Confirm')
+	);
+
+	$form['submit_action_cancel']['close'] = array(
+			'#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('group-delete-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+			'#weight' => 10,
+	);
+	return $form;
+}
+// function for delete group
+function group_delete_form_submit($form, &$form_state) {	
+	$form_values = $form_state['values'];
+	$group_id = $form_state['group_id'];
+	if(!empty($group_id))
+	{	
+		// delete group
+		$group_delete = db_delete('m6connect_alert_group')
+					->condition('id', $group_id, '=')
+					->execute();
+		// delete group detail
+		$group_delete = db_delete('m6connect_alert_group_detail')
+					->condition('group_id', $group_id, '=')
+					->execute();
+
+		drupal_set_message('Group deleted successfully', 'status');
+			
+		if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+	 		$form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+	 		$form_state['ajax_commands'][] =ctools_ajax_command_redirect('/alerts');  
+	  	}
+	}
+}
+
+// function for add new alert form
+function add_new_alert_form($form,  &$form_state, $type='', $group_id = 0)
+{		
+	drupal_add_css(drupal_get_path('module',  'international_phone') . '/css/intlTelInput.css');
+  	drupal_add_js(drupal_get_path('module',  'international_phone') . '/js/intlTelInput.js');
+  	drupal_add_js(drupal_get_path('module',  'international_phone') . '/js/international_phone.js');
+  	//drupal_add_js(drupal_get_path('module',  'clarification') . '/js/phone_code.js');
+  	drupal_add_js('jQuery(document).ready(function () {
+	  	jQuery(".new_alert_form_submit").click(function(event){
+		  	var phone_id = [];
+			jQuery(".international_phone-number").each(function(){
+				var unique_id = jQuery(this).attr("uni_id");
+				var cun_code = jQuery(this).closest(".intl-tel-input").find(".selected-flag").attr("title");
+				jQuery(".edit-alert-"+unique_id+"-phone-code").val(cun_code);
+			    //phone_id.push(unique_id);
+			});
+
+			/*var cun_code = [];
+			jQuery(".selected-flag").each(function(){
+			    cun_code.push(this.title);
+			});
+			for(var i=0; i<phone_id.length; i++)
+			{
+				jQuery("#edit-alert-"+phone_id[i]+"-phone-code").val(cun_code[i]);
+			}
+			event.preventDefault();*/
+	  	});	  	
+	});',  'inline');
+
+	$form = array( );
+    if(is_numeric($group_id) && $group_id > 0){
+    	$edit_title = db_select('m6connect_alert_group', 'mag');
+		$edit_title->leftJoin('m6connect_alert_group_detail', 'magd', 'mag.id = magd.group_id');
+		$edit_title->fields('mag', array('title'));
+		$edit_title->fields('magd');
+		$edit_title->condition('mag.id', $group_id, '=');
+		$result = $edit_title->execute()->fetchAll();
+		if($result && !empty($result)){
+			foreach ($result as $key => $value) {
+				$tempIdentifer = uniqid();
+      			$form_state['m6alert_storage'][]  = $tempIdentifer;
+      			$form_state['m6alert_storage_default_value'][$tempIdentifer]=(array)$value;
+			}
+		}		
+    }
+	if(empty($form_state['m6alert_storage'])){
+      $tempIdentifer = uniqid();
+      $form_state['m6alert_storage'][]  = $tempIdentifer;
+    }
+
+    $form['container-title']= array(
+      '#type' => 'container', 
+      '#attributes' => array( 'class'=>array('alert-title'), ), 
+    );
+    $form['container-title']['title'] = array(
+		'#type' => 'textfield',  
+		'#title' => t('Title'),  
+		'#default_value' => (isset($result[0]->title))?$result[0]->title:'',  
+		'#size' => 60,  
+		'#maxlength' => 128,  
+		'#required' => TRUE, 
+		'#attributes' => array( 'placeholder' => 'Enter group title' ), 
+	);
+	$form['group_id'] = array(
+		'#type' => 'value',
+		'#value' => $group_id,
+	);	
+	$form['main_container']= array(
+      	'#type' => 'container', 
+      	'#theme' => 'm6sms_alert_theme', 
+      	'#attributes' => array( 'class'=>array('alert-container-section') ), 
+      	'#prefix' => '<div class="clearfix"><div id="alert-container-section" class="add-new-alert-detail margin-bottom-10">',  
+      	'#suffix' => '</div></div>', 
+      	'#process' => array( 'm6_alert_row_process' ), 
+    );	  
+	$form['close'] = array(
+        '#markup' => l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', '/alerts', array( 'external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('assign-bid-packages-popup-close'), )) ), 
+        '#weight' => 10, 
+    );
+    $form['submit'] = array(
+        '#value' => 'Save', 
+        '#type' => 'submit', 
+        '#validate' => array( 'alert_new_row_validate_handler' ), 
+		'#submit' => array( 'alert_new_row_submit_handler' ), 
+		'#attributes' => array( 'class' => array('new_alert_form_submit') ), 
+    ); 
+    $form['workflow_add_new_row'] = array(
+	    '#type'=>'submit', 
+		'#value' => 'Add New Detail', 
+		'#name' => 'workflow_add_new_row', 
+		'#attributes'=> array( 'class'=>array('alert-workflow-action','alert-workflow-action-add-row'),'title'=>'Add New Detail' ), 
+		"#limit_validation_errors" => array( ), 
+		'#submit'=> array( 'add_new_row_submit_handler' ), 
+		'#ajax' => array(
+		  'callback' => 'add_new_row_action_callback', 
+		  'wrapper' => 'alert-container-section', 
+		  'method' => 'replace', 
+		  'effect' => 'fade', 
+		  'progress' => array( 'type'=> 'throbber', 'message'=> NULL ), 
+		), 
+	);
+	$form['m6alert_bulk_upload'] = array(
+	    '#markup' => l('Bulk Upload', url('alert-bulk-upload/nojs/'.$group_id), array( 'external'=>TRUE, 'attributes'=> array('class'=>array('use-ajax ctools-modal-assign-dashboard-popup-style ctools-use-modal btn btn-primary form-submit'))))
+	);	
+	$sample_download_file = drupal_get_path('module',  'm6connect_clarification') . '/alert_sample/sample.xls';
+	$form['m6alert_download_sample'] = array(	    
+		'#markup' => l('Sample Download', $sample_download_file, array('attributes' => array('class' => array('report-btn', 'btn', 'btn-primary', 'form-submit'))))		 
+	);   
+    return $form;
+}
+// render new row theme as table formate
+function theme_m6sms_alert_theme($variables)
+{
+	$element = $variables['form'];
+	$storage = $element['#storage'];
+	$output = '';
+	$header = array( 'First Name', 'Last Name', 'Email', 'Phone', '',  '' );
+	foreach ($storage as $key => $uniqId) {
+		$rows[] = array(
+			'data'=> array(
+				array( 'data'=>drupal_render($element['fname'][$uniqId]),'class'=> array('')), 
+				array( 'data'=>drupal_render($element['lname'][$uniqId]),'class'=> array('') ), 
+				array( 'data'=>drupal_render($element['email'][$uniqId]),'class'=> array('') ), 
+				array( 'data'=>drupal_render($element['phone'][$uniqId]),'class'=> array(''), 'uni_id' => $uniqId), 
+				array( 'data'=>drupal_render($element['phone_code'][$uniqId]),'class'=> array('')), 
+				array( 'data'=>drupal_render($element['remove'][$uniqId]),'class'=> array('') ), 				
+			), 	  
+		);
+	}
+	$output .= theme('table', array( 'header' => $header, 'rows' => $rows, 'attributes'=> array('class'=> array('alert-group-workflow-table','table','table-hover','m6connect-custom-table', 'm6connect-table-border'))) );
+  	$output .= drupal_render_children($element);
+  	return $output;
+}
+// new row field function
+function m6_alert_row_process($element,  &$form_state){
+  	$storage = $form_state['m6alert_storage'];  	
+  	$element['#storage'] = $storage;
+  	foreach ($storage as $key => $uniqId) { 
+  		$element['id'][$uniqId] = array(
+			'#type' => 'hidden',  
+			//'#title' => t('First Name'),  
+			'#default_value' => '',  		
+			//'#required' => TRUE, 
+			'#attributes'=> array( 'class'=> array('form-control','workflow-hidden')), 
+			'#parents' => array( 'alert',$uniqId,'id' ), 
+		);
+
+	  	$element['fname'][$uniqId] = array(
+			'#type' => 'textfield',  
+			//'#title' => t('First Name'),  
+			'#default_value' => '',  		
+			//'#required' => TRUE, 
+			'#attributes'=> array( 'class'=> array('form-control','workflow-auto'),'placeholder'=>'Enter first name' ), 
+			'#parents' => array( 'alert',$uniqId,'fname' ), 
+		);
+		$element['lname'][$uniqId] = array(
+			'#type' => 'textfield',  
+			//'#title' => t('Last Name'),  
+			'#default_value' => '',  		
+			//'#required' => TRUE, 
+			'#attributes'=> array( 'class'=> array('form-control','workflow-auto'),'placeholder'=>'Enter last name' ), 
+			'#parents' => array( 'alert',$uniqId,'lname' ), 
+		);
+		$element['email'][$uniqId] = array(
+			'#type' => 'textfield',  
+			//'#title' => t('Email'),  
+			'#default_value' => '',  		
+			//'#required' => TRUE, 
+			'#attributes'=> array( 'class'=> array('form-control','workflow-auto'),'placeholder'=>'Enter email' ), 
+			'#parents' => array( 'alert',$uniqId,'email' ), 
+		);
+		$element['phone'][$uniqId] = array(
+			'#type' => 'textfield',  
+			//'#title' => t('Phone'),  
+			'#default_value' => '',  		
+			'#required' => TRUE, 
+			'#attributes'=> array( 'class'=> array('form-control','workflow-auto', 'international_phone-number'),'placeholder'=>'Enter phone no.', 'uni_id' => $uniqId ), 
+			'#parents' => array( 'alert',$uniqId,'phone' ), 
+		);
+		$element['phone_code'][$uniqId] = array(
+			'#type' => 'hidden',  
+			//'#title' => t('Phone'),  
+			'#default_value' => '', 
+			'#attributes' => array('class' => array('edit-alert-'.$uniqId.'-phone-code')),
+			'#parents' => array( 'alert',$uniqId,'phone_code' ), 
+		);
+		$element['remove'][$uniqId] = array(
+		  	'#type' => 'submit', 
+		  	'#value' => decode_entities('&#xf014;'), 
+		  	'#name' => $uniqId, 
+		  	'#attributes'=> array( 'style'=> array('font-family:FontAwesome;'),'class'=>array('alert-container-section') ), 
+		  	'#parents' => array( 'alert', $uniqId, 'remove' ), 
+		  	"#limit_validation_errors" => array( ), 
+		  	'#submit'=> array( 'remove_new_alert_row_handler' ), 
+		  	'#ajax' => array(
+				'callback' => 'remove_new_alert_row_callback', 
+				'wrapper' => 'alert-container-section', 
+				'method' => 'replace', 
+				'effect' => 'fade', 
+				'progress' => array( 'type'=> 'throbber', 'message'=> NULL ), 
+		   	), 	  
+		);
+
+		if(isset($form_state['m6alert_storage_default_value'][$uniqId])){
+		  $stdefault = $form_state['m6alert_storage_default_value'][$uniqId];
+		  $element['id'][$uniqId]['#default_value'] = $stdefault['id'];
+          $element['fname'][$uniqId]['#default_value'] = $stdefault['fname'];
+          $element['lname'][$uniqId]['#default_value'] = $stdefault['lname'];
+          $element['email'][$uniqId]['#default_value'] = $stdefault['email'];
+          $element['phone'][$uniqId]['#default_value'] = $stdefault['phone'];
+          $element['phone_code'][$uniqId]['#default_value'] = $stdefault['country_code'];
+  		}		 
+  	}
+  	return $element;
+}
+// function call on click on add new button
+function add_new_row_submit_handler(&$form,  &$form_state)
+{
+	$triggerElement = $form_state['triggering_element'];
+	if($triggerElement['#name'] =='workflow_add_new_row'){
+	    $tempIdentifer = uniqid();
+		$form_state['m6alert_storage'][]  = $tempIdentifer;
+	}
+  	$form_state['rebuild'] = TRUE;
+}
+// add ajax callback
+function add_new_row_action_callback(&$form,  &$form_state){
+  return $form['main_container'];
+}
+// function call on click on remove button
+function remove_new_alert_row_handler(&$form, &$form_state){
+  	$triggering_element = $form_state['triggering_element'];
+  	//print_r($form_state);
+  	$identifier = $triggering_element['#parents'][1];   	
+  	if(isset($form_state['m6alert_storage'])){
+  		for($i=0;$i<count($form_state['m6alert_storage']);$i++)  		
+  		{
+  			if($form_state['m6alert_storage'][$i] == $identifier){
+  				//echo $form_state['m6alert_storage'][$i];
+  				unset($form_state['m6alert_storage'][$i]);
+  			}  			
+  		}    	 		
+  	}  	
+  	$form_state['rebuild'] = TRUE;
+}
+// remove ajax callback
+function remove_new_alert_row_callback(&$form,  &$form_state){
+  return $form['main_container'];  
+}
+// function for validate rows
+function alert_new_row_validate_handler(&$form,  &$form_state){
+  	$values = $form_state['values'];
+  	$storage = $form_state['m6alert_storage'];
+  	$errorCount = array( 'email_error'=>0, 'phone_error'=>0 );  	
+	$alert = $values['alert'];
+	foreach ($alert as $key => $alert_detail) {
+		if(isset($alert_detail['email']) && !empty($alert_detail['email']) && !valid_email_address($alert_detail['email']))
+		{			
+			$message = ($errorCount['email_error'] == 0)?'Please enter valid email':'';
+			$errorCount['email_error']++;			
+			form_set_error('alert]['.$key.'][email', $message);	
+		}
+		if(isset($alert_detail['phone']) && !empty($alert_detail['phone']))
+		{	
+			if(strlen($alert_detail['phone']) < 10)		
+			{
+				$message = ($errorCount['phone_error'] == 0)?'Please enter valid phone no.':'';
+				$errorCount['phone_error']++;
+				form_set_error('alert]['.$key.'][phone', $message);
+			}
+			
+		}
+	}
+}
+// function for insert group title and group detail
+function alert_new_row_submit_handler(&$form,  &$form_state){		
+	$values = $form_state['values'];
+	$storage = $form_state['m6alert_storage'];
+  	global $company;
+  	global $user;
+  	$nid = $company->nid;
+  	$uid = $user->uid;
+  	$title = $values['title'];
+  	$count = 0;
+  	$finalMessage = '';
+  	if(!empty($values['group_id']) && is_numeric($values['group_id']))
+  	{
+  		$groupId = $values['group_id'];
+  		// update title
+  		$update_title = db_update('m6connect_alert_group')
+  						->fields(array('title' => $title, 'updated_dt' => date('Y-m-d H:i:s')))
+  						->condition('id', $groupId, '=')
+  						->execute();
+  		$alert = $values['alert'];
+  		foreach($alert as $key => $alert_detail) {
+				$insert_detail = array();		
+				$phone_code = explode(":", $alert_detail['phone_code']);  
+				$detail_id = $alert_detail['id'];
+				$insert_detail = array(  
+		                'fname' => $alert_detail['fname'], 
+		                'lname' => $alert_detail['lname'], 
+		                'email' => $alert_detail['email'], 
+		                'phone' => $alert_detail['phone'],  
+		                'country_code' => trim($phone_code[1]),             
+		                );
+				// insert group details
+		        if(!empty($insert_detail)){
+				  	db_update('m6connect_alert_group_detail')
+				  	->fields($insert_detail)
+				  	->condition('id', $detail_id, '=')
+				  	->execute();
+				  	$count++;
+				}
+		}
+		$finalMessage = 'Successfully updated ';
+  	}
+  	else
+  	{
+	  	// select if title exist
+	  	$errorCount = array( 'title_error' => 0);  	
+	  	$getTitle = db_select('m6connect_alert_group' , 'mg')
+	  				->fields('mg', array('id'))  	
+	  				->condition('title', $title, '=')
+	  				->execute()
+	  				->fetchCol();
+	  	if(!empty($getTitle))
+	  	{
+	  		$message = ($errorCount['title_error'] == 0)?'Title is already exist.':'';
+			$errorCount['title_error']++;
+			form_set_error('title]', $message);
+	  	}
+	  	else
+	  	{
+	  		// insert group title
+		  	$insert_title = db_insert('m6connect_alert_group')
+		            ->fields(array( 
+		                'company_nid' => $nid, 
+		                'uid' => $uid, 
+		                'title' => $title, 
+		                'status' => 1,                 
+		                'created_dt' => date("Y-m-d H:i:s"), 
+		                'updated_dt' => date("Y-m-d H:i:s"), 
+		                ))
+		            ->execute();
+		    $last_id = $insert_title; // get last inserted group id
+		    $alert = $values['alert']; 	    
+			foreach ($alert as $key => $alert_detail) {
+				$insert_detail = array();		
+				$phone_code = explode(":", $alert_detail['phone_code']);  		
+				$insert_detail = array( 
+		                'group_id' => $last_id, 
+		                'fname' => $alert_detail['fname'], 
+		                'lname' => $alert_detail['lname'], 
+		                'email' => $alert_detail['email'], 
+		                'phone' => $alert_detail['phone'],  
+		                'country_code' => trim($phone_code[1]),                      
+		                'created_dt' => date("Y-m-d H:i:s"),                 
+		                );
+				// insert group details
+		        if(!empty($insert_detail)){
+				  	db_insert('m6connect_alert_group_detail')->fields($insert_detail)->execute();
+				  	$count++;
+				}
+			}			
+		}
+		$finalMessage = 'Successfully inserted ';
+	}	
+	if($count > 0){
+		drupal_set_message($finalMessage.$count);  
+	}
+	$form_state['redirect'] = url('/alerts'); 
+}
+// function for open popup for bulk upload
+function alert_bulk_upload_callback($ajax, $group_id = 0){
+	if($ajax){
+		ctools_include('ajax');
+		ctools_include('modal');
+
+		$form_state = array(
+			'ajax' => TRUE,
+			'group_id' => $group_id,
+			);
+		$output = ctools_modal_form_wrapper('bulk_upload_form', $form_state);
+		if (!empty($form_state['ajax_commands'])) {
+			$output = $form_state['ajax_commands'];
+		}
+		print ajax_render($output);
+		drupal_exit();
+	}
+	return drupal_get_form('bulk_upload_form', $group_id);
+}
+// function for bulk upload form
+function bulk_upload_form($form, &$form_state, $group_id = 0)
+{
+	global $user;
+    if(!$group_id)
+    {
+    	$group_id = $form_state['group_id'];
+    }
+    $form = array( ); 
+    $form['#attributes']['enctype'] = "multipart/form-data";
+    $form['main-container']= array(
+      '#type' => 'container', 
+      //'#attributes' => array( 'class'=>array('row') ), 
+      '#prefix' => '<div class="clearfix"><div id="bulk_upload_main_container" class="bulk-upload-detail col-md-12 col-sm-12 col-xs-12">',  
+    );    
+    $form['main-container']['upload_file'] = array(
+        '#title' => t('Choose a file'), 
+        '#type' => 'managed_file',
+        '#upload_location' => 'public://',
+        //'#attributes' => array('required'=>'required'),        
+ 		'#required' => TRUE,
+ 		'#upload_validators' => array(
+    		'file_validate_extensions' => array('xls xlsx'),
+    	),
+    ); 
+   
+    $form['close'] = array(
+        '#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array( 'external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('assign-bid-packages-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();')) ), 
+        '#weight' => 10, 
+    );
+    $form['submit'] = array(
+        '#value' => 'Submit', 
+        '#type' => 'submit', 
+    );    
+    return $form;
+}
+// function for submit bulk upload form
+function bulk_upload_form_submit($form,  &$form_state){
+	$values = $form_state['values'];
+	$uploadFileId = $values['upload_file'];
+	$file = file_load($uploadFileId);
+	$file->status = FILE_STATUS_PERMANENT;
+	//$file->display => 1,
+   	file_save($file);
+   	//print_r($file);die;
+   	$file_uri = $file->uri;
+	$file_path = file_create_url($file_uri);	
+	//$excel_reader_file = drupal_get_path('module',  'm6connect_clarification') . '/excel_reader2.php';		
+	//require_once $excel_reader_file;
+	//require(drupal_get_path('module', 'm6connect_clarification') . '/excel_reader2.php');
+	module_load_include('php', 'm6connect_clarification', 'excel_reader2');
+	$data = new Spreadsheet_Excel_Reader($file_path);
+	$excel_data = $data->dump(true,true);
+	print_r($excel_data);die;
+}

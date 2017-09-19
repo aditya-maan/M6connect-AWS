@@ -1,0 +1,6 @@
+name = M6Connect Onboarding
+description = Onboarding Functionality for M6CONNECT
+package = CUSTOM
+core = 7.x
+files[] = m6connect_onboarding.module 
+files[] =includes/onbording.phase.inc

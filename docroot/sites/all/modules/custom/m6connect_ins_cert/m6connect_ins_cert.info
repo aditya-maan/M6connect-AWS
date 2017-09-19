@@ -1,0 +1,4 @@
+name = M6Connect Insurance Certs
+description = M6Connect Insurance Certs
+package = CUSTOM
+core = 7.x

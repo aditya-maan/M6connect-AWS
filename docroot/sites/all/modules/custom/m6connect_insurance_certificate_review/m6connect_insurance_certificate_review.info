@@ -1,0 +1,11 @@
+name = M6Connect Insurance Certificate Review
+description = Insurance Certificate Review - compare to insurance contract
+core = 7.x
+package = Insurance Certificate Review
+version = 7.x-1.0
+project = m6connect_insurance_certificate_review
+dependencies[] = views
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:2
+features[views_view][] = insurance_certificate_review
+features_exclude[dependencies][ctools] = ctools

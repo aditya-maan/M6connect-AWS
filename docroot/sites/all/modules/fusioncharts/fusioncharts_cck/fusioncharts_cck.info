@@ -1,0 +1,12 @@
+name = FusionCharts for CCK
+description = Allows FusionCharts to be created with CCK
+dependencies[] = content
+dependencies[] = fusioncharts
+package = Fusion Charts
+core = 6.x
+; Information added by Drupal.org packaging script on 2013-12-18
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "fusioncharts"
+datestamp = "1387391704"
+

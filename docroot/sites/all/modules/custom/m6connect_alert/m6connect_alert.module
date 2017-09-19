@@ -1,0 +1,4001 @@
+<?php
+function m6connect_alert_menu() {
+ 	// menu for sms alert service
+	$items['alert/groups'] = array(
+    'page callback' => 'alert_group_list_callback', 
+	  'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK, 
+	);
+	// mew for add new group
+	$items['alert/group-new'] = array(
+    'title' => 'Add New Alert Group', 
+    'page callback' => 'drupal_get_form', 
+	  'page arguments' => array( 'add_new_alert_form',1), 
+    'access callback' => '_is_m6_user_logged_in',
+	);
+	$items['alert/group-edit/%'] = array(
+    'title' => 'Edit Alert Group', 
+    'page callback' => 'drupal_get_form',  
+	  'page arguments' => array( 'add_new_alert_form',1,2 ), 
+    //'page arguments' => alert_group_edit_parameters_callback(),
+    'access callback' => '_is_m6_user_logged_in',
+	);
+	// menu item for send sms
+	$items['alert-send-sms/%ctools_js/%'] = array(
+    'page callback' => 'alert_send_sms_callback', 
+    'page arguments' => array( 1,2 ), 
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK, 
+  );
+  // menu item for delete group    
+  $items['alert-group-delete/%ctools_js/%'] = array(
+    'page callback' => 'alert_delete_group_callback', 
+    'page arguments' => array( 1,2 ), 
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK, 
+  );
+  // menu item for bulk upload entry in group   
+  $items['alert-bulk-upload/%ctools_js/%'] = array(
+    'page callback' => 'alert_bulk_upload_callback', 
+    'page arguments' => array( 1,2 ), 
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK, 
+  );
+  //menu item for listing sent messages
+  $items['alert/sent-messages'] = array(
+    'page callback' => 'alert_sent_message_listing_callback',
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK, 
+  );
+  // view sent message as per id
+  $items['alert/view-message/%ctools_js/%'] = array(
+    'page callback' => 'alert_sent_message_view_callback',
+    'page arguments' => array( 2,3 ),
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK, 
+  );
+  // delete sent messages
+  $items['sent-message-delete/%ctools_js/%'] = array(
+    'page callback' => 'alert_delete_sent_message_callback', 
+    'page arguments' => array( 1,2 ), 
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK, 
+  );
+  // move to archive
+  $items['mtoa/%'] = array(
+    'page callback' => 'alert_move_message_archive_callback', 
+    'page arguments' => array(1), 
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK, 
+  );
+  // archive listing
+  $items['alert/archive'] = array(
+    'page callback' => 'alert_archive_list_callback', 
+	  'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK, 
+	);
+  // delete archive messages
+  $items['archive-message-delete/%ctools_js/%'] = array(
+    'page callback' => 'alert_delete_archive_message_callback', 
+    'page arguments' => array( 1,2 ), 
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK, 
+  );
+  // view archive message as per id
+  $items['alert/view-archive/%ctools_js/%'] = array(
+    'page callback' => 'alert_archive_view_callback',
+    'page arguments' => array( 2,3 ),
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK, 
+  );
+  // function for receive response from twilio
+  $items['receive-response-from-twilio'] = array(
+	  'page callback' => 'alert_receive_response_from_twilio', 
+  	'access callback' => '_is_m6_user_logged_in',
+	  'type' => MENU_CALLBACK, 
+  );
+	// template section
+	$items['alert/templates'] = array(
+    'page callback' => 'alert_template_list_callback', 
+	  'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK, 
+	);
+	// add new template menu item
+	$items['alert/template-new/%ctools_js'] = array(
+    'title' => 'Add New Template', 
+    'page callback' => 'add_new_alert_template_callback', 
+	  'page arguments' => array(2), 
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK, 
+	);
+	$items['alert-delete-template/%ctools_js/%'] = array(
+    'page callback' => 'alert_delete_template_callback', 
+    'page arguments' => array( 1,2 ), 
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK, 
+  );
+  $items['alert/template-edit/%ctools_js/%'] = array(
+    'title' => 'Edit Template', 
+    'page callback' => 'edit_alert_template_callback',  
+	  'page arguments' => array(2,3), 
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK,
+	);
+  $items['alert/template-share/%ctools_js/%'] = array(
+    'title' => 'Share Template', 
+    'page callback' => 'alert_share_template_callback',  
+    'page arguments' => array(2,3), 
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK,
+  );
+	$items['alert-send-template-sms/%ctools_js/%'] = array(
+		'title' => 'Send Template',
+    'page callback' => 'alert_send_template_sms_callback', 
+    'page arguments' => array( 1,2 ), 
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK, 
+  );
+  // get response from twilio
+  $items['alert/message-response'] = array(
+  	'page callback' => 'alert_get_message_response_callback',
+  	//'access callback' => '_is_m6_user_logged_in',
+  	'type' => MENU_CALLBACK,
+  );  
+  // create custom text message
+  $items['alert/create-text-message/%ctools_js'] = array(
+  	'page callback' => 'alert_create_text_message_callback',
+  	'page arguments' => array(2),
+  	'access callback' => '_is_m6_user_logged_in',
+  	'type' => MENU_CALLBACK,
+  );
+  // call function for remove image from template
+  $items['alert-remove-template-image'] = array(
+    'page callback' => 'm6connect_alert_remove_template_image',      
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK,
+  );
+  // resend message
+  $items['sent-message-resend/%ctools_js/%'] = array(
+  	'page callback' => 'alert_resend_message_callback',
+  	'page arguments' => array(1, 2),
+  	'access callback' => '_is_m6_user_logged_in',
+  	'type' => MENU_CALLBACK,
+  );
+   // Copy template 
+  $items['alert-copy-template/%ctools_js/%'] = array(
+  	'page callback' => 'alert_copy_template_callback',
+  	'page arguments' => array(1, 2),
+  	'access callback' => '_is_m6_user_logged_in',
+  	'type' => MENU_CALLBACK,
+  );
+  /*// menu items for cr services
+  $items['alert/groups/%'] = array(
+    'page callback' => 'alert_group_list_callback', 
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK, 
+  );*/
+  return $items;
+} 
+
+function m6connect_alert_theme() {
+  $path = drupal_get_path('module',  'm6connect_alert');
+  return array(     
+  	'm6sms_alert_theme'=> array(
+			'render element' => 'form', 
+		), 
+  );
+}
+
+function alert_group_list_search_form($form, &$form_state){
+	$searchVal = '';$sortVal = '';
+	if(isset($_REQUEST['search_box']) && !empty($_REQUEST['search_box'])){
+		$searchVal = $_REQUEST['search_box'];
+	}
+	if(isset($_REQUEST['message_selected']) && !empty($_REQUEST['message_selected'])){
+		$sortVal = $_REQUEST['message_selected'];
+	}	
+	$form = array();
+	$form['#method'] = 'get';
+	$form['#attributes']['class'] = array('m6alert-list-form');
+	$form['search-container'] = array(
+		'#type' => 'container', 
+		'#attributes' => array('class' => array('row', 'search-form-container', 'margin-5')),
+	);
+	$form['search-container']['search_box'] = array(
+		'#type' => 'textfield',
+		'#attributes' => array('class' => array('search-msg'), 'placeholder' => 'Search Group'),
+		'#prefix' => '<div class="col-md-4 col-sm-5 col-xs-12 margin-bottom-10 padding-5">',
+		'#value' => $searchVal,
+	);
+	$form['search-container']['submit'] = array(
+		'#type' => 'submit',
+		'#value' => decode_entities('&#xf002;'),
+		'#attributes'=> array( 'style'=> array('font-family:FontAwesome;'),'class'=>array('search-container-submit-btn', 'message-search-container-submit')),
+		//'#suffix' => '</div>',
+	);
+	$form['message_selected'] = array(
+        '#type' => 'select',        
+        '#options' => array(
+        	0 => t('Sort by created date (newest to oldest)'),
+        	1 => t('Sort by created date (oldest to newest)'),
+        	2 => t('Sort by Group (A-Z)'),
+        	3 => t('Sort by Group (Z-A)'),         	
+        ),
+        '#default_value' => $sortVal, 
+        '#prefix' => '<div class="col-md-4 col-sm-2 col-xs-12 col-xs-12-hidden padding-5"></div><div class="col-md-4 col-sm-5 col-xs-12 margin-bottom-10 padding-5">',
+        '#attributes'=> array('onchange' => 'jQuery(".message-search-container-submit").click();'),
+        '#suffix' => '</div></div>',
+    );
+	return $form;
+}
+
+//alert callback function (listing of groups)
+function alert_group_list_callback()
+{
+  if(isset($_SESSION['alert_remove_image_detail']) && !empty($_SESSION['alert_remove_image_detail'])){
+    unset($_SESSION['alert_remove_image_detail']);    
+  }
+	drupal_add_js(drupal_get_path('module',  'm6connect_alert') . '/js/m6connect_alert.js');
+	global $company;global $user;
+	$nid = $company->nid;
+	$uid = $user->uid;
+	$has_group = 0;
+	$searchTitle = '';$sortMessage = '';$cm = '';
+  if(!empty(arg(2))){
+    $cm = arg(2);
+  }
+	$search_box = drupal_render(drupal_get_form('alert_group_list_search_form'));
+	if(isset($_REQUEST['search_box']) && !empty($_REQUEST['search_box'])){
+		$searchTitle = $_REQUEST['search_box'];
+	}
+	if(isset($_REQUEST['message_selected']) && !empty($_REQUEST['message_selected'])){
+		$sortMessage = $_REQUEST['message_selected'];
+	}	
+	/*$result = db_select('m6connect_alert_group',  'g')
+	    ->fields('g')
+	    ->condition('company_nid', $nid,  '=')
+	    ->condition('uid', $uid,  '=')
+	    ->orderBy('g.id', 'DESC')
+	    ->execute()
+	    ->fetchAll();*/
+	$result = db_select('m6connect_alert_group',  'g');
+	$result->fields('g');
+  $result->condition('company_nid', $nid,  '=');
+  $result->condition('uid', $uid,  '=');
+  if(!empty($searchTitle)){	// title search
+	  $result->condition('g.title', '%'.db_like($searchTitle).'%', 'LIKE');
+	}
+  if(!empty($cm)){
+    $result->condition('g.cm_type', $cm, '=');
+  }
+	// order by sent date and title
+	if(isset($sortMessage) && $sortMessage == 1){
+		$result->orderBy('g.id', 'ASC');
+	}
+	else if(isset($sortMessage) && $sortMessage == 2){
+		$result->orderBy('g.title', 'ASC');
+	}
+	else if(isset($sortMessage) && $sortMessage == 3){
+		$result->orderBy('g.title', 'DESC');
+	}
+	else
+	{
+		$result->orderBy('g.id', 'DESC');
+	}
+	$groupListing = $result->execute()->fetchAll();
+	foreach ($groupListing as $detailValue) {		
+		$gTitle = $detailValue->title;
+		$gId = $detailValue->id;
+		$gDate = date('m/d/Y', strtotime($detailValue->created_dt));
+		$actionButton = get_action_button_dropdown($gId);
+		$rows[] = array(
+			'data' => array(
+				array( 'data' => $gTitle ),
+				array( 'data' => $gDate ), 
+				array( 'data' => $actionButton, 'class' => array('text-center')), 
+			), 
+		);
+		$has_group = 1;
+	}
+	if($has_group == 0){
+		$rows[] = array(
+			'data' => array(
+				array( 'data' => '' ), 
+				array( 'data' => 'No Group Created' ), 
+				array( 'data' => '' ),
+			), 
+		);
+	}
+	$output = '';	
+	$header = array( 
+		array('data'=>'Group Name', 'style' => 'width:68%;'), 
+		array('data'=>'Date of Creation', 'style' => 'width:22%;'), 
+		array('data'=>'Action', 'class' => array('text-center')) 
+	);		
+	$output .= $search_box;
+	$output .= theme('table', array( 'header' => $header, 'rows' => $rows, 'attributes'=> array('class'=> array('list-group-workflow-table','table','table-hover','m6connect-custom-table', 'm6connect-table-border'))) );
+  	$output .= drupal_render_children($element);
+  	return $output;
+}
+// action button dropdown
+function get_action_button_dropdown($groupId){
+  	//$projectId = empty($projectId)?0:$projectId;
+  $cm = '';
+  if(!empty(arg(2))){
+    $cm = '/'.arg(2);
+  }
+	return '<div class="btn-group alert-submit-dropdown-'.$groupId.'">
+			<div class="dropdown">
+				<button id="request_action_" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+			  	<ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="request_action_">
+					<li>'.l('Create Text Message', url('alert-send-sms/nojs/'.$groupId.$cm), array( 'external'=>TRUE, 'attributes'=> array('class'=>array('use-ajax ctools-modal-assign-dashboard-popup-style'))) ).'</li>
+					<li>'.l('Edit', url('alert/group-edit/'.$groupId.$cm), array( 'external'=>TRUE, 'attributes'=> array('class'=>array(''))) ).'</li>
+					<li>'.l('Delete', url('alert-group-delete/nojs/'.$groupId.$cm), array( 'external'=>TRUE, 'attributes'=> array('class'=>array('use-ajax ctools-modal-assign-dashboard-popup-style'))) ).'</li>
+			  	</ul>
+			</div>
+		</div>';
+}
+
+// alert send sms callback
+function alert_send_sms_callback($ajax,  $group_id = 0)
+{
+	if ($ajax){
+    	ctools_include('ajax');
+    	ctools_include('modal');
+    	//ctools_add_js('m6connect_alert', 'm6connect_alert', $dir = 'js');
+		//drupal_add_js(drupal_get_path('module',  'm6connect_alert') . '/js/m6connect_alert.js');
+
+	    $form_state = array(
+	      'ajax' => TRUE, 
+	      //'title' => t('Signature'), 
+	      'group_id' => $group_id, 
+	    );
+    	$output = ctools_modal_form_wrapper('group_sms_form',  $form_state);
+	    if (!empty($form_state['ajax_commands'])) {
+	      $output = $form_state['ajax_commands'];
+	    }    
+    	print ajax_render($output);
+    	drupal_exit();
+  	}
+  	else {
+    	return drupal_get_form('group_sms_form',  $group_id);
+  	}
+}
+// form for insert message for sms
+function group_sms_form($form, &$form_state,  $group_id = 0){ 
+    global $user;
+    if(!$group_id)
+    {
+    	$group_id = $form_state['group_id'];
+    }
+    $groupOption = array();$groupOptionSelected = array();
+	// get all group title
+	$getGroup = get_all_alert_group();
+	foreach ($getGroup as $groupDetail) {
+		$groupId = $groupDetail->id;
+		$groupValue = $groupDetail->title;		
+		$groupOption[$groupId] = $groupValue;				
+	} 
+	// get single group data 
+	$group_data = get_one_alert_group($group_id);
+	// get template data
+	$getTemplate = get_all_alert_template();	
+	$templateOption[0] = 'Select from templates or type new below';
+	foreach ($getTemplate as $templateDetail) {
+		$templateId = $templateDetail->id;
+		$templateValue = $templateDetail->keyword;		
+		$templateOption[$templateId] = $templateValue;				
+	}
+    $form = array( ); 
+    /*$form['#attached']['js'] = array(
+		drupal_get_path('module', 'm6connect_alert') . '/js/m6connect_alert.js' => array(
+			'type' => 'file',
+		),
+	);*/ 
+	/*$form['#attached']['js'][] = array(
+      'data' => 'jQuery(document).ready(function() {
+		    var text_max = 160;
+		    jQuery(\'.message-feedback\').html(text_max + \' characters remaining\');
+		    jQuery(\'.message-textarea-box\').keyup(function() {
+		    	var text_length = jQuery(\'.message-textarea-box\').val().length;
+		        var text_remaining = text_max - text_length;
+		        jQuery(\'.message-feedback\').html(text_remaining + \' characters remaining\');
+		    });
+		});',
+      	'type' => 'inline',
+	);*/   
+    $form['main-container']= array(
+     	'#type' => 'container', 
+     	'#attributes' => array( 'class'=>array('message_main_container_overflow') ), 
+      	'#prefix' => '<div class="clearfix"><div id="alert_message_main_container" class="alert-message-detail-popup">',  
+    ); 
+    $form['main-container']['select-template'] = array(
+    	'#type' => 'select',
+        '#title' => t('Select Template'),
+        '#options' => $templateOption,        
+        '#attributes' => array('class' => array('margin-bottom-20')),     
+        '#ajax' => array(
+        	'callback' => 'alert_load_template_by_id',
+        	'wrapper' => 'alert_message_main_container',
+        	'method' => 'replace',
+        	'effect' => 'fade',
+        	'progress' => array( 'type'=> 'throbber', 'message'=> NULL ),
+        ),
+   	);
+    $form['main-container']['select-group'] = array(
+    	'#type' => 'select',
+        '#title' => t('Select Group'),
+        '#options' => $groupOption,
+        '#default_value' => $group_data['id'],        
+        '#multiple' => TRUE,
+        '#required' => TRUE,
+        '#chosen' => TRUE,
+        '#attributes' => array('class' => array('margin-bottom-20')),        
+   	);    
+    $form['main-container']['message'] = array(
+      '#title' => 'Add Message', 
+      '#parents' => array('message', ''),
+      '#type' => 'textarea',
+      '#attributes' => array('maxlength' => 160, 'class' => array('message-textarea-box'), 'onKeyPress'=>"return(this.value.length<160);"),         
+   		'#prefix' => '<div class="message-box-div" id="message-textarea-box-div">',
+   		'#suffix' => '<div class="message-feedback margin-bottom-10" id="message-feedback"></div></div>'
+    ); 
+    $form['#attached']['js'] = array(
+		'/'.drupal_get_path('module', 'm6connect_alert') . '/js/m6connect_alert.js' => array(
+			'type' => 'file',
+		),
+	);
+    $form['charjs'] = array(
+    	'#markup' => '<script type="text/javascript" src="/'.drupal_get_path('module',  'm6connect_alert') . '/js/m6connect_alert.js"></script>'
+    );
+    $form['clone_message_div'] = array(
+        '#markup' => l('<input type="button" class="btn btn primary form-submit" value="Clone" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('clone_message_div_submit_btn'),  'onclick' => 'cloneeDiv()', 'style' => 'display:none;'))),	
+        '#suffix' => '</div>',
+    ); 	
+    $form['multi_mms_attach'] = array(    
+    	'#type' => 'file',
+    	'#name' => 'files[]',
+    	//'#upload_location' => 'public://',
+    	'#attributes' => array('multiple' => 'multiple', 'class' => array('alert-upload-image')),
+    	'#prefix' => '<div class="multiple-mms-container margin-bottom-10">',
+    	'#suffix' => '</div>',
+      '#field_prefix' => '<div class="alert-image-on-load-template"></div>',
+      '#field_suffix' => '<span class="alert-remove-image" style="display:none;"><i class="fa fa-refresh"></i></span>',
+    	//'#element_validate' => array('multi_mms_validate_function'),
+  	);   
+    $form['close'] = array(
+        '#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array( 'external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('m6connect-alert-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();')) ), 
+        '#weight' => 10, 
+    );
+    $form['submit'] = array(
+        '#value' => t('Send'), 
+        '#type' => 'submit', 
+    );     
+    return $form;
+}
+// function for load template message by select template id
+function alert_load_template_by_id(&$form, &$form_state){	
+	$message = '';
+	$commands = array();
+	$triggerElement = $form_state['triggering_element'];
+ 	$templatevalue = $triggerElement['#value'];
+ 	if(!empty($templatevalue)){
+		$template_data = get_one_alert_template($templatevalue);
+		$message = $template_data['message'];	
+    $attachment = $template_data['attachment'];  
+    $attach_div = alert_template_image_html($attachment, $templatevalue);
+	}  
+  $commands[] = ajax_command_invoke('.alert-image-on-load-template','html',array($attach_div)); 
+	$commands[] = ajax_command_invoke('.message-textarea-box','val',array($message));	
+	$commands[] = ajax_command_invoke('.clone_message_div_submit_btn','trigger', array('click'));
+	print ajax_render($commands);
+	drupal_exit(0);
+}
+
+function group_sms_form_validate(&$form, &$form_state){
+	if(!empty($_FILES['files']['name'][0])){
+	    for ($i = 0; $i < count($_FILES['files']['name']); $i++) {
+	        $file = file_save_upload($i, array(
+	            /*'file_validate_is_image' => array(),*/
+	            'file_validate_extensions' => array('png gif jpg jpeg bmp basic L24 mp4 mpeg ogg vorbis vnd.rn-realaudio vnd.wave 3gp 3gpp 3gpp2 ac3 vnd.wave webm amr-nb amr quicktime 3gpp-tt H261 H263 H263-1998 H263-2000 H264'),
+	        ));
+	        if ($file) {
+		        if ($file = file_move($file, 'public://')) {
+		          $form_state['values']['multi_mms_attach'][$i] = $file;
+		        }
+		        else {
+		          form_set_error('file', t('Failed to write the uploaded file the site\'s file folder.'));
+		        }
+	      	}
+		    else {
+		    	form_set_error('file', t('No file was uploaded.'));
+		    }    
+	    }
+	}
+}
+// submit message and send sms to group users
+function group_sms_form_submit(&$form,  &$form_state)
+{	
+	$twilio_message = $save_media = $mms_attach = '';$media = $group_ids = array();
+	$form_input = $form_state['input'];
+	$form_values = $form_state['values'];
+	$group_ids = $form_values['select-group'];
+	$inputMsg = $form_input['message'];
+	$mms_attach = $form_values['multi_mms_attach'];	
+	$selectTemplateId = $form_values['select-template'];
+	if(!empty($inputMsg))
+	{
+		foreach ($inputMsg as $inputMsgVal) {
+			$twilio_message .= $inputMsgVal;
+		}
+	}
+	if(!empty($mms_attach))		
+	{
+		foreach ($mms_attach as $attach_detail) 
+		{
+			$attach_file_fid[] = $attach_detail->fid;
+			$media[] = file_create_url($attach_detail->uri);
+			if(!empty($attach_file_fid)){
+				$save_media = implode(',', $attach_file_fid);				
+			}
+		}
+	}  
+	if(!empty($group_ids))
+	{
+		if(!empty($twilio_message)){			
+				
+			if(!empty($selectTemplateId)){ // if send sms via template
+		        // get final attachment
+		        $save_media = alert_final_template_attachment($selectTemplateId, $save_media); 
+		        if(!empty($save_media)){
+		          $media = array();
+		          $save_media_arr = explode(',', $save_media);   
+		          foreach ($save_media_arr as $save_media_arr_value) {
+		            $save_media_file = file_load($save_media_arr_value);
+		            $media[] = file_create_url($save_media_file->uri);
+		          }
+		        }        
+				// first update template
+				$fields = array(
+		        	'message' => addslashes($twilio_message),
+		        	'updated_dt' => date('Y-m-d H:i:s'),
+				);
+				if(!empty($save_media)){	// if media exist on send template
+					$fields['attachment'] = $save_media;
+				}		
+				$template_update = db_update('m6connect_alert_template');
+				$template_update->fields($fields);
+				$template_update->condition('id', $selectTemplateId, '=');
+				$template_update->execute();	
+			}
+			// save message
+			$insert_message = db_insert('m6connect_alert_group_message')
+							->fields(array(
+								'group_id' => implode(",", $group_ids),
+								'message' => addslashes($twilio_message),
+								'media' => $save_media,
+								'created_dt' => date('Y-m-d H:i:s'),
+								))
+							->execute();	
+			$last_msg_id = $insert_message;			
+			foreach ($group_ids as $group_id){
+				// get group detail for sending sms
+				$group_data = get_group_detail_from_group_id($group_id);			
+				foreach ($group_data as $gDataValue){
+					$phone = $gDataValue->phone;
+					$country_code = $gDataValue->country_code;
+					if(!empty($phone) && !empty($country_code))
+					{
+						$new_phone = str_replace($country_code, '', $phone);					
+						$sms_response = m6connect_alert_twilio_send($new_phone, $twilio_message, $country_code, $media);
+						$smsSID = $sms_response['sid'];		
+						// save SMS response
+						$insert_message = db_insert('m6connect_alert_group_message_response')
+										->fields(array(
+											'group_id' => $group_id,
+											'msg_id' => $last_msg_id,										
+											'phone'	=> $gDataValue->phone,	
+											'sid'	=> $smsSID,
+											'status' => 'Queued',
+											'sms_response' => serialize($sms_response),
+											'created_dt' => date('Y-m-d H:i:s'),
+											))
+										->execute();
+						// check if any error
+						$error_msg = array('sms_error' => 0);
+						if(!empty($sms_response['error_msg']))
+						{
+							$message = ($errorCount['sms_error'] == 0)?'Message not sent for'.$new_phone:'';
+							$errorCount['sms_error']++;						
+						}
+					}
+				}	
+			}
+			if($errorCount > 0)		
+			{
+				drupal_set_message($message, 'error');
+			}
+			else
+			{									
+				drupal_set_message('Text Message Sent', 'status');
+			}
+		}
+		else
+		{
+			drupal_set_message('Please enter message', 'error');
+		}		
+	}
+  if(!empty(arg(3))){
+    $url = '/alert/groups/'.arg(3);
+  }
+  else{
+    $url = '/alert/groups';
+  }
+	if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+ 		$form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+ 		$form_state['ajax_commands'][] =ctools_ajax_command_redirect($url);  
+	}
+}
+// function for delete group
+function alert_delete_group_callback($ajax, $group_id = 0)
+{	
+	if ($ajax) {
+		ctools_include('ajax');
+		ctools_include('modal');
+		$form_state = array(
+				'ajax' => TRUE,
+				'group_id' => $group_id,
+		);
+		$output = ctools_modal_form_wrapper('group_delete_form', $form_state);
+		if (!empty($form_state['ajax_commands'])) {
+			$output = $form_state['ajax_commands'];
+		}
+		print ajax_render($output);
+		drupal_exit();
+	}
+  	return drupal_get_form('group_delete_form', $group_id);
+}
+// group delete popup form
+function group_delete_form($form, &$form_state, $group_id = 0) {
+	if(!$group_id)
+    {
+    	$group_id = $form_state['group_id'];
+    }	 
+	$form['group_action_title'] = array(
+		'#type' => 'markup',
+		'#title' => t('status'),
+		'#markup' => '<div class="group-action-status"><p>Are you sure you want to delete this Group ?</p></div>',
+		//'#prefix'=> '<div class="node-action-con-title"><strong><h4>Delete status</h4></strong></div>',
+	);	
+	$form['group_id'] = array(
+    	'#type' => 'hidden', 
+    	'#value' => $group_id, 
+   	);		
+	$form['submit_action_dgroup'] = array(
+		'#type' => 'submit',
+		'#value' => t('Confirm')
+	);
+	$form['submit_action_cancel']['close'] = array(
+		'#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('group-delete-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+		'#weight' => 10,
+	);
+	return $form;
+}
+// function for delete group
+function group_delete_form_submit($form, &$form_state) {	
+	$form_values = $form_state['values'];
+	$group_id = $form_state['group_id'];
+	if(!empty($group_id))
+	{
+    if(!empty(arg(3))){
+      $url = '/alert/groups/'.arg(3);
+    }
+    else{
+      $url = '/alert/groups';
+    }
+		// delete group
+		$group_delete = db_delete('m6connect_alert_group')
+					->condition('id', $group_id, '=')
+					->execute();
+		// delete group detail
+		$group_delete = db_delete('m6connect_alert_group_detail')
+					->condition('group_id', $group_id, '=')
+					->execute();
+
+		drupal_set_message('Group deleted successfully', 'status');
+			
+		if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+	 		$form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+	 		$form_state['ajax_commands'][] =ctools_ajax_command_redirect($url);  
+  	}
+	}
+}
+// function for add new alert form
+function add_new_alert_form($form,  &$form_state, $type='', $group_id = 0)
+{	
+	//$form_state['no_cache'] = TRUE;	
+	/*drupal_add_css(drupal_get_path('module',  'international_phone') . '/css/intlTelInput.css');
+  	drupal_add_js(drupal_get_path('module',  'international_phone') . '/js/intlTelInput.js');
+  	drupal_add_js(drupal_get_path('module',  'international_phone') . '/js/international_phone.js');*/
+  	//include_once(libraries_get_path('simplexlsx') . '/simplexlsx.class.php');  		  			
+  	//drupal_add_js(drupal_get_path('module',  'alert') . '/js/phone_code.js');
+  	drupal_add_js('jQuery(document).ready(function () {
+	  	jQuery(".new_alert_form_submit").click(function(event){
+		  	var phone_id = [];
+			jQuery(".international_phone-number").each(function(){
+				var unique_id = jQuery(this).attr("uni_id");
+				var cun_code = jQuery(this).closest(".intl-tel-input").find(".selected-flag").attr("title");
+				jQuery(".edit-alert-"+unique_id+"-phone-code").val(cun_code);
+			});
+	  	});	  	
+	});',  'inline');
+
+	$form = array( );
+  if(is_numeric($group_id) && $group_id > 0 && empty($form_state['m6alert_storage'])){
+  	$edit_title = db_select('m6connect_alert_group', 'mag');
+		$edit_title->leftJoin('m6connect_alert_group_detail', 'magd', 'mag.id = magd.group_id');
+		$edit_title->fields('mag', array('title'));
+		$edit_title->fields('magd');
+		$edit_title->condition('mag.id', $group_id, '=');
+		$result = $edit_title->execute()->fetchAll();
+		if($result && !empty($result)){
+			foreach ($result as $key => $value) {
+				$tempIdentifer = uniqid();
+  			$form_state['m6alert_storage'][]  = $tempIdentifer;
+  			$form_state['m6alert_storage_default_value'][$tempIdentifer] = (array)$value;
+			}
+		}		
+  }
+  $cm = '';
+  if(!empty($group_id) && is_numeric($group_id)){
+    if(!empty(arg(3))){
+      $cm = arg(3);
+    }  
+  }
+  else{
+    if(!empty(arg(2))){
+      $cm = arg(2);
+    }
+  }
+  if(!empty($cm)){
+    $url = '/alert/groups/'.$cm;
+  }
+  else{
+    $url = '/alert/groups';
+  }
+	if(empty($form_state['m6alert_storage'])){
+    $tempIdentifer = uniqid();
+    $form_state['m6alert_storage'][] = $tempIdentifer;
+  }  
+  $form['container-title'] = array(
+    '#type' => 'container', 
+    '#attributes' => array('class'=>array('alert-title'),), 
+  );
+  $form['container-title']['title'] = array(
+  	'#type' => 'textfield',  
+  	'#title' => t('Title'),  
+  	'#default_value' => (isset($result[0]->title))?$result[0]->title:'',  
+  	'#size' => 60,  
+  	'#maxlength' => 128,  
+  	'#required' => TRUE, 
+  	'#attributes' => array( 'placeholder' => 'Enter group title' ), 
+	);
+	$form['group_id'] = array(
+		'#type' => 'value',
+		'#value' => $group_id,
+	);
+  $form['cm'] = array(
+    '#type' => 'hidden',
+    '#value' => $cm,
+  );	
+	$form['main_container'] = array(
+  	'#type' => 'container', 
+  	'#theme' => 'm6sms_alert_theme', 
+  	'#attributes' => array( 'class'=>array('alert-container-section')), 
+  	'#prefix' => '<div class="clearfix"><div id="alert-container-section" class="add-new-alert-detail margin-bottom-10">',  
+  	'#suffix' => '</div></div>', 
+  	'#process' => array( 'm6_alert_row_process' ), 
+  );    
+  $form['bulk_fid'] = array(
+  	'#type' => 'hidden', 
+  	'#attributes' => array('class'=> array('bulk-fid-section')),       	 
+  );
+  /*$form['alert_type'] = array(
+    	'#type' => 'value', 
+    	'#value' => $type,       	 
+  );*/      
+	$form['close'] = array(
+    '#markup' => l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', $url, array( 'external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('assign-bid-packages-popup-close'), )) ), 
+    '#weight' => 10, 
+  );
+  $form['submit'] = array(
+    '#value' => 'Save', 
+    '#type' => 'submit', 
+    '#validate' => array( 'alert_new_row_validate_handler' ), 
+    '#submit' => array( 'alert_new_row_submit_handler' ), 
+    '#attributes' => array( 'class' => array('new_alert_form_submit') ), 
+  ); 
+  $form['workflow_add_new_row'] = array(
+    '#type'=>'submit', 
+  	'#value' => 'Add New Detail', 
+  	'#name' => 'workflow_add_new_row', 
+  	'#attributes'=> array( 'class'=>array('alert-workflow-action','alert-workflow-action-add-row'),'title'=>'Add New Detail' ), 
+  	"#limit_validation_errors" => array( ), 
+  	'#submit'=> array( 'add_new_row_submit_handler' ), 
+  	'#ajax' => array(
+	  	'callback' => 'add_new_row_action_callback', 
+	  	'wrapper' => 'alert-container-section', 
+	  	'method' => 'replace', 
+	  	'effect' => 'fade', 
+	  	'progress' => array( 'type'=> 'throbber', 'message'=> NULL ), 
+	  ), 
+	);
+	$form['m6alert_bulk_upload'] = array(
+	    '#markup' => l('Bulk Upload', url('alert-bulk-upload/nojs/'.$group_id), array( 'external'=>TRUE, 'attributes'=> array('class'=>array('use-ajax ctools-modal-assign-dashboard-popup-style btn btn-primary form-submit'))))
+	);
+	$form['bulk_upload_process'] = array(
+        '#value' => 'bulk_upload_process', 
+        '#type' => 'submit', 
+		'#submit' => array( 'bulk_upload_process_submit_handler' ), 
+		'#attributes' => array( 'class' => array('bulk_upload_process_submit_btn'), 'style' => 'display:none'),
+		//'#limit_validation_errors' => array(),
+		//'#executes_submit_callback' => FALSE,
+    ); 		  
+    return $form;
+}
+// render new row theme as table formate
+function theme_m6sms_alert_theme($variables)
+{
+	$element = $variables['form'];
+	$storage = $element['#storage'];
+	$output = '';
+	$header = array( 'Email', 'Mobile Phone No.', 'First Name', 'Last Name', '',  '' );
+	foreach ($storage as $key => $uniqId) {
+		$rows[] = array(
+			'data'=> array(
+				array( 'data'=>drupal_render($element['email'][$uniqId]),'class'=> array('') ), 
+				array( 'data'=>drupal_render($element['phone'][$uniqId]),'class'=> array(''), 'uni_id' => $uniqId), 
+				array( 'data'=>drupal_render($element['fname'][$uniqId]),'class'=> array('')), 
+				array( 'data'=>drupal_render($element['lname'][$uniqId]),'class'=> array('') ), 
+				array( 'data'=>drupal_render($element['phone_code'][$uniqId]),'class'=> array('')), 
+				array( 'data'=>drupal_render($element['remove'][$uniqId]),'class'=> array('') ), 				
+			), 	  
+		);
+	}
+	$output .= theme('table', array( 'header' => $header, 'rows' => $rows, 'attributes'=> array('class'=> array('alert-group-workflow-table','table','table-hover','m6connect-custom-table', 'm6connect-table-border'))) );
+  	$output .= drupal_render_children($element);
+  	return $output;
+}
+// new row field function
+function m6_alert_row_process($element,  &$form_state){
+  	$storage = $form_state['m6alert_storage'];  	
+  	$element['#storage'] = $storage;
+  	foreach ($storage as $key => $uniqId) { 
+  		$element['id'][$uniqId] = array(
+			'#type' => 'hidden',  
+			//'#title' => t('First Name'),  
+			'#default_value' => '',  		
+			//'#required' => TRUE, 
+			'#attributes'=> array( 'class'=> array('form-control','workflow-hidden')), 
+			'#parents' => array( 'alert',$uniqId,'id' ), 
+		);
+	  	$element['fname'][$uniqId] = array(
+			'#type' => 'textfield',  
+			//'#title' => t('First Name'),  
+			'#default_value' => '',  		
+			//'#required' => TRUE, 
+			'#attributes'=> array( 'class'=> array('form-control','workflow-auto'),'placeholder'=>'Enter first name' ), 
+			'#parents' => array( 'alert',$uniqId,'fname' ), 
+		);
+		$element['lname'][$uniqId] = array(
+			'#type' => 'textfield',  
+			//'#title' => t('Last Name'),  
+			'#default_value' => '',  		
+			//'#required' => TRUE, 
+			'#attributes'=> array( 'class'=> array('form-control','workflow-auto'),'placeholder'=>'Enter last name' ), 
+			'#parents' => array( 'alert',$uniqId,'lname' ), 
+		);
+		$element['email'][$uniqId] = array(
+			'#type' => 'textfield',  
+			//'#title' => t('Email'),  
+			'#default_value' => '',  		
+			//'#required' => TRUE, 
+			'#attributes'=> array( 'class'=> array('form-control','workflow-auto'),'placeholder'=>'Enter email',), 
+			'#parents' => array( 'alert',$uniqId,'email' ), 
+			'#ajax' => array(
+				'callback' => 'alert_chk_user_from_email',
+				'wrapper' => 'alert-container-section',
+				'method' => 'replace',
+				'effect' => 'fade',
+				'progress' => array( 'type'=> 'throbber', 'message'=> NULL ),
+			),
+		);
+		$element['phone'][$uniqId] = array(
+		   '#type' => 'textfield',   
+		   '#default_value' => '', 
+		   '#attributes'=> array( 'class'=> array('form-control','workflow-auto', 'international_phone-number'),'placeholder'=>'Enter phone no.', 'uni_id' => $uniqId ), 
+		   '#parents' => array( 'alert',$uniqId,'phone' ),
+		   '#attached' => array(
+	           	'css'=> array(
+	            	drupal_get_path('module', 'international_phone') . '/css/intlTelInput.css',
+	            ),
+	           	'js'=>array(
+	            	drupal_get_path('module', 'international_phone') . '/js/intlTelInput.js',
+	          		drupal_get_path('module', 'international_phone') . '/js/international_phone.js'
+	           	),
+	        ), 
+		);
+		$element['phone_code'][$uniqId] = array(
+			'#type' => 'hidden',  
+			//'#title' => t('Phone'),  
+			'#default_value' => '', 
+			'#attributes' => array('class' => array('edit-alert-'.$uniqId.'-phone-code')),
+			'#parents' => array( 'alert',$uniqId,'phone_code' ), 
+		);
+		$element['remove'][$uniqId] = array(
+		  	'#type' => 'submit', 
+		  	'#value' => decode_entities('&#xf014;'), 
+		  	'#name' => $uniqId, 
+		  	'#attributes'=> array( 'style'=> array('font-family:FontAwesome;'),'class'=>array('alert-container-section') ), 
+		  	'#parents' => array( 'alert', $uniqId, 'remove' ), 
+		  	"#limit_validation_errors" => array( ), 
+		  	'#submit'=> array( 'remove_new_alert_row_handler' ), 
+		  	'#ajax' => array(
+				'callback' => 'remove_new_alert_row_callback', 
+				'wrapper' => 'alert-container-section', 
+				'method' => 'replace', 
+				'effect' => 'fade', 
+				'progress' => array( 'type'=> 'throbber', 'message'=> NULL ), 
+		   	), 	  
+		);
+
+		if(isset($form_state['m6alert_storage_default_value'][$uniqId])){
+		  	$stdefault = $form_state['m6alert_storage_default_value'][$uniqId];
+		  	$element['id'][$uniqId]['#default_value'] = $stdefault['id'];
+          	$element['fname'][$uniqId]['#default_value'] = $stdefault['fname'];
+          	$element['lname'][$uniqId]['#default_value'] = $stdefault['lname'];
+          	$element['email'][$uniqId]['#default_value'] = $stdefault['email'];
+          	$element['phone'][$uniqId]['#default_value'] = $stdefault['phone'];
+          	$element['phone_code'][$uniqId]['#default_value'] = $stdefault['country_code'];
+          	if($stdefault['disable_field'] == 1){
+          		$element['fname'][$uniqId]['#attributes'] = array( 'class'=> array('form-control','workflow-auto'),'placeholder'=>'Enter first name', 'readonly' => 'true' );
+          		$element['lname'][$uniqId]['#attributes'] = array( 'class'=> array('form-control','workflow-auto'),'placeholder'=>'Enter first name', 'readonly' => 'true' );
+          	}
+  		}		 
+  	}
+  	return $element;
+}
+// if user email already registered then fname and lname auto fill with disabled field
+function alert_chk_user_from_email(&$form,  &$form_state){
+	$name = $form_state['triggering_element']['#name'];
+	$value = $form_state['triggering_element']['#value'];
+	$parents = $form_state['triggering_element']['#parents'];
+	$uniqId = $parents[1];	
+	$commands = array();
+	if(!empty($value)){
+	 $emailUser = (array)_get_user_details_by_og_email($value);
+		if(!empty($emailUser['field_first_name_value'])){
+			$fname = $emailUser['field_first_name_value'];
+			$lname = $emailUser['field_last_name_value'];
+      		$email_phone = $emailUser['field_phone_value'];
+			
+	    	$commands[] = ajax_command_invoke('input[name="alert['.$uniqId.'][fname]"]', 'val', array($fname));	
+			$commands[] = ajax_command_invoke('input[name="alert['.$uniqId.'][lname]"]', 'val', array($lname));
+      		//$commands[] = ajax_command_invoke('input[name="alert['.$uniqId.'][phone]"]', 'val', array($email_phone));		
+      		$commands[] = ajax_command_invoke('input[name="alert['.$uniqId.'][phone]"]', 'intlTelInput', array('setNumber', $email_phone));
+      		
+			$commands[] = ctools_ajax_command_attr('input[name="alert['.$uniqId.'][fname]"]', 'readonly', 'true');
+			$commands[] = ctools_ajax_command_attr('input[name="alert['.$uniqId.'][lname]"]', 'readonly', 'true');
+				
+			print ajax_render($commands);
+			drupal_exit(0);
+		}		
+	}
+}
+
+// function call on click on add new button
+function add_new_row_submit_handler(&$form,  &$form_state)
+{
+	$triggerElement = $form_state['triggering_element'];
+	if($triggerElement['#name'] =='workflow_add_new_row'){
+	    $tempIdentifer = uniqid();
+		$form_state['m6alert_storage'][]  = $tempIdentifer;
+	}
+  	$form_state['rebuild'] = TRUE;
+}
+// add ajax callback
+function add_new_row_action_callback(&$form,  &$form_state){
+	$commands = array();
+	$commands[] = ajax_command_replace("#alert-container-section", render($form['main_container']));
+	$input_alert = $form_state['input']['alert'];
+	foreach ($input_alert as $key => $input_alert_value) {
+		$alertEmail = $input_alert_value['email'];
+		$emailUser = (array)_get_user_details_by_og_email($alertEmail);		
+		if(!empty($emailUser['field_first_name_value'])){
+			$commands[] = ctools_ajax_command_attr('input[name="alert['.$key.'][fname]"]', 'readonly', 'true');
+			$commands[] = ctools_ajax_command_attr('input[name="alert['.$key.'][lname]"]', 'readonly', 'true');
+		}
+	}	
+  	return array('#type' => 'ajax','#commands' => $commands);
+}
+// function call on click on remove button
+function remove_new_alert_row_handler(&$form, &$form_state){
+  	$triggering_element = $form_state['triggering_element'];
+  	$identifier = $triggering_element['#parents'][1];
+  	if(isset($form_state['m6alert_storage'])){
+  		foreach ($form_state['m6alert_storage'] as $key => $value) {
+  			if($form_state['m6alert_storage'][$key] == $identifier){
+  				unset($form_state['m6alert_storage'][$key]);  				
+  			} 
+  		}  		   	 		
+  	} 
+  	$form_state['rebuild'] = TRUE;
+}
+// remove ajax callback
+function remove_new_alert_row_callback(&$form,  &$form_state){
+  	$commands = array();
+	$commands[] = ajax_command_replace("#alert-container-section", render($form['main_container']));
+	$input_alert = $form_state['input']['alert'];
+	foreach ($input_alert as $key => $input_alert_value) {
+		$alertEmail = $input_alert_value['email'];
+		$emailUser = (array)_get_user_details_by_og_email($alertEmail);		
+		if(!empty($emailUser['field_first_name_value'])){
+			$commands[] = ctools_ajax_command_attr('input[name="alert['.$key.'][fname]"]', 'readonly', 'true');
+			$commands[] = ctools_ajax_command_attr('input[name="alert['.$key.'][lname]"]', 'readonly', 'true');
+		}
+	}	
+  	return array('#type' => 'ajax','#commands' => $commands);  
+}
+// function for validate rows
+function alert_new_row_validate_handler(&$form,  &$form_state){
+	global $company;
+  	global $user;
+  	$nid = $company->nid;
+  	$uid = $user->uid;
+  	$values = $form_state['values'];
+  	$group_id = '';
+  	$group_id = $values['group_id'];
+  	$errorCount = array( 'title_error' => 0, 'email_error'=>0, 'phone_error'=>0 );
+  	$title = $values['title'];
+  	if(!empty($title))
+  	{  		
+  		// select if title exist
+	  	$errorCount = array( 'title_error' => 0);  	
+	  	$getTitle = db_select('m6connect_alert_group' , 'mg')
+	  				->fields('mg', array('id'))  	
+	  				->condition('title', $title, '=')
+	  				->condition('company_nid', $nid, '=')
+	  				->condition('uid', $uid, '=')
+	  				->execute()
+	  				->fetchAssoc();
+	  	if(!empty($getTitle['id']))
+	  	{
+	  		if(!empty($group_id)){
+	  			if($group_id != $getTitle['id']){
+	  				$message = ($errorCount['title_error'] == 0)?'Title already exists.':'';
+					  $errorCount['title_error']++;
+					  form_set_error('title]', $message);
+	  			}
+	  		}
+	  		else{
+	  			$message = ($errorCount['title_error'] == 0)?'Title already exists.':'';
+				$errorCount['title_error']++;
+				form_set_error('title]', $message);
+	  		}	  		
+	  	}
+  	}
+  	$storage = $form_state['m6alert_storage'];  	
+	$alert = $values['alert'];
+	foreach ($alert as $key => $alert_detail) {
+		/*if(isset($alert_detail['email']) && !empty($alert_detail['email']) && !valid_email_address($alert_detail['email']))
+		{			
+			$message = ($errorCount['email_error'] == 0)?'Please enter valid email':'';
+			$errorCount['email_error']++;			
+			form_set_error('alert]['.$key.'][email', $message);	
+		}*/
+		if(strlen($alert_detail['phone']) < 10)		
+		{
+			$message = ($errorCount['phone_error'] == 0)?'Please enter valid phone no.':'';
+			$errorCount['phone_error']++;
+			form_set_error('alert]['.$key.'][phone', $message);
+		}
+		/*else
+		{
+			$message = ($errorCount['phone_error'] == 0)?'Please enter phone no.':'';
+			$errorCount['phone_error']++;
+			form_set_error('alert]['.$key.'][phone', $message);
+		}*/
+	}
+}
+// function for insert group title and group detail
+function alert_new_row_submit_handler(&$form,  &$form_state){		
+	$values = $form_state['values'];
+  $input = $form_state['input'];
+	$storage = $form_state['m6alert_storage'];
+	global $company;
+	global $user;
+	$nid = $company->nid;
+	$uid = $user->uid;
+	$title = $values['title'];
+	$alert = $values['alert'];
+  $cm = '';
+  $cm = $input['cm'];
+	$count = 0;
+	$finalMessage = '';
+	if(!empty($values['group_id']) && is_numeric($values['group_id']))
+	{
+		$groupId = $values['group_id'];
+		// get existing detail first
+		$getDetailId = get_group_detail_from_group_id($groupId);
+	  	$savedDetailId = array();
+		foreach ($getDetailId as $grpDetailId) {
+			$savedDetailId[] = $grpDetailId->id;
+		}
+		// update group title
+		if(!empty($title)){
+			$update_title = db_update('m6connect_alert_group')
+  						->fields(array('title' => $title, 'updated_dt' => date('Y-m-d H:i:s')))
+  						->condition('id', $groupId, '=')
+  						->execute();
+		}  		  		
+		$updated_detail_id = array();
+		foreach($alert as $key => $alert_detail){  				
+  		$insert_detail = array();		
+  		$phone_code = explode(":", $alert_detail['phone_code']);  
+  		$detail_id = $alert_detail['id'];
+		  if(empty($detail_id)){	// if new entry found when edit group then insert it
+  			$new_insert_detail = array( 
+          'group_id' => $groupId, 
+          'fname' => $alert_detail['fname'], 
+          'lname' => $alert_detail['lname'], 
+          'email' => $alert_detail['email'], 
+          'phone' => $alert_detail['phone'],  
+          'country_code' => trim($phone_code[1]),                      
+          'created_dt' => date("Y-m-d H:i:s"),                 
+        );
+  			// insert group details
+        if(!empty($new_insert_detail)){
+    	  	db_insert('m6connect_alert_group_detail')->fields($new_insert_detail)->execute();
+    	  	$count++;
+    	  	$finalMessage = 'Successfully inserted ';
+  			}
+  		}
+		  else{
+  			$insert_detail = array(  
+          'fname' => $alert_detail['fname'], 
+          'lname' => $alert_detail['lname'], 
+          'email' => $alert_detail['email'], 
+          'phone' => $alert_detail['phone'],  
+          'country_code' => trim($phone_code[1]),             
+        );
+  			// update group details
+        if(!empty($insert_detail)){
+    	  	db_update('m6connect_alert_group_detail')
+    	  	->fields($insert_detail)
+    	  	->condition('id', $detail_id, '=')
+    	  	->execute();
+    	  	$count++;
+  			}					
+			 $updated_detail_id[] = $alert_detail['id'];
+			 $finalMessage = 'Successfully updated ';
+		  }
+		}
+		// delete row if difference in existing detail id and edit id
+		$array_diff = array_diff($savedDetailId, $updated_detail_id);
+		if(isset($array_diff) && !empty($array_diff)){
+			$deleteGrpDetail = db_delete('m6connect_alert_group_detail')
+        							->condition('id', $array_diff, 'in')
+        							->execute();			
+		}		
+  }
+  else
+  {  	
+		// insert group title
+  	$insert_title = db_insert('m6connect_alert_group')
+		            ->fields(array( 
+		                'company_nid' => $nid, 
+		                'uid' => $uid, 
+		                'title' => $title,
+                    'cm_type' => $cm,
+		                'status' => 1,                 
+		                'created_dt' => date("Y-m-d H:i:s"), 
+		                'updated_dt' => date("Y-m-d H:i:s"), 
+		                ))
+		            ->execute();
+    $group_id = $insert_title; // get last inserted group id
+		foreach ($alert as $key => $alert_detail){
+			$insert_detail = array();		
+			$phone_code = explode(":", $alert_detail['phone_code']);  		
+			$insert_detail = array( 
+	                'group_id' => $group_id, 
+	                'fname' => $alert_detail['fname'], 
+	                'lname' => $alert_detail['lname'], 
+	                'email' => $alert_detail['email'], 
+	                'phone' => $alert_detail['phone'],  
+	                'country_code' => trim($phone_code[1]),                      
+	                'created_dt' => date("Y-m-d H:i:s"),                 
+	                );
+			// insert group details
+	        if(!empty($insert_detail)){
+			  	db_insert('m6connect_alert_group_detail')->fields($insert_detail)->execute();
+			  	$count++;
+			}
+		}			
+		$finalMessage = 'Successfully inserted ';				
+	}
+	// send email to unregistered user  
+	m6connect_alert_send_email_to_unregistered_user($group_id);
+	if($count > 0){
+		drupal_set_message($finalMessage.$count);
+    if(!empty($cm)){
+      $url = '/alert/groups/'.$cm;
+      $form_state['redirect'] = url($url);
+    }
+    else{
+      $form_state['redirect'] = url('/alert/groups');
+    }		
+	}	
+}
+/********** Bulk uploading code starts ***********/
+// function for open popup for bulk upload
+function alert_bulk_upload_callback($ajax, $group_id = 0){
+	if($ajax){
+		ctools_include('ajax');
+		ctools_include('modal');
+
+		$form_state = array(
+			'ajax' => TRUE,
+			'group_id' => $group_id,
+		);
+		$output = ctools_modal_form_wrapper('bulk_upload_form', $form_state);
+		if (!empty($form_state['ajax_commands'])) {
+			$output = $form_state['ajax_commands'];
+		}
+		print ajax_render($output);
+		drupal_exit();
+	}
+	return drupal_get_form('bulk_upload_form', $group_id);
+}
+// function for bulk upload form
+function bulk_upload_form($form, &$form_state, $group_id = 0)
+{
+	global $user;
+    if(!$group_id)
+    {
+    	$group_id = $form_state['group_id'];
+    }
+    $form = array( ); 
+    $form['#attributes']['enctype'] = "multipart/form-data";
+    $form['main-container']= array(
+      	'#type' => 'container', 
+      	//'#attributes' => array( 'class'=>array('row') ), 
+      	'#prefix' => '<div class="clearfix"><div id="bulk_upload_main_container" class="bulk-upload-detail col-md-12 col-sm-12 col-xs-12">',  
+    );    
+    $form['main-container']['group_id'] = array(
+        '#type' => 'value',
+		'#value' => $group_id,
+    );  
+    $form['main-container']['upload_file'] = array(
+        '#title' => t('Choose a file'), 
+        '#type' => 'managed_file',
+        '#upload_location' => 'public://',
+        //'#attributes' => array('required'=>'required'),        
+ 		'#required' => TRUE,
+ 		'#upload_validators' => array(
+    		'file_validate_extensions' => array('xls xlsx'),
+    	),
+    ); 
+    $sample_download_file = drupal_get_path('module',  'm6connect_alert') . '/alert_sample/sample.xlsx';
+	$form['main-container']['m6alert_download_sample'] = array(	    
+		'#markup' => l('Upload Format', $sample_download_file),
+		'#prefix' => '<div class="margin-bottom-10">',
+		'#suffix' => '</div>',
+	);   
+    $form['close'] = array(
+        '#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array( 'external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('assign-bid-packages-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();')) ), 
+        '#weight' => 10, 
+    );
+    $form['submit'] = array(
+        '#value' => 'Submit', 
+        '#type' => 'submit', 
+    );    
+    return $form;
+}
+// function for submit bulk upload form
+function bulk_upload_form_submit($form,  &$form_state){
+	$values = $form_state['values'];
+	$uploadFileId = $values['upload_file'];
+	if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+		$form_state['ajax_commands'][] = ajax_command_invoke('.bulk-fid-section', 'val', array($uploadFileId));
+    	$form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+    	$form_state['ajax_commands'][] = ajax_command_invoke('.bulk_upload_process_submit_btn','click');    	
+  	}
+}
+// insert uploaded row from excel
+function bulk_upload_process_submit_handler(&$form, &$form_state){
+	global $base_url;$_SESSION['bulk_phone_code'] = '';
+    $values = $form_state['values'];
+    $existing_blank_row = $values['alert'];
+    $i=0;
+    foreach ($existing_blank_row as $key => $blank_row) {
+    	if(empty($blank_row['phone_code'])){
+    		unset($form_state['m6alert_storage'][$i]);
+    		$i++;    		
+    	}
+    }    
+    $bulk_fid = $values['bulk_fid'];
+    //$type = $values['alert_type'];
+    //include_once(libraries_get_path('simplexlsx') . '/simplexlsx.class.php');       
+    module_load_include('inc', 'phpexcel');
+    if($bulk_fid && is_numeric($bulk_fid)){
+    	$file = file_load($bulk_fid);
+    	$filename = $file->filename;
+    	if(strpos($filename, " ") < 1)
+    	{
+		   	$file_uri = $file->uri;
+			$file_path = file_create_url($file_uri);
+			/*$data = new SimpleXLSX(file_get_contents($file_path), true);	
+			$excel_data = $data->rows();*/
+			$new_file_path = str_replace($base_url.'/', '', $file_path);		
+			$excel_data = phpexcel_import($new_file_path);
+			$excel_flag = 0;
+			//$excel_keys = array("First Name", "Last Name", "Email Address", "Phone Number");
+			$bulk_mail = array();	
+			drup_msg($excel_data[0][0]['Select Country']);
+			if(!empty($excel_data[0][0]['Select Country'])){
+				$_SESSION['bulk_phone_code'] = m6connect_alert_get_phone_code($excel_data[0][0]['Select Country']);
+			}			
+			foreach ($excel_data as $key => $value_data){								
+				foreach ($value_data as $key => $value){
+					/*$new_key = array_keys($value);
+					echo array_diff($new_key, $excel_keys)
+					if(!array_diff($new_key, $excel_keys)){*/				
+						if(!empty($value['Phone Number'])){
+							$user_phone = $_SESSION['bulk_phone_code'].$value['Phone Number'];
+							$tempIdentifer = uniqid();
+							$form_state['m6alert_storage'][] = $tempIdentifer;
+							$default = array(
+								'id' => '',
+								'fname' => $value['First Name'],
+								'lname' => $value['Last Name'],
+								'email' => $value['Email Address'],
+								'phone' => $user_phone,
+								'disable_field' => 0,
+							);
+							$form_state['m6alert_storage_default_value'][$tempIdentifer] = $default;
+							$bulk_mail[$tempIdentifer] = $value['Email Address'];				
+						}
+					/*}
+					else{
+						$excel_flag = 1;
+						drupal_set_message('Wrong excel format. Please download format before upload the file');
+						break;
+					}*/	
+				}
+				/*if($excel_flag == 1){
+					break;
+				}*/
+			}
+
+		}
+		else{
+			drupal_set_message('Space is not allowed with the file name');
+		}			
+    }        
+    foreach ($bulk_mail as $key => $bulk_mail_value) {    	
+    	$emailUser = (array)_get_user_details_by_og_email($bulk_mail_value);
+    	if(!empty($emailUser['field_first_name_value'])){
+    		$form_state['m6alert_storage_default_value'][$key]['fname'] = $emailUser['field_first_name_value'];
+    		$form_state['m6alert_storage_default_value'][$key]['lname'] = $emailUser['field_last_name_value'];
+    		$form_state['m6alert_storage_default_value'][$key]['disable_field'] = 1;
+    	}
+    }    
+    $form_state['rebuild'] = TRUE;    
+}
+/********** Bulk uploading code End ***********/
+/* block for listing sent messages starts */
+function alert_sent_message_search_form($form, &$form_state){
+	$searchVal = '';$sortVal = '';
+	if(isset($_REQUEST['search_box']) && !empty($_REQUEST['search_box'])){
+		$searchVal = $_REQUEST['search_box'];
+	}
+	if(isset($_REQUEST['message_selected']) && !empty($_REQUEST['message_selected'])){
+		$sortVal = $_REQUEST['message_selected'];
+	}	
+	$form = array();
+	$form['#method'] = 'get';
+	$form['#attributes']['class'] = array('m6alert-list-form');
+	$form['search-container'] = array(
+		'#type' => 'container', 
+		'#attributes' => array('class' => array('row', 'search-form-container', 'margin-5')),
+	);
+	$form['search-container']['search_box'] = array(
+		'#type' => 'textfield',
+		'#attributes' => array('class' => array('search-msg'), 'placeholder' => 'Search Group'),
+		'#prefix' => '<div class="col-md-4 col-sm-5 col-xs-12 margin-bottom-10 padding-5">',
+		'#value' => $searchVal,
+	);
+	$form['search-container']['submit'] = array(
+		'#type' => 'submit',
+		'#value' => decode_entities('&#xf002;'),
+		'#attributes'=> array( 'style'=> array('font-family:FontAwesome;'),'class'=>array('search-container-submit-btn', 'message-search-container-submit')),
+		//'#suffix' => '</div>',
+	);
+	$form['message_selected'] = array(
+        '#type' => 'select',        
+        '#options' => array(
+        	0 => t('Sort by created date (newest to oldest)'),
+        	1 => t('Sort by created date (oldest to newest)'),
+        	2 => t('Sort by Group (A-Z)'),
+        	3 => t('Sort by Group (Z-A)'),         	
+        ),
+        '#default_value' => $sortVal, 
+        '#prefix' => '<div class="col-md-4 col-sm-2 col-xs-12 col-xs-12-hidden padding-5"></div><div class="col-md-4 col-sm-5 col-xs-12 margin-bottom-10 padding-5">',
+        '#attributes'=> array('onchange' => 'jQuery(".message-search-container-submit").click();'),
+        '#suffix' => '</div></div>',
+    );
+	return $form;
+}
+
+function alert_sent_message_listing_callback()
+{
+	onboarding_message_ctools_popup_style();
+	/*drupal_add_js(drupal_get_path('theme', 'm6connect') . '/js/jquery.dataTables.min.js');
+  	drupal_add_css(drupal_get_path('theme', 'm6connect') . '/css/jquery.dataTables.min.css');
+  	drupal_add_js('jQuery(document).ready(function () { jQuery("table.list-sent-message-workflow-table").DataTable({"bPaginate": false,"bLengthChange": false,"bFilter": false,"bInfo": false,"bAutoWidth": false,"order": [],"aoColumnDefs": [{ "bSortable": false, "aTargets": ["no-sort"]}]}); });',
+    	array('type' => 'inline')
+  	);*/
+	$searchTitle = '';$sortMessage = '';
+	$search_box = drupal_render(drupal_get_form('alert_sent_message_search_form'));
+	if(isset($_REQUEST['search_box']) && !empty($_REQUEST['search_box'])){
+		$searchTitle = $_REQUEST['search_box'];
+	}
+	if(isset($_REQUEST['message_selected']) && !empty($_REQUEST['message_selected'])){
+		$sortMessage = $_REQUEST['message_selected'];
+	}	
+	global $company;
+	global $user;
+	$nid = $company->nid;
+	$uid = $user->uid;
+  $cm = '';
+  if(!empty(arg(2))){
+    $cm = arg(2);
+  }
+	// get group and message as per nid and uid	
+	$groupMsg = db_select('m6connect_alert_group', 'mag');
+	$groupMsg->leftJoin('m6connect_alert_group_message', 'magm', 'mag.id = magm.group_id');
+	$groupMsg->fields('mag', array('id', 'title'));
+	$groupMsg->fields('magm');
+	$groupMsg->addField('magm', 'id', 'msg_id');
+	$groupMsg->condition('mag.company_nid', $nid, '=');
+	$groupMsg->condition('mag.uid', $uid, '=');
+	if(!empty($searchTitle)){	// title search
+		$groupMsg->condition('mag.title', '%'.db_like($searchTitle).'%', 'LIKE');
+	}
+  if(!empty($cm)){
+    $groupMsg->condition('mag.cm_type', $cm, '=');
+  }
+	// order by sent date and title
+	if(isset($sortMessage) && $sortMessage == 1){
+		$groupMsg->orderBy('magm.created_dt', 'ASC');
+	}
+	else if(isset($sortMessage) && $sortMessage == 2){
+		$groupMsg->orderBy('mag.title', 'ASC');
+	}
+	else if(isset($sortMessage) && $sortMessage == 3){
+		$groupMsg->orderBy('mag.title', 'DESC');
+	}
+	else
+	{
+		$groupMsg->orderBy('magm.created_dt', 'DESC');
+	}	
+	$getGroupMessage = $groupMsg->execute()->fetchAll();
+	$hasMsg = 0;
+	foreach ($getGroupMessage as $groupMessageObj) {
+		if(!empty($groupMessageObj->msg_id)){
+			$groupMessage = $groupMessageObj->message;
+			if(strlen($groupMessage) > 70){	// group message with 70 character length
+				$msgSubStr = substr($groupMessage, 0, 70);
+				$getLastSpace = strrpos($msgSubStr, ' ');
+				$newMessage = substr($msgSubStr, 0, $getLastSpace);
+				$groupMessage = $newMessage.'...';
+			}	
+			$groupName = $groupMessageObj->title;	// group title
+			$messageSentDate = date('m/d/Y', strtotime($groupMessageObj->created_dt));	// message date	
+			/*$messageView = l('View', 'alert/view-message/nojs/'.$groupMessageObj->id, array('attributes' => array('class' => array('use-ajax ctools-modal-assign-dashboard-popup-style btn btn-primary form-submit'))));*/
+			$messageView = get_sent_msg_button_dropdown($groupMessageObj->msg_id);
+			$rows[] = array(
+				'data' => array(
+					array( 'data' => $messageSentDate ), 
+					array( 'data' => $groupMessage ),
+					array( 'data' => $groupName ),
+					//array( 'data' => '' ),
+					array( 'data' => $messageView ), 
+				), 
+			);
+			$hasMsg = 1;
+		}
+	}
+	if($hasMsg == 0){
+		$rows[] = array(
+			'data' => array(
+				array( 'data' => 'No message found' ), 
+				array( 'data' => ''),
+				array( 'data' => '' ),
+				//array( 'data' => '' ),
+				array( 'data' => ''), 
+			), 
+		);
+	}	
+	/*$header = array(
+	  	array('data'=>'Date'),
+	  	array('data'=>'Message','class'=>array('no-sort')),
+	  	array('data'=>'Group'),
+	  	array('data'=>'Action','class'=>array('no-sort')) 
+ 	);*/
+ 	$output = '';
+ 	$header = array('Date', 'Message', 'Groups', 'Action');	
+	$output .= $search_box;
+	$output .= theme('table', array( 'header' => $header, 'rows' => $rows, 'attributes'=> array('class'=> array('list-sent-message-workflow-table','table','table-hover', 'm6connect-table-border'))));
+  	//$output .= drupal_render_children($element);
+  	return $output;
+}
+// view message action button dropdown
+function get_sent_msg_button_dropdown($msgId){
+  	//$projectId = empty($projectId)?0:$projectId;
+  $cm = '';
+  if(!empty(arg(2))){
+    $cm = '/'.arg(2);
+  }
+	return '<div class="btn-group alert-submit-dropdown-'.$msgId.'">
+		<div class="dropdown">
+	  	<button id="request_action_" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+	  	<ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="request_action_">
+			<li>'.l('View', url('alert/view-message/nojs/'.$msgId.$cm), array( 'external'=>TRUE, 'attributes'=> array('class'=>array('use-ajax ctools-modal-onboarding-message-popup-style'))) ).'</li>
+			<li>'.l('Move to Archive', url('mtoa/'.$msgId.$cm), array( 'external'=>TRUE, 'attributes'=> array('class'=>array(''))) ).'</li>
+			<li>'.l('Delete', url('sent-message-delete/nojs/'.$msgId.$cm), array( 'external'=>TRUE, 'attributes'=> array('class'=>array('use-ajax ctools-modal-assign-dashboard-popup-style'))) ).'</li>			
+	  	</ul>
+		</div>
+	</div>';
+  //<li>'.l('Resend', url('sent-message-resend/nojs/'.$msgId.$cm), array( 'external'=>TRUE, 'attributes'=> array('class'=>array('use-ajax ctools-modal-assign-dashboard-popup-style'))) ).'</li>
+}
+// function for delete sent message
+function alert_delete_sent_message_callback($ajax, $msgId = 0)
+{	
+	if ($ajax) {
+		ctools_include('ajax');
+		ctools_include('modal');
+		$form_state = array(
+				'ajax' => TRUE,
+				'msg_id' => $msgId,
+		);
+		$output = ctools_modal_form_wrapper('sent_message_delete_form', $form_state);
+		if (!empty($form_state['ajax_commands'])) {
+			$output = $form_state['ajax_commands'];
+		}
+		print ajax_render($output);
+		drupal_exit();
+	}
+  	return drupal_get_form('sent_message_delete_form', $msgId);
+}
+// message delete popup form
+function sent_message_delete_form($form, &$form_state, $msgId = 0) {
+	if(!$msgId)
+    {
+    	$msgId = $form_state['msg_id'];
+    } 
+	$form['msg_action_title'] = array(
+		'#type' => 'markup',
+		'#title' => t('status'),
+		'#markup' => '<div class="group-action-status"><p>Are you sure you want to delete this Message ?</p></div>',
+	);	
+	$form['msg_id'] = array(
+    	'#type' => 'hidden', 
+    	'#value' => $msgId, 
+   	);		
+	$form['submit_action_dmsg'] = array(
+		'#type' => 'submit',
+		'#value' => t('Confirm')
+	);
+	$form['submit_action_cancel']['close'] = array(
+		'#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('message-delete-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+		'#weight' => 10,
+	);
+	return $form;
+}
+// function for delete message
+function sent_message_delete_form_submit($form, &$form_state) {	
+	$form_values = $form_state['values'];
+	$msgId = $form_state['msg_id'];
+	if(!empty($msgId))
+	{	
+		// delete sent message
+		$message_delete = db_delete('m6connect_alert_group_message')
+						->condition('id', $msgId, '=')
+						->execute();
+		drupal_set_message('Message deleted successfully', 'status');
+		if(!empty(arg(3))){
+      $url = '/alert/sent-messages/'.arg(3);
+    }
+    else{
+      $url = '/alert/sent-messages';
+    }
+		if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+	 		$form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+	 		$form_state['ajax_commands'][] = ctools_ajax_command_redirect($url);  
+  	}
+	}
+}
+// function for move message to archive
+function alert_move_message_archive_callback($msg_id){
+	if(!empty($msg_id)){	// get message detail from message id
+		$getMsg = get_alert_sent_message_from_msg_id($msg_id);
+		$msgGroupId = $getMsg['group_id'];
+		$msgMessage = $getMsg['message'];
+		$msgCreatedDt = $getMsg['created_dt'];
+    $cm_type = '';
+    if(arg(0) == 'mtoa' && !empty(arg(2))){
+      $cm_type = arg(2);
+    }
+		// insert message into archive table
+		$setArchive = db_insert('m6connect_alert_group_message_archive')
+					->fields(array(
+						'group_id' => $msgGroupId,
+            'msg_id' => $msg_id,
+						'message' => $msgMessage,
+						'media' => $getMsg['media'],
+						'message_dt' => $msgCreatedDt,
+						'created_dt' => date('Y-m-d H:i:s'),
+            'cm_type' => $cm_type,
+						))
+					->execute();
+		// delete message from message table
+		$msg_delete = db_delete('m6connect_alert_group_message')
+					->condition('id', $msg_id, '=')
+					->execute();
+		drupal_set_message('Message Moved Successfully');
+    if(!empty(arg(2))){
+      $url = '/alert/sent-messages/'.arg(2);
+    }
+    else{
+      $url = '/alert/sent-messages';
+    }
+		drupal_goto($url, array('external' => TRUE));
+	}
+}
+// function for view sent message
+function alert_sent_message_view_callback($ajax, $msg_id = 0)
+{
+	if($ajax){
+		ctools_include('ajax');
+		ctools_include('modal');
+
+		$form_state = array(
+			'ajax' => TRUE,
+			'msg_id' => $msg_id,
+			);
+		$output = ctools_modal_form_wrapper('message_view_form', $form_state);
+		if (!empty($form_state['ajax_commands'])) {
+			$output = $form_state['ajax_commands'];
+		}
+		print ajax_render($output);
+		drupal_exit();
+	}
+	return drupal_get_form('message_view_form', $msg_id);
+}
+
+function message_view_form($form, &$form_state, $msg_id = 0)
+{	
+    if(!$msg_id)
+    {
+    	$msg_id = $form_state['msg_id'];
+    }
+    if($msg_id)
+  	{      
+  		$getMessageDetail = db_select('m6connect_alert_group_message', 'magm')
+  							->fields('magm')
+  							->condition('id', $msg_id, '=')
+  							->execute()->fetchAssoc();
+  		$group_id = $getMessageDetail['group_id'];
+  		$fullMessage = $getMessageDetail['message'];
+  		$grpDetail = db_select('m6connect_alert_group', 'mag');
+  		$grpDetail->leftJoin('m6connect_alert_group_detail', 'magd', 'mag.id = magd.group_id');		
+  		$grpDetail->fields('mag', array('title'));
+  		$grpDetail->fields('magd');
+  		$grpDetail->condition('mag.id', $group_id, '=');
+  		$result = $grpDetail->execute()->fetchAll();
+  		foreach ($result as $groupDetail) {
+  			// get message status
+  			$getResponseStatus = db_select('m6connect_alert_group_message_response', 'magmr')
+  							->fields('magmr', array('status'))
+  							->condition('group_id', $groupDetail->group_id, '=')
+  							->condition('phone', $groupDetail->phone, '=')
+  							->condition('msg_id', $msg_id, '=')
+  							->execute()->fetchAssoc();
+  			$rows[] = array(
+  				'data' => array(
+  					//array( 'data' => $groupDetail->email ),
+  					array( 'data' => $groupDetail->phone ),
+  					array( 'data' => $groupDetail->fname ), 
+  					array( 'data' => $groupDetail->lname ),					
+  					array( 'data' => ucfirst($getResponseStatus['status']) ), 
+  				), 
+  			);
+  		}
+  		// get group name
+  		$groupName = '';
+  		$getGroupName = get_one_alert_group($group_id);	
+  		$groupName = $getGroupName['title']	;
+  		$output = '';
+  		$header = array(/*'Email', */'Mobile Phone No.', 'First Name', 'Last Name', 'Status');			
+  	}
+
+    $form = array( ); 
+    $form['#attributes']['enctype'] = "multipart/form-data";
+    $form['main-container']= array(
+      	'#type' => 'container', 
+      	'#attributes' => array( 'class'=>array('row')), 
+      	'#prefix' => '<div class="clearfix"><div id="bulk_upload_main_container" class="bulk-upload-detail col-md-12 col-sm-12 col-xs-12">', 
+      	'#suffix' => '</div></div>',
+    ); 
+    $form['main-container']['group_name'] = array(
+        '#title' => 'Group Name',
+		'#markup' => '<div class="group-name-view">'.$groupName.'</div>',		
+		'#type' => 'item',		
+    );   
+    $form['main-container']['message'] = array(
+        '#title' => 'Message',
+		'#markup' => '<div class="message-view">'.$fullMessage.'</div>',		
+		'#type' => 'item',		
+    );
+    $form['main-container']['user_list'] = array(
+		'#markup' => theme('table', array( 'header' => $header, 'rows' => $rows, 'attributes'=> array('class'=> array('list-group-workflow-table','table','table-hover','m6connect-custom-table', 'm6connect-table-border')))),
+		'#prefix' => '<div class="margin-bottom-10">',
+		'#suffix' => '</div>',
+    );
+    $form['main-container']['close'] = array(
+        '#markup' => l('<input type="button" class="btn btn primary form-submit" value="Close" />', 'javascript:void(0);', array( 'external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('assign-bid-packages-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();')) ), 
+        '#prefix' => '<div class="pull-right">',
+        '#suffix' => '</div>',
+    );       
+    return $form;
+}
+/********** Archive Section Starts ***********/
+// archive search form
+function alert_archive_search_form($form, &$form_state){
+	$searchArch = '';$sortVal = '';
+	if(isset($_REQUEST['search_box']) && !empty($_REQUEST['search_box'])){
+		$searchVal = $_REQUEST['search_box'];
+	}	
+	if(isset($_REQUEST['archive_selected']) && !empty($_REQUEST['archive_selected'])){
+		$sortVal = $_REQUEST['archive_selected'];
+	}	
+	$form = array();
+	$form['#method'] = 'get';
+	$form['#attributes']['class'] = array('m6alert-list-form');
+	$form['search-container'] = array(
+		'#type' => 'container', 
+		'#attributes' => array('class' => array('row', 'search-form-container', 'margin-5')),
+	);
+	$form['search-container']['search_box'] = array(
+		'#type' => 'textfield',
+		'#attributes' => array('class' => array('search-msg'), 'placeholder' => 'Search Group'),
+		'#prefix' => '<div class="col-md-4 col-sm-5 col-xs-12 margin-bottom-10 padding-5">',
+		'#value' => $searchArch,
+	);
+	$form['search-container']['submit'] = array(
+		'#type' => 'submit',
+		'#value' => decode_entities('&#xf002;'),
+		'#attributes'=> array( 'style'=> array('font-family:FontAwesome;'),'class'=>array('search-container-submit-btn','archive-search-container-submit')),
+		//'#suffix' => '</div>',
+	);
+	$form['archive_selected'] = array(
+        '#type' => 'select',        
+        '#options' => array(
+        	0 => t('Sort by created date (newest to oldest)'),
+        	1 => t('Sort by created date (oldest to newest)'),
+        	2 => t('Sort by Group (A-Z)'),
+        	3 => t('Sort by Group (Z-A)'),         	
+        ),
+        '#default_value' => $sortVal, 
+        '#prefix' => '<div class="col-md-4 col-sm-2 col-xs-12 col-xs-12-hidden padding-5"></div><div class="col-md-4 col-sm-5 col-xs-12 margin-bottom-10 padding-5">',
+        '#attributes'=> array('onchange' => 'jQuery(".archive-search-container-submit").click();'),
+        '#suffix' => '</div></div>',
+    );
+	return $form;
+}
+// function for archive listing page
+function alert_archive_list_callback(){
+	onboarding_message_ctools_popup_style();
+	/*drupal_add_js(drupal_get_path('theme', 'm6connect') . '/js/jquery.dataTables.min.js');
+  	drupal_add_css(drupal_get_path('theme', 'm6connect') . '/css/jquery.dataTables.min.css');
+  	drupal_add_js('jQuery(document).ready(function () { jQuery("table.list-archive-workflow-table").DataTable({"bPaginate": false,"bLengthChange": false,"bFilter": false,"bInfo": false,"bAutoWidth": false,"order": [],"aoColumnDefs": [{ "bSortable": false, "aTargets": ["no-sort"]}]}); });',
+    	array('type' => 'inline')
+  	);*/
+
+	$searchArchive = '';$sortArchive = '';
+	$search_box = drupal_render(drupal_get_form('alert_archive_search_form'));
+	if(isset($_REQUEST['search_box']) && !empty($_REQUEST['search_box'])){
+		$searchArchive = $_REQUEST['search_box'];
+	}
+	if(isset($_REQUEST['archive_selected']) && !empty($_REQUEST['archive_selected'])){
+		$sortArchive = $_REQUEST['archive_selected'];
+	}	
+	global $company;
+	global $user;
+	$nid = $company->nid;
+	$uid = $user->uid;
+  $cm = '';
+  if(!empty(arg(2))){
+    $cm = arg(2);
+  }
+	// get group and message as per nid and uid	
+	$groupArchive = db_select('m6connect_alert_group', 'mag');
+	$groupArchive->leftJoin('m6connect_alert_group_message_archive', 'magma', 'mag.id = magma.group_id');
+	$groupArchive->fields('mag', array('id', 'title'));
+	$groupArchive->fields('magma');
+	$groupArchive->addField('magma', 'id', 'arch_id');
+	$groupArchive->condition('mag.company_nid', $nid, '=');
+	$groupArchive->condition('mag.uid', $uid, '=');
+	if(!empty($searchArchive)){	// serch from title
+		$groupArchive->condition('mag.title', '%'.db_like($searchArchive).'%', 'LIKE');
+	}
+  if(!empty($cm)){
+    $groupArchive->condition('mag.cm_type', $cm, '=');  
+  }
+	// order by sent date and title	
+	if(isset($sortArchive) && $sortArchive == 1){
+		$groupArchive->orderBy('magma.message_dt', 'ASC');
+	}
+	else if(isset($sortArchive) && $sortArchive == 2){
+		$groupArchive->orderBy('mag.title', 'ASC');
+	}
+	else if(isset($sortArchive) && $sortArchive == 3){
+		$groupArchive->orderBy('mag.title', 'DESC');
+	}
+	else
+	{
+		$groupArchive->orderBy('magma.message_dt', 'DESC');
+	}	
+	$getArchiveMessage = $groupArchive->execute()->fetchAll();
+	$hasArchive = 0;
+	foreach ($getArchiveMessage as $archiveMessageObj) {
+		if(!empty($archiveMessageObj->arch_id)){
+			$archiveMessage = $archiveMessageObj->message;
+			if(strlen($archiveMessage) > 70){	// archive message with 70 character length
+				$msgSubStr = substr($archiveMessage, 0, 70);
+				$getLastSpace = strrpos($msgSubStr, ' ');
+				$newMessage = substr($msgSubStr, 0, $getLastSpace);
+				$archiveMessage = $newMessage.'...';
+			}	
+			$groupName = $archiveMessageObj->title;	// group title
+			$messageSentDate = date('m/d/Y', strtotime($archiveMessageObj->message_dt));	// message date	
+			/*$messageView = l('View', 'alert/view-message/nojs/'.$archiveMessageObj->id, array('attributes' => array('class' => array('use-ajax ctools-modal-assign-dashboard-popup-style btn btn-primary form-submit'))));*/
+			$messageView = get_archive_msg_button_dropdown($archiveMessageObj->arch_id);
+			$rows[] = array(
+				'data' => array(
+					array( 'data' => $messageSentDate ), 
+					array( 'data' => $archiveMessage),
+					array( 'data' => $groupName ),
+					//array( 'data' => '' ),
+					array( 'data' => $messageView), 
+				), 
+			);
+			$hasArchive = 1;
+		}
+	}
+	if($hasArchive == 0){
+		$rows[] = array(
+			'data' => array(
+				array( 'data' => 'No archive found' ), 
+				array( 'data' => ''),
+				array( 'data' => '' ),
+				//array( 'data' => '' ),
+				array( 'data' => ''), 
+			), 
+		);
+	}
+	/*$header = array(
+		array('data'=>'Date'),
+		array('data'=>'Archive','class'=>array('no-sort')),
+		array('data'=>'Group'),
+		array('data'=>'Action','class'=>array('no-sort')) 
+	);*/
+	$output = '';	
+	$header = array('Date', 'Archive', 'Group', 'Action');
+	$output .= $search_box;
+	$output .= theme('table', array( 'header' => $header, 'rows' => $rows, 'attributes'=> array('class'=> array('list-archive-workflow-table','table','table-hover', 'm6connect-table-border'))));
+  	//$output .= drupal_render_children($element);
+  	return $output;
+}
+// archive message action button dropdown
+function get_archive_msg_button_dropdown($archiveId){
+  $cm = '';
+  if(!empty(arg(2))){
+    $cm = '/'.arg(2);
+  }
+	return '<div class="btn-group alert-submit-dropdown-'.$archiveId.'">
+			<div class="dropdown">
+			  	<button id="request_action_" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+			  	<ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="request_action_">
+					<li>'.l('View', url('alert/view-archive/nojs/'.$archiveId.$cm), array( 'external'=>TRUE, 'attributes'=> array('class'=>array('use-ajax ctools-modal-onboarding-message-popup-style'))) ).'</li>			
+					<li>'.l('Delete', url('archive-message-delete/nojs/'.$archiveId.$cm), array( 'external'=>TRUE, 'attributes'=> array('class'=>array('use-ajax ctools-modal-assign-dashboard-popup-style'))) ).'</li>
+			  	</ul>
+			</div>
+		</div>';
+}
+// function for delete archive message
+function alert_delete_archive_message_callback($ajax, $archiveId = 0)
+{	
+	if ($ajax) {
+		ctools_include('ajax');
+		ctools_include('modal');
+		$form_state = array(
+			'ajax' => TRUE,
+			'arch_id' => $archiveId,
+		);
+		$output = ctools_modal_form_wrapper('archive_message_delete_form', $form_state);
+		if (!empty($form_state['ajax_commands'])) {
+			$output = $form_state['ajax_commands'];
+		}
+		print ajax_render($output);
+		drupal_exit();
+	}
+  	return drupal_get_form('archive_message_delete_form', $archiveId);
+}
+// message delete popup form
+function archive_message_delete_form($form, &$form_state, $archiveId = 0) {
+	if(!$archiveId)
+    {
+    	$archiveId = $form_state['arch_id'];
+    }	
+	$form['msg_action_title'] = array(
+		'#type' => 'markup',
+		'#title' => t('status'),
+		'#markup' => '<div class="group-action-status"><p>Are you sure you want to delete this Archive ?</p></div>',
+	);	
+	$form['arch_id'] = array(
+    	'#type' => 'hidden', 
+    	'#value' => $archiveId, 
+   	);		
+	$form['submit_action_dmsg'] = array(
+		'#type' => 'submit',
+		'#value' => t('Confirm')
+	);
+	$form['submit_action_cancel']['close'] = array(
+		'#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('message-delete-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+		'#weight' => 10,
+	);
+	return $form;
+}
+// function for delete message
+function archive_message_delete_form_submit($form, &$form_state) {	
+	$form_values = $form_state['values'];
+	$archiveId = $form_state['arch_id'];
+	if(!empty($archiveId))
+	{	
+		// delete sent message
+		$message_delete = db_delete('m6connect_alert_group_message_archive')
+					->condition('id', $archiveId, '=')
+					->execute();
+		drupal_set_message('Archive deleted successfully', 'status');
+		$cm = '';
+    if(!empty(arg(3))){
+      $url = '/alert/archive/'.arg(3);
+    }
+    else{
+      $url = '/alert/archive';
+    }
+		if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+	 		$form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+	 		$form_state['ajax_commands'][] = ctools_ajax_command_redirect($url);  
+  	}
+	}
+}
+// function for view archive callback
+function alert_archive_view_callback($ajax, $archiveId = 0)
+{
+	if($ajax){
+		ctools_include('ajax');
+		ctools_include('modal');
+
+		$form_state = array(
+			'ajax' => TRUE,
+			'arch_id' => $archiveId,
+		);
+		$output = ctools_modal_form_wrapper('archive_view_form', $form_state);
+		if (!empty($form_state['ajax_commands'])) {
+			$output = $form_state['ajax_commands'];
+		}
+		print ajax_render($output);
+		drupal_exit();
+	}
+	return drupal_get_form('archive_view_form', $archiveId);
+}
+// function for view archive
+function archive_view_form($form, &$form_state, $archiveId = 0)
+{	
+  if(!$archiveId)
+  {
+  	$archiveId = $form_state['arch_id'];
+  }
+  $cm = '';
+  if(arg(0) == 'alert' && !empty(arg(4))){
+    $cm = arg(4);
+  }
+  if($archiveId)
+	{		
+		$getMessageDetail = db_select('m6connect_alert_group_message_archive', 'magma')
+							->fields('magma')
+							->condition('id', $archiveId, '=')
+							->execute()->fetchAssoc();
+		$group_id = $getMessageDetail['group_id'];
+    $msg_id = $getMessageDetail['msg_id'];
+		$fullMessage = $getMessageDetail['message'];
+
+		$grpDetail = db_select('m6connect_alert_group', 'mag');
+		$grpDetail->leftJoin('m6connect_alert_group_detail', 'magd', 'mag.id = magd.group_id');
+		$grpDetail->fields('mag', array('title'));
+		$grpDetail->fields('magd');
+		$grpDetail->condition('mag.id', $group_id, '=');
+    if(!empty($cm)){
+      $grpDetail->condition('mag.cm_type', $cm, '=');
+    }
+		$result = $grpDetail->execute()->fetchAll();
+		foreach ($result as $groupDetail) {
+			// get message status      
+			$getResponseStatus = db_select('m6connect_alert_group_message_response', 'magmr')
+								->fields('magmr', array('status'))
+								->condition('group_id', $groupDetail->group_id, '=')
+								->condition('phone', $groupDetail->phone, '=')
+								->condition('msg_id', $msg_id, '=')
+								->execute()->fetchAssoc();       
+			$rows[] = array(
+				'data' => array(
+					array( 'data' => $groupDetail->fname ), 
+					array( 'data' => $groupDetail->lname ),
+					//array( 'data' => $groupDetail->email ),
+					array( 'data' => $groupDetail->phone ),
+					array( 'data' => ucfirst($getResponseStatus['status'])), 
+				), 
+			);
+		}
+		// get group name
+		$groupName = '';
+		$getGroupName = get_one_alert_group($group_id);	
+		$groupName = $getGroupName['title']	;
+		$output = '';
+		$header = array('First Name', 'Last Name', /*'Email',*/ 'Phone', 'Status');			
+	}
+
+    $form = array( ); 
+    $form['#attributes']['enctype'] = "multipart/form-data";
+    $form['main-container']= array(
+      	'#type' => 'container', 
+      	'#attributes' => array( 'class'=>array('row')), 
+      	'#prefix' => '<div class="clearfix"><div id="bulk_upload_main_container" class="bulk-upload-detail col-md-12 col-sm-12 col-xs-12">', 
+      	'#suffix' => '</div></div>',
+    ); 
+    $form['main-container']['group_name'] = array(
+        '#title' => 'Group Name',
+		'#markup' => '<div class="group-name-view">'.$groupName.'</div>',		
+		'#type' => 'item',		
+    );   
+    $form['main-container']['message'] = array(
+        '#title' => 'Message',
+		'#markup' => '<div class="message-view">'.$fullMessage.'</div>',		
+		'#type' => 'item',		
+    );
+    $form['main-container']['user_list'] = array(
+		'#markup' => theme('table', array( 'header' => $header, 'rows' => $rows, 'attributes'=> array('class'=> array('list-group-workflow-table','table','table-hover','m6connect-custom-table', 'm6connect-table-border')))),
+		'#prefix' => '<div class="margin-bottom-10">',
+		'#suffix' => '</div>',
+    );
+    $form['main-container']['close'] = array(
+        '#markup' => l('<input type="button" class="btn btn primary form-submit" value="Close" />', 'javascript:void(0);', array( 'external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('assign-bid-packages-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();')) ), 
+        '#prefix' => '<div class="pull-right">',
+        '#suffix' => '</div>',
+    );       
+    return $form;
+}
+// update message status when status change on twilio
+function alert_receive_response_from_twilio(){
+	if(isset($_REQUEST) && !empty($_REQUEST['SmsSid'])){
+		$smsSid = $_REQUEST['SmsSid'];
+		$smsStatus = $_REQUEST['SmsStatus'];
+		$smsTo = $_REQUEST['To'];
+		// update response table
+		$update_title = db_update('m6connect_alert_group_message_response')
+  						->fields(array('status' => $smsStatus))
+  						->condition('sid', $smsSid, '=')
+  						->condition('phone', $smsTo, '=')
+  						->execute();
+	}
+}
+// Template section starts
+// template searching and sorting form
+function alert_template_list_search_form($form, &$form_state){
+	$searchVal = '';$sortVal = '';
+	if(isset($_REQUEST['search_box']) && !empty($_REQUEST['search_box'])){
+		$searchVal = $_REQUEST['search_box'];
+	}
+	if(isset($_REQUEST['message_selected']) && !empty($_REQUEST['message_selected'])){
+		$sortVal = $_REQUEST['message_selected'];
+	}	
+	$form = array();
+	$form['#method'] = 'get';
+	$form['#attributes']['class'] = array('m6alert-list-form');
+	$form['search-container'] = array(
+		'#type' => 'container', 
+		'#attributes' => array('class' => array('row', 'search-form-container', 'margin-5')),
+	);
+	$form['search-container']['search_box'] = array(
+		'#type' => 'textfield',
+		'#attributes' => array('class' => array('search-msg'), 'placeholder' => 'Search Template'),
+		'#prefix' => '<div class="col-md-4 col-sm-5 col-xs-12 margin-bottom-10 padding-5">',
+		'#value' => $searchVal,
+	);
+	$form['search-container']['submit'] = array(
+		'#type' => 'submit',
+		'#value' => decode_entities('&#xf002;'),
+		'#attributes'=> array( 'style'=> array('font-family:FontAwesome;'),'class'=>array('search-container-submit-btn', 'message-search-container-submit')),
+		//'#suffix' => '</div>',
+	);
+	$form['message_selected'] = array(
+        '#type' => 'select',        
+        '#options' => array(
+        	0 => t('Sort by created date (newest to oldest)'),
+        	1 => t('Sort by created date (oldest to newest)'),
+        	2 => t('Sort by Template (A-Z)'),
+        	3 => t('Sort by Template (Z-A)'),         	
+        ),
+        '#default_value' => $sortVal, 
+        '#prefix' => '<div class="col-md-4 col-sm-2 col-xs-12 col-xs-12-hidden padding-5"></div><div class="col-md-4 col-sm-5 col-xs-12 margin-bottom-10 padding-5">',
+        '#attributes'=> array('onchange' => 'jQuery(".message-search-container-submit").click();'),
+        '#suffix' => '</div></div>',
+    );
+	return $form;
+}
+function alert_template_list_callback(){
+	if(isset($_SESSION['alert_remove_image_detail']) && !empty($_SESSION['alert_remove_image_detail'])){
+		unset($_SESSION['alert_remove_image_detail']);		
+	}
+	global $company;
+	global $user;
+	$nid = $company->nid;
+	$uid = $user->uid;
+	$has_template = 0;
+	$searchTitle = $sortMessage = $cm = '';
+  if(!empty(arg(2))){
+    $cm = arg(2);
+  }
+	$search_box = drupal_render(drupal_get_form('alert_template_list_search_form'));
+	if(isset($_REQUEST['search_box']) && !empty($_REQUEST['search_box'])){
+		$searchTitle = $_REQUEST['search_box'];
+	}
+	if(isset($_REQUEST['message_selected']) && !empty($_REQUEST['message_selected'])){
+		$sortMessage = $_REQUEST['message_selected'];
+	}
+	 
+	$result = db_select('m6connect_alert_template', 'mat');
+	$result->fields('mat', array('id', 'keyword', 'created_dt','uid'));
+	$result->condition('company_nid', $nid, '=');
+
+  $or = db_or();
+  $or->condition('uid', $uid, '=');
+  $or->condition('share', 1, '=');
+  $result->condition($or);
+
+	//$result->condition('uid', $uid, '=');
+	if(!empty($searchTitle)){	// title search
+		$result->condition('mat.keyword', '%'.db_like($searchTitle).'%', 'LIKE');
+	}
+  if(!empty($cm)){
+    $result->condition('mat.cm_type', $cm, '='); 
+  }
+	// order by sent date and title
+	if(isset($sortMessage) && $sortMessage == 1){
+		$result->orderBy('mat.id', 'ASC');
+	}
+	else if(isset($sortMessage) && $sortMessage == 2){
+		$result->orderBy('mat.keyword', 'ASC');
+	}
+	else if(isset($sortMessage) && $sortMessage == 3){
+		$result->orderBy('mat.keyword', 'DESC');
+	}
+	else
+	{
+		$result->orderBy('mat.id', 'DESC');
+	}
+	$getTemplate = $result->execute()->fetchAll();
+	//drup_msg($getTemplate);
+	foreach ($getTemplate as $templateData) {
+		$temp_id = $templateData->id;
+		if(!empty($temp_id)){
+		    $queryreal = db_select('realname', 'r');
+	 		$queryreal->fields('r', array('realname'));	
+	  		$queryreal->condition('r.uid', $templateData->uid, "=");
+				
+			$realNameres = $queryreal->execute()->fetchAssoc();
+            $temp_realname = $realNameres['realname']; 
+			$temp_keyword = $templateData->keyword;
+			$temp_date = date('m/d/Y', strtotime($templateData->created_dt));
+			$actionButton = get_template_action_button_dropdown($templateData);
+			$rows[] = array(
+				'data' => array(
+					array( 'data' => $temp_keyword ), 
+					array( 'data' => $temp_realname), 
+					array( 'data' => $temp_date ), 
+					array( 'data' => $actionButton, 'class' => array('text-center')), 
+				), 
+			);
+			$has_template = 1;
+		}
+	}
+	if($has_template == 0){
+		$rows[] = array(
+			'data' => array(
+				array( 'data' => '' ),
+				array( 'data' => '' ),  
+				array( 'data' => 'No Template Created' ), 
+				array( 'data' => '' ),
+			), 
+		);
+	}
+	$output = '';
+	$header = array( 
+		array('data'=>'Template Name', 'style' => 'width:40%;'), 
+		array('data'=>'Shared By', 'style' => 'width:30%;'), 
+		array('data'=>'Date of Creation', 'style' => 'width:20%;'), 
+		array('data'=>'Action', 'class' => array('text-center')) 
+	);	
+	$output .= $search_box;
+	$output .= theme('table', array( 'header' => $header, 'rows' => $rows, 'attributes'=> array('class'=> array('list-template-table','table','table-hover','m6connect-template-table', 'm6connect-table-border'))) );  	
+  	return $output;
+}
+// action button dropdown
+function get_template_action_button_dropdown($templateData){
+	global $user;
+  $cm = '';
+  if(!empty(arg(2))){
+    $cm = '/'.arg(2);
+  }
+	$output =  '<div class="btn-group alert-submit-dropdown-'.$templateData->id.'">
+				<div class="dropdown">
+				  	<button id="request_action_" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+				  	<ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="request_action_">
+						<li>'.l('Create Text Message', url('alert-send-template-sms/nojs/'.$templateData->id.$cm), array( 'external'=>TRUE, 'attributes'=> array('class'=>array('use-ajax ctools-modal-assign-dashboard-popup-style'))) ).'</li>';
+	          if($user->uid == $templateData->uid){					
+	            $output .= '<li>'.l('Edit', url('alert/template-edit/nojs/'.$templateData->id.$cm), array( 'external'=>TRUE, 'attributes'=> array('class'=>array('use-ajax ctools-modal-assign-dashboard-popup-style'))) ).'</li>
+              <li>'.l('Share Template', url('alert/template-share/nojs/'.$templateData->id.$cm), array( 'external'=>TRUE, 'attributes'=> array('class'=>array('use-ajax ctools-modal-assign-dashboard-popup-style'))) ).'</li>
+              <li>'.l('Delete', url('alert-delete-template/nojs/'.$templateData->id.$cm), array( 'external'=>TRUE, 'attributes'=> array('class'=>array('use-ajax ctools-modal-assign-dashboard-popup-style'))) ).'</li>';
+						
+	}else{
+	  $output .= '<li>'.l('Copy', url('alert-copy-template/nojs/'.$templateData->id.$cm), array( 'external'=>TRUE, 'attributes'=> array('class'=>array('use-ajax ctools-modal-assign-dashboard-popup-style'))) ).'</li>';
+	}		
+	$output .= '</ul>
+				</div>
+			</div>';
+  return $output;			
+}
+// add new teplate callback popup
+function add_new_alert_template_callback($ajax)
+{	
+	if ($ajax) {
+		ctools_include('ajax');
+		ctools_include('modal');
+		$form_state = array(
+			'ajax' => TRUE,
+		);
+		$output = ctools_modal_form_wrapper('add_new_alert_template_form', $form_state);
+		if (!empty($form_state['ajax_commands'])) {
+			$output = $form_state['ajax_commands'];
+		}
+		print ajax_render($output);
+		drupal_exit();
+	}
+  	return drupal_get_form('add_new_alert_template_form');
+}
+// edit teplate callback popup
+function edit_alert_template_callback($ajax, $templateId = 0){	
+	/*if(isset($_SESSION['alert_remove_image_detail']) && !empty($_SESSION['alert_remove_image_detail'])){
+		unset($_SESSION['alert_remove_image_detail']);		
+	}*/
+	if ($ajax) {
+		ctools_include('ajax');
+		ctools_include('modal');
+		$form_state = array(
+			'ajax' => TRUE,
+			'templateId' => $templateId,
+		);
+		$output = ctools_modal_form_wrapper('add_new_alert_template_form', $form_state);
+		if (!empty($form_state['ajax_commands'])) {
+			$output = $form_state['ajax_commands'];
+		}
+		print ajax_render($output);
+		drupal_exit();
+	}
+  	return drupal_get_form('add_new_alert_template_form', $templateId);
+}
+
+// add new template form
+function add_new_alert_template_form($form, &$form_state, $templateId = 0){
+	/*if(isset($_SESSION['alert_remove_image_detail']) && empty($form_state['alert_session_init'])){
+		unset($_SESSION['alert_remove_image_detail']);
+		$form_state['alert_session_init'] = 1;
+	}*/  
+	$form = array();
+	$templateId = isset($form_state['templateId'])?$form_state['templateId']:$templateId;
+	if(is_numeric($templateId) && $templateId > 0){		
+    $getTemplateDetail = get_one_alert_template($templateId);
+		$attachments = $getTemplateDetail['attachment'];		
+    $attach_div = alert_template_image_html($attachments, $templateId);		
+	}
+  $cm = '';
+  if(!empty($templateId) && is_numeric($templateId)){
+    if(!empty(arg(4))){
+      $cm = arg(4);
+    }  
+  }
+  else{
+    if(!empty(arg(3))){
+      $cm = arg(3);
+    }
+  }  
+  if(!empty($cm)){
+    $cancleUrl = '/alert/templates/'.$cm;
+  }
+  else{
+    $cancleUrl = '/alert/templates';
+  }
+	//$form['#after_build'] = array('alert_after_buils_callback');
+	$form['templateId'] = array(
+		'#type' => 'value',
+		'#value' => $templateId,
+	);
+  $form['cm'] = array(
+    '#type' => 'hidden',
+    '#value' => $cm,
+  );
+	$form['template-container'] = array(
+		'#type' => 'container',
+		'#attributes' => array('class' => array('message_main_container_overflow','template-container')),
+		'#prefix' => '<div class="clearfix"><div id="alert_add_new_template_main_container" class="alert-message-detail-popup">',
+	);
+	$form['template-container']['tmp_keyword'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Enter Template Name'),
+		'#size' => 60,  
+		'#maxlength' => 128,
+		'#attributes'=> array('placeholder' => t('Select Group(s) to send message to.')),
+		'#required' => TRUE,
+		'#default_value' => isset($getTemplateDetail['keyword'])?$getTemplateDetail['keyword']:'',
+	);
+	/*$form['template-container']['tmp_message'] = array(
+    	'#title' => t('Template Message'),
+    	'#type' => 'text_format',
+  		'#format'=> 'filtered_html',
+  		'#attributes'=> array('class'=> array('form-control template-message')),
+  		'#required' => TRUE,
+ 		'#default_value' => isset($getTemplateDetail['message'])?$getTemplateDetail['message']:'',
+ 		'#after_build' => array('description_custom_field_remove_format_filter_after_build'),
+	);*/
+	$form['template-container']['tmp_message'] = array(
+    '#title' => 'Add Message', 
+    '#parents' => array('tmp_message', ''),
+    '#type' => 'textarea',
+    '#attributes' => array('maxlength' => 160, 'placeholder'=> 'Type message here or select a template from above.', 'class' => array('message-textarea-box'), 'id' => 'message-textarea-box', 'onKeyPress'=>"return(this.value.length<160);"),
+ 		//'#required' => TRUE,
+ 		'#default_value' => isset($getTemplateDetail['message'])?$getTemplateDetail['message']:'',
+ 		'#prefix' => '<div class="message-box-div" id="message-textarea-box-div">',
+ 		'#suffix' => '<div class="message-feedback margin-bottom-10" id="message-feedback"></div></div>'
+  ); 
+  $form['#attached']['js'] = array(
+		'/'.drupal_get_path('module', 'm6connect_alert') . '/js/m6connect_alert.js' => array(
+			'type' => 'file',
+		),
+	);
+  $form['charjs'] = array(
+  	'#markup' => '<script type="text/javascript" src="/'.drupal_get_path('module',  'm6connect_alert') . '/js/m6connect_alert.js"></script>'
+  );
+  $form['clone_message_div'] = array(
+      '#markup' => l('<input type="button" class="btn btn primary form-submit" value="Clone" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('clone_message_div_submit_btn'),  'onclick' => 'clonee()', 'style' => 'display:none;'))),	
+      '#suffix' => '</div>',
+  ); 
+	$form['template-container']['tmp_attachment'] = array(
+		'#type' => 'file',
+    	'#name' => 'files[]',
+    	//'#upload_location' => 'public://',
+    	'#attributes' => array('multiple' => 'multiple', 'class' => array('alert-upload-image')),
+    	'#field_prefix' => isset($attach_div)?$attach_div:'',
+      '#field_suffix' => '<span class="alert-remove-image" style="display:none;"><i class="fa fa-refresh"></i></span>',
+    	'#prefix' => '<div class="multiple-mms-container margin-bottom-10">',
+    	'#suffix' => '</div>',
+	);
+	/*$form['template-container']['tmp_attachment'] = array(
+		'#type' => 'mfw_managed_file',
+    	'#name' => 'tmp_attachment["und"][]',
+    	'#upload_location' => 'public://',
+    	'#attributes' => array('multiple' => 'multiple'),
+    	'#prefix' => '<div class="multiple-mms-container margin-bottom-10">',
+    	'#suffix' => '</div>',
+	);*/
+
+  /*$form['share'] = array(
+    '#type' =>'checkbox', 
+    '#title' => t('Share'),
+    '#attributes' => (!empty($getTemplateDetail['share'])?array('checked' => 'checked'):''),
+  );*/
+
+  $form['close'] = array(
+      '#markup' => l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', $cancleUrl, array( 'external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('alert-template-popup-close'),))), 
+      '#weight' => 10, 
+  );
+  $form['submit'] = array(
+      '#value' => 'Save', 
+      '#type' => 'submit', 
+      //'#validate' => array( 'alert_new_template_validate_handler' ), 
+	    '#attributes' => array( 'class' => array('new-alert-template-form-submit')),
+  );
+    
+    return $form;
+}
+// validate template attachment
+function add_new_alert_template_form_validate(&$form, &$form_state){
+	if(!empty($_FILES['files']['name'][0])){
+	    for ($i = 0; $i < count($_FILES['files']['name']); $i++) {
+	        $file = file_save_upload($i, array(
+	            //'file_validate_is_image' => array(),
+	            'file_validate_extensions' => array('png gif jpg jpeg bmp basic L24 mp4 mpeg ogg vorbis vnd.rn-realaudio vnd.wave 3gp 3gpp 3gpp2 ac3 vnd.wave webm amr-nb amr quicktime 3gpp-tt H261 H263 H263-1998 H263-2000 H264 vcard csv rtf richtext calendar pdf'),
+	        ));
+	        if ($file) {
+		        if ($file = file_move($file, 'public://')) {
+		          $form_state['values']['tmp_attachment'][$i] = $file;
+		        }
+		        else {
+		          form_set_error('file', t('Failed to write the uploaded file the site\'s file folder.'));
+		        }
+	      	}
+		    else {
+		    	form_set_error('file', t('No file was uploaded.'));
+		    }    
+	    }
+	}
+}
+// save template
+function add_new_alert_template_form_submit(&$form, &$form_state){
+	global $company;
+	global $user;
+	$attach_media = array();
+	$attach_media_val = $tmpMsg = '';
+	$nid = $company->nid;
+  $uid = $user->uid;  
+  $input = $form_state['input'];
+	$values = $form_state['values'];
+	$tmp_keyword = $values['tmp_keyword'];
+	$tmp_message = $input['tmp_message'];
+  //$tmp_share = $values['share'];
+  $cm = '';
+  $cm = $input['cm'];
+	$tmp_attachment = $values['tmp_attachment'];	
+	if(!empty($tmp_message)){
+		foreach ($tmp_message as $template_message) {
+			$tmpMsg .= $template_message;
+		}
+	}
+	if($tmp_attachment){
+		foreach ($tmp_attachment as $tmp_attachment_value) {
+			$attach_media[] = $tmp_attachment_value->fid;
+			//$attach_media[] = file_create_url($tmp_attachment_value->uri);
+		}
+    if(!empty($attach_media)){
+      $attach_media_val = implode(',', $attach_media);        
+    }
+	}	
+		
+	// if edit template then update
+	if(!empty($values['templateId']) && is_numeric($values['templateId'])){         
+		$templateId = $values['templateId'];
+    $attach_media_val = alert_final_template_attachment($templateId, $attach_media_val);
+	  $fields = array(
+    	'keyword' => addslashes($tmp_keyword),
+    	'message' => addslashes($tmpMsg),
+      //'share' => $tmp_share,
+    	'updated_dt' => date('Y-m-d H:i:s'),
+		);
+		if(!empty($attach_media_val)){	// if media exist on edit
+			$fields['attachment'] = $attach_media_val;
+		}		
+		$template_update = db_update('m6connect_alert_template');
+		$template_update->fields($fields);
+		$template_update->condition('id', $templateId, '=');
+		$template_update->execute();        
+		drupal_set_message('Template Updated Successfully');		
+	}
+	else{
+		// insert template into database	
+		$ins_template = db_insert('m6connect_alert_template')
+						->fields(array(
+							'company_nid' => $nid,
+							'uid' => $uid,
+							'Keyword' => addslashes($tmp_keyword),
+							'message' => addslashes($tmpMsg),
+							'attachment' => $attach_media_val,
+              //'share' => $tmp_share,
+              'cm_type' => $cm,
+							'status' => 1,
+							'created_dt' => date('Y-m-d H:i:s'),
+							'updated_dt' => date('Y-m-d H:i:s'),
+						))
+						->execute();
+		drupal_set_message('Template Saved Successfully');
+	}
+  if(!empty($cm)){
+    $url = '/alert/templates/'.$cm;
+  }
+  else{
+    $url = '/alert/templates';
+  }
+	if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false){
+		$form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+		$form_state['ajax_commands'][] = ctools_ajax_command_redirect($url);  
+	}
+	//drupal_goto('/alert/templates', array('external' => TRUE));
+}
+
+// function for share template message
+function alert_share_template_callback($ajax, $templateId = 0)
+{ 
+  if ($ajax) {
+    ctools_include('ajax');
+    ctools_include('modal');
+    $form_state = array(
+      'ajax' => TRUE,
+      'templateId' => $templateId,
+    );
+    $output = ctools_modal_form_wrapper('template_share_form', $form_state);
+    if (!empty($form_state['ajax_commands'])) {
+      $output = $form_state['ajax_commands'];
+    }
+    print ajax_render($output);
+    drupal_exit();
+  }
+  return drupal_get_form('template_share_form', $templateId);
+}
+// template delete popup form
+function template_share_form($form, &$form_state, $templateId = 0) {
+  if(!$templateId)
+  {
+    $templateId = $form_state['templateId'];
+  }  
+  $form['template_action_title'] = array(
+    '#type' => 'markup',
+    '#title' => t('status'),
+    '#markup' => '<div class="group-action-status"><p>Are you sure you want to share this Template ?</p></div>',
+  );  
+  $form['templateId'] = array(
+      '#type' => 'hidden', 
+      '#value' => $templateId, 
+    );    
+  $form['submit_action_template'] = array(
+    '#type' => 'submit',
+    '#value' => t('Confirm')
+  );
+  $form['submit_action_cancel']['close'] = array(
+    '#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('template-delete-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+    '#weight' => 10,
+  );
+  return $form;
+}
+// function for delete template
+function template_share_form_submit($form, &$form_state) { 
+  $form_values = $form_state['values'];
+  $templateId = $form_state['templateId'];
+  if(!empty($templateId))
+  { 
+    // share template
+    $fields = array(
+      'share' => 1,
+      'updated_dt' => date('Y-m-d H:i:s'),
+    );
+    $template_update = db_update('m6connect_alert_template');
+    $template_update->fields($fields);
+    $template_update->condition('id', $templateId, '=');
+    $template_update->execute();
+    drupal_set_message('Template shared successfully', 'status');
+    if(!empty(arg(4))){
+      $url = '/alert/templates/'.arg(4);
+    }
+    else{
+      $url = '/alert/templates';
+    }
+    if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+      $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+      $form_state['ajax_commands'][] = ctools_ajax_command_redirect($url);  
+    }
+  }
+}
+// function for delete template message
+function alert_delete_template_callback($ajax, $templateId = 0)
+{	
+	if ($ajax) {
+		ctools_include('ajax');
+		ctools_include('modal');
+		$form_state = array(
+			'ajax' => TRUE,
+			'templateId' => $templateId,
+		);
+		$output = ctools_modal_form_wrapper('template_delete_form', $form_state);
+		if (!empty($form_state['ajax_commands'])) {
+			$output = $form_state['ajax_commands'];
+		}
+		print ajax_render($output);
+		drupal_exit();
+	}
+	return drupal_get_form('template_delete_form', $templateId);
+}
+// template delete popup form
+function template_delete_form($form, &$form_state, $templateId = 0) {
+	if(!$templateId)
+  {
+  	$templateId = $form_state['templateId'];
+  }  
+	$form['template_action_title'] = array(
+		'#type' => 'markup',
+		'#title' => t('status'),
+		'#markup' => '<div class="group-action-status"><p>Are you sure you want to delete this Template ?</p></div>',
+	);	
+	$form['templateId'] = array(
+    	'#type' => 'hidden', 
+    	'#value' => $templateId, 
+   	);		
+	$form['submit_action_template'] = array(
+		'#type' => 'submit',
+		'#value' => t('Confirm')
+	);
+	$form['submit_action_cancel']['close'] = array(
+		'#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('template-delete-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+		'#weight' => 10,
+	);
+	return $form;
+}
+// function for delete template
+function template_delete_form_submit($form, &$form_state) {	
+	$form_values = $form_state['values'];
+	$templateId = $form_state['templateId'];
+	if(!empty($templateId))
+	{	
+		// delete template
+		$template_delete = db_delete('m6connect_alert_template')
+					->condition('id', $templateId, '=')
+					->execute();
+		drupal_set_message('Template deleted successfully', 'status');
+    if(!empty(arg(3))){
+      $url = '/alert/templates/'.arg(3);
+    }
+    else{
+      $url = '/alert/templates';
+    }
+		if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+	 		$form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+	 		$form_state['ajax_commands'][] = ctools_ajax_command_redirect($url);  
+  	}
+	}
+}
+// function for send template sms popup
+function alert_send_template_sms_callback($ajax, $templateId = 0){
+	if($ajax){
+		ctools_include('ajax');
+		ctools_include('modal');	
+		$form_state = array(
+			'ajax' => TRUE,
+			'templateId' => $templateId,
+		);
+		$output = ctools_modal_form_wrapper('send_template_sms_form', $form_state);
+		if(!empty($form_state['ajax_commands'])){
+			$output = $form_state['ajax_commands'];
+		}
+		print ajax_render($output);
+		drupal_exit();
+	}
+	else{
+		return drupal_get_form('send_template_sms_form', $templateId);
+	}
+}
+// function for create form for template sms in popup
+function send_template_sms_form($form, &$form_state, $templateId = 0){
+	global $company;
+	global $user;
+	$nid = $company->nid;
+	$uid = $user->uid;
+	if(empty($templateId)){
+		$templateId = $form_state['templateId'];
+	}
+	// get template detail
+	$temp_keyword = '';$temp_message = '';$temp_attachment = $cm_type = '';
+  if(arg(0) == 'alert-send-template-sms' && is_numeric(arg(2)) && !empty(arg(3))){
+    $cm_type = arg(3);
+  }
+	$getTemplate = get_one_alert_template($templateId);
+	$temp_keyword = $getTemplate['keyword'];
+	$temp_message = $getTemplate['message'];
+	$temp_attachment = $getTemplate['attachment'];
+	$groupOption = array();
+	// get all group id and title for dropdown
+	$getGroup = get_all_alert_group();
+	foreach ($getGroup as $groupDetail) {
+		$groupId = $groupDetail->id;
+		$groupValue = $groupDetail->title;
+		$groupOption[$groupId] = $groupValue;
+	}
+  // get attachment html
+  $attach_div = alert_template_image_html($temp_attachment, $templateId); 
+
+	$form = array();
+	$form['template-container-popup'] = array(
+		'#type' => 'container',
+		'#attributes' => array('class' => array('message_main_container_overflow', 'template-container-popup')),	
+		'#prefix' => '<div class="clearfix"><div id="alert_add_new_template_main_container" class="alert-message-detail-popup">',
+	);
+	$form['templateId'] = array(
+  	'#type' => 'value',
+      '#value' => $templateId,        
+ 	);
+ 	$form['template-container-popup']['template_title'] = array(
+  	'#type' => 'textfield',
+  	'#title' => t('Template Name'),
+      '#attributes' => array('class' => array('margin-bottom-20')),
+      '#default_value' => isset($temp_keyword)?$temp_keyword:'',
+      '#disabled' => TRUE,
+      //'#prefix' => '<div class="chosen-container-single">',
+      //'#suffix' => '</div>',
+ 	);
+  $form['template-container-popup']['template_message'] = array(
+    '#title' => 'Message', 
+    '#parents' => array('template_message', ''),
+    '#type' => 'textarea',
+    '#attributes' => array('maxlength' => 160, 'class' => array('message-textarea-box'), 'onKeyPress'=>"return(this.value.length<160);"),
+ 		//'#required' => TRUE,
+ 		'#default_value' => isset($temp_message)?$temp_message:'',
+ 		'#prefix' => '<div class="message-box-div" id="message-textarea-box-div">',
+ 		'#suffix' => '<div class="message-feedback margin-bottom-10" id="message-feedback"></div></div>'
+  );
+  $form['cm_type'] = array(
+    '#type' => 'hidden',
+    '#value' => $cm_type,
+  );
+  $form['#attached']['js'] = array(
+		'/'.drupal_get_path('module', 'm6connect_alert') . '/js/m6connect_alert.js' => array(
+			'type' => 'file',
+		),
+	);
+  $form['charjs'] = array(
+  	'#markup' => '<script type="text/javascript" src="/'.drupal_get_path('module',  'm6connect_alert') . '/js/m6connect_alert.js"></script>'
+  );
+  $form['clone_message_div'] = array(
+      '#markup' => l('<input type="button" class="btn btn primary form-submit" value="Clone" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('clone_message_div_submit_btn'),  'onclick' => 'clonee()', 'style' => 'display:none;'))),	
+      '#suffix' => '</div>',
+  );
+  $form['template-container']['template_attachment'] = array(
+		'#type' => 'file',
+  	'#name' => 'files[]',
+  	'#attributes' => array('multiple' => 'multiple', 'class' => array('alert-upload-image')),
+    '#prefix' => '<div class="multiple-mms-container margin-bottom-10">',
+    '#suffix' => '</div>',
+    '#field_prefix' => isset($attach_div)?$attach_div:'',
+    '#field_suffix' => '<span class="alert-remove-image" style="display:none;"><i class="fa fa-refresh"></i></span>',
+	);
+ 	$form['template-container-popup']['select-group'] = array(
+  	'#type' => 'select',
+    '#title' => t('Select Group'),
+    '#options' => $groupOption,        
+    '#multiple' => TRUE,
+    '#required' => TRUE,
+    '#chosen' => TRUE,
+    '#attributes' => array('class' => array('margin-bottom-20')),
+    //'#prefix' => '<div class="chosen-container-single">',
+    //'#suffix' => '</div>',
+ 	);   	
+ 	$form['send_template'] = array(
+	'#type' => 'submit',
+	'#value' => t('Send'),
+	);
+	$form['send_template_action_cancel']['close'] = array(
+		'#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('send_template-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+		'#weight' => 10,
+	);
+  return $form;
+}
+// validate template attachment
+function send_template_sms_form_validate($form, &$form_state){
+	if(!empty($_FILES['files']['name'][0])){
+	    for ($i = 0; $i < count($_FILES['files']['name']); $i++) {
+	        $file = file_save_upload($i, array(
+	            //'file_validate_is_image' => array(),
+	            'file_validate_extensions' => array('png gif jpg jpeg bmp basic L24 mp4 mpeg ogg vorbis vnd.rn-realaudio vnd.wave 3gp 3gpp 3gpp2 ac3 vnd.wave webm amr-nb amr quicktime 3gpp-tt H261 H263 H263-1998 H263-2000 H264 vcard csv rtf richtext calendar pdf'),
+	        ));
+	        if ($file) {
+		        if ($file = file_move($file, 'public://')) {
+		          $form_state['values']['template_attachment'][$i] = $file;
+		        }
+		        else {
+		          form_set_error('file', t('Failed to write the uploaded file the site\'s file folder.'));
+		        }
+	      	}
+		    else {
+		    	form_set_error('file', t('No file was uploaded.'));
+		    }    
+	    }
+	}
+}
+function send_template_sms_form_submit($form, &$form_state){
+	$input = $form_state['input'];
+	$values = $form_state['values'];
+	$media = array();$attach_media_val = $cm_type = '';
+  if(!empty($input['cm_type'])){
+    $cm_type = $input['cm_type'];
+  }
+	$tmp_message = $input['template_message'];	
+	$tmp_attachment = $values['template_attachment'];	
+	if(!empty($tmp_message)){
+		foreach ($tmp_message as $template_message) {
+			$tmpMsg .= $template_message;
+		}
+	}
+	if($tmp_attachment){
+		foreach ($tmp_attachment as $tmp_attachment_value) {
+			$attach_media[] = $tmp_attachment_value->fid;
+			//$attach_media[] = file_create_url($tmp_attachment_value->uri);
+		}
+    if(isset($attach_media) && !empty($attach_media)){
+      $attach_media_val = implode(',', $attach_media);
+    }
+	}	
+	if(!empty($values['templateId']) && is_numeric($values['templateId'])){
+		// first update template
+		$templateId = $values['templateId'];
+    	$attach_media_val = alert_final_template_attachment($templateId, $attach_media_val);     
+		$fields = array(
+    	'message' => addslashes($tmpMsg),
+    	'updated_dt' => date('Y-m-d H:i:s'),
+		);
+		if(!empty($attach_media_val)){	// if media exist on send template
+			$fields['attachment'] = $attach_media_val;
+		}		
+		$template_update = db_update('m6connect_alert_template');
+		$template_update->fields($fields);
+		$template_update->condition('id', $templateId, '=');
+		$template_update->execute();
+
+		// get template detail		
+  	$getTemplate = get_one_alert_template($templateId);
+		$twilio_message = $getTemplate['message'];
+		$attachment = explode(',', $getTemplate['attachment']);
+		foreach ($attachment as $attachFileId){
+			$loadAttachFile = file_load($attachFileId);
+			$media[] = file_create_url($loadAttachFile->uri);
+		}
+		$group_ids = array();
+		$group_ids = $values['select-group'];
+		// save message
+		$insert_message = db_insert('m6connect_alert_group_message')
+						->fields(array(
+							'group_id' => implode(",", $group_ids),
+							'message' => $twilio_message,
+							'media' => $getTemplate['attachment'],
+							'created_dt' => date('Y-m-d H:i:s'),
+              'cm_type' => $cm_type,
+							))
+						->execute();	
+		$last_msg_id = $insert_message;			
+		if(!empty($group_ids)){
+			foreach ($group_ids as $tmpGroupId){				
+				// get group detail for sending sms				
+        		$group_data = get_group_detail_from_group_id($tmpGroupId);
+				foreach ($group_data as $gDataValue) {
+					$phone = $gDataValue->phone;
+					$country_code = $gDataValue->country_code;
+					if(!empty($phone) && !empty($country_code))
+					{
+						$new_phone = str_replace($country_code, '', $phone);						
+						$sms_response = m6connect_alert_twilio_send($new_phone, $twilio_message, $country_code, $media);
+						$smsSID = $sms_response['sid'];		
+						// save SMS response
+						$insert_message = db_insert('m6connect_alert_group_message_response')
+										->fields(array(
+											'group_id' => $tmpGroupId,
+											'msg_id' => $last_msg_id,										
+											'phone'	=> $gDataValue->phone,	
+											'sid'	=> $smsSID,
+											'status' => 'queued',
+											'sms_response' => serialize($sms_response),
+											'created_dt' => date('Y-m-d H:i:s'),
+											))
+										->execute();
+						// check if any error
+						$error_msg = array('sms_error' => 0);
+						if(!empty($sms_response['error_msg']))
+						{
+							$message = ($errorCount['sms_error'] == 0)?'Message not sent for'.$new_phone:'';
+							$errorCount['sms_error']++;						
+						}
+					}
+				}								
+			}
+		}
+		if($errorCount > 0)		
+		{
+			drupal_set_message($message, 'error');
+		}
+		else
+		{									
+			drupal_set_message('Template Sent', 'status');
+		}
+    if(!empty($cm_type)){
+      $url = '/alert/templates/'.$cm_type;
+    }
+    else{
+      $url = '/alert/templates';
+    }
+		if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false){
+ 			$form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+ 			$form_state['ajax_commands'][] = ctools_ajax_command_redirect($url);  
+		}
+	}	
+}
+// function for get response from twilio
+function alert_get_message_response_callback(){
+	if(isset($_REQUEST) && !empty($_REQUEST)){
+		variable_set('alert_response', serialize($_REQUEST));
+	}
+	return "Thank you";
+}
+// function for create custom text message
+function alert_create_text_message_callback($ajax){
+	if ($ajax){
+    	ctools_include('ajax');
+    	ctools_include('modal');    	
+	    $form_state = array(
+	      'ajax' => TRUE, 	      
+	    );
+    	$output = ctools_modal_form_wrapper('alert_create_text_message_form',  $form_state);
+	    if (!empty($form_state['ajax_commands'])) {
+	      $output = $form_state['ajax_commands'];
+	    }    
+    	print ajax_render($output);
+    	drupal_exit();
+  	}
+  	else {
+    	return drupal_get_form('alert_create_text_message_form');
+  	}
+}
+// function for create custom text message form
+function alert_create_text_message_form($form, &$form_state){
+	global $company;
+	global $user;
+	$nid = $company->nid;
+	$uid = $user->uid;
+  $cm = '';
+  if(arg(0) == 'alert' && !empty(arg(3))){
+    $cm = arg(3);
+  }
+	$groupOption = array();
+	$getGroup = get_all_alert_group();
+	foreach ($getGroup as $groupDetail) {
+		$groupId = $groupDetail->id;
+		$groupValue = $groupDetail->title;
+		$groupOption[$groupId] = $groupValue;
+	}
+	// get template data
+	$getTemplate = get_all_alert_template();	
+	$templateOption[0] = 'Select from templates or type new below';
+	foreach ($getTemplate as $templateDetail) {
+		$templateId = $templateDetail->id;
+		$templateValue = $templateDetail->keyword;		
+		$templateOption[$templateId] = $templateValue;				
+	}
+	$form = array( );      
+  $form['custom-message-container']= array(
+   	'#type' => 'container', 
+   	'#attributes' => array( 'class'=>array('message_main_container_overflow') ), 
+  	'#prefix' => '<div class="clearfix"><div id="alert_text_message_main_container" class="alert-message-detail-popup">',  
+  ); 
+  $form['custom-message-container']['select-template'] = array(
+  	'#type' => 'select',
+    '#title' => t('Select Templatess'),
+    '#options' => $templateOption,        
+    '#attributes' => array('class' => array('margin-bottom-20')),     
+    '#ajax' => array(
+    	'callback' => 'alert_load_template_by_id',
+    	'wrapper' => 'alert_message_main_container',
+    	'method' => 'replace',
+    	'effect' => 'fade',
+    	'progress' => array( 'type'=> 'throbber', 'message'=> NULL ),
+    ),
+ 	);
+  $form['custom-message-container']['select-group'] = array(
+  	'#type' => 'select',
+    '#title' => t('Select Group'),
+    '#options' => $groupOption,        
+    '#multiple' => TRUE,
+    '#required' => TRUE,
+    '#chosen' => TRUE,
+    '#attributes' => array('class' => array('margin-bottom-10')),
+ 	);    
+  $form['custom-message-container']['message'] = array(
+    '#title' => 'Add Message', 
+    '#parents' => array('message', ''),
+    '#type' => 'textarea',
+    '#attributes' => array('maxlength' => 160, 'class' => array('message-textarea-box'), 'onKeyPress'=>"return(this.value.length<160);"),
+ 		//'#required' => TRUE,
+ 		'#prefix' => '<div class="message-box-div" id="message-textarea-box-div">',
+ 		'#suffix' => '<div class="message-feedback margin-bottom-10" id="message-feedback"></div></div>'
+  );
+  $form['cm_type'] = array(
+    '#type' => 'hidden',
+    '#value' => $cm,
+  );
+  $form['#attached']['js'] = array(
+	'/'.drupal_get_path('module', 'm6connect_alert') . '/js/m6connect_alert.js' => array(
+		'type' => 'file',),
+  );
+  $form['charjs'] = array(
+  	'#markup' => '<script type="text/javascript" src="/'.drupal_get_path('module',  'm6connect_alert') . '/js/m6connect_alert.js"></script>'
+  );
+  $form['clone_message_div'] = array(
+    '#markup' => l('<input type="button" class="btn btn primary form-submit" value="Clone" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('clone_message_div_submit_btn'),  'onclick' => 'cloneeDiv()', 'style' => 'display:none;'))),	
+    '#suffix' => '</div>',
+  ); 	
+  $form['custom_attach'] = array(    
+  	'#type' => 'file',
+  	'#name' => 'files[]',
+  	'#attributes' => array('multiple' => 'multiple', 'class' => array('alert-upload-image')),
+    '#prefix' => '<div class="multiple-mms-container margin-bottom-10">',
+    '#suffix' => '</div>',
+    '#field_prefix' => '<div class="alert-image-on-load-template"></div>',
+    '#field_suffix' => '<span class="alert-remove-image" style="display:none;"><i class="fa fa-refresh"></i></span>',      
+  	//'#element_validate' => array('multi_mms_validate_function'),
+	);   
+  $form['close'] = array(
+    '#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array( 'external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('m6connect-alert-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();')) ), 
+    '#weight' => 10, 
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+	  '#value' => t('Send'), 
+  );     
+  return $form;
+}
+function alert_create_text_message_form_validate($form, &$form_state){
+	if(!empty($_FILES['files']['name'][0])){
+	    for ($i = 0; $i < count($_FILES['files']['name']); $i++) {
+	        $file = file_save_upload($i, array(
+            /*'file_validate_is_image' => array(),*/
+            'file_validate_extensions' => array('png gif jpg jpeg bmp basic L24 mp4 mpeg ogg vorbis vnd.rn-realaudio vnd.wave 3gp 3gpp 3gpp2 ac3 vnd.wave webm amr-nb amr quicktime 3gpp-tt H261 H263 H263-1998 H263-2000 H264'),
+	        ));
+	        if ($file) {
+		        if ($file = file_move($file, 'public://')) {
+		          $form_state['values']['custom_attach'][$i] = $file;
+		        }
+		        else {
+		          form_set_error('file', t('Failed to write the uploaded file the site\'s file folder.'));
+		        }
+	      	}
+		    else {
+		    	form_set_error('file', t('No file was uploaded.'));
+		    }    
+	    }
+	}
+}
+function alert_create_text_message_form_submit($form, &$form_state){
+	$group_ids = array();$selectTemplateId = '';
+	$input = $form_state['input'];
+  $cm_type = '';
+  if(!empty($input['cm_type'])){
+    $cm_type = $input['cm_type'];
+  }
+	$inputTextMsg = $input['message'];
+	$values = $form_state['values'];
+	$custom_attach = $values['custom_attach'];	
+	$group_ids = $values['select-group'];
+	$selectTemplateId = $values['select-template'];
+	$media = array();$attach_file_fid = array();$twilio_message = '';
+	if(!empty($inputTextMsg))
+	{
+		foreach ($inputTextMsg as $inputMsgVal) {
+			$twilio_message .= $inputMsgVal;
+		}		
+	}
+	if(!empty($custom_attach))		
+	{
+		foreach ($custom_attach as $custom_attach_detail) 
+		{
+			$attach_file_fid[] = $custom_attach_detail->fid;
+			$media[] = file_create_url($custom_attach_detail->uri);
+		}
+    if(!empty($attach_file_fid)){
+      $save_media = implode(',', $attach_file_fid);
+    }
+	}
+	if(!empty($group_ids)){			
+		if(!empty($selectTemplateId)){ //if send sms via template
+			// first update template
+      $save_media = alert_final_template_attachment($selectTemplateId, $save_media); 
+      if(!empty($save_media)){
+        $media = array();
+        $save_media_arr = explode(',', $save_media);   
+        foreach ($save_media_arr as $save_media_arr_value) {
+          $save_media_file = file_load($save_media_arr_value);
+          $media[] = file_create_url($save_media_file->uri);
+        }
+      } 
+			$fields = array(
+	        	'message' => addslashes($twilio_message),
+	        	'updated_dt' => date('Y-m-d H:i:s'),
+			);
+			if(!empty($save_media)){	// if media exist on send template
+				$fields['attachment'] = $save_media;
+			}		
+			$template_update = db_update('m6connect_alert_template');
+			$template_update->fields($fields);
+			$template_update->condition('id', $selectTemplateId, '=');
+			$template_update->execute();	
+		}
+		// save message
+		$insert_message = db_insert('m6connect_alert_group_message')
+						->fields(array(
+							'group_id' => implode(",", $group_ids),
+							'message' => addslashes($twilio_message),
+							'media' => $save_media,
+							'created_dt' => date('Y-m-d H:i:s'),
+              'cm_type' => $cm_type,
+							))
+						->execute();	
+		$last_msg_id = $insert_message;	
+		foreach ($group_ids as $customGroupId){			
+			// get group detail for sending sms
+			$group_data = get_group_detail_from_group_id($customGroupId);
+			foreach ($group_data as $gDataValue) {
+				$phone = $gDataValue->phone;
+				$country_code = $gDataValue->country_code;
+				if(!empty($phone) && !empty($country_code))
+				{
+					$new_phone = str_replace($country_code, '', $phone);						
+					$sms_response = m6connect_alert_twilio_send($new_phone, $twilio_message, $country_code, $media);
+					$smsSID = $sms_response['sid'];		
+					// save SMS response
+					$insert_message = db_insert('m6connect_alert_group_message_response')
+									->fields(array(
+										'group_id' => $customGroupId,
+										'msg_id' => $last_msg_id,										
+										'phone'	=> $gDataValue->phone,	
+										'sid'	=> $smsSID,
+										'status' => 'queued',
+										'sms_response' => serialize($sms_response),
+										'created_dt' => date('Y-m-d H:i:s'),
+										))
+									->execute();
+					// check if any error
+					$error_msg = array('sms_error' => 0);
+					if(!empty($sms_response['error_msg']))
+					{
+						$message = ($errorCount['sms_error'] == 0)?'Message not sent for'.$new_phone:'';
+						$errorCount['sms_error']++;						
+					}
+				}
+			}								
+		}
+	}
+	if($errorCount > 0)		
+	{
+		drupal_set_message($message, 'error');
+	}
+	else
+	{									
+		drupal_set_message('Text Message Sent', 'status');
+	}
+  if(!empty($cm_type)){
+    $url = '/alert/sent-messages/'.$cm_type;
+  }
+  else{
+    $url = '/alert/sent-messages';
+  }
+	if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false){
+		$form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+		$form_state['ajax_commands'][] =ctools_ajax_command_redirect($url);  
+	}
+}
+// resend message
+/*function alert_resend_message_callback($ajax, $msgId = 0){
+	if($ajax){
+		ctools_include('ajax');
+		ctools_include('modal');
+		$form_state = array(
+			'ajax' => TRUE,
+			'msgId' => $msgId,
+		);
+		$output = ctools_modal_form_wrapper('alert_resend_message_form', $form_state);
+		if (!empty($form_state['ajax_commands'])) {
+			$output = $form_state['ajax_commands'];
+		}
+		print ajax_render($output);
+		drupal_exit();
+	}
+  	return drupal_get_form('alert_resend_message_form', $msgId);	
+}
+function alert_resend_message_form($form, &$form_state, $msgId){
+	if(!$msgId)
+    {
+    	$msgId = $form_state['msgId'];
+    } 
+	$form['resend_action_title'] = array(
+		'#type' => 'markup',
+		'#title' => t('status'),
+		'#markup' => '<div class="group-action-status"><p>Do you want to resend this Message ?</p></div>',
+	);	
+	$form['msgId'] = array(
+    	'#type' => 'hidden', 
+    	'#value' => $msgId, 
+   	);		
+	$form['submit_action_resend'] = array(
+		'#type' => 'submit',
+		'#value' => t('Resend')
+	);
+	$form['submit_action_cancel']['close'] = array(
+		'#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('resend-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+		'#weight' => 10,
+	);
+	return $form;
+}
+// function for delete message
+function alert_resend_message_form_submit($form, &$form_state) {	
+	$form_values = $form_state['values'];
+	$msgId = $form_state['msgId'];
+	if(!empty($msgId))
+	{	
+		$getMessage = get_alert_sent_message_from_msg_id($msgId);
+		
+
+
+		drupal_set_message('Message deleted successfully', 'status');
+			
+		if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+	 		$form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+	 		$form_state['ajax_commands'][] = ctools_ajax_command_redirect('/alert/sent-messages');  
+	  	}
+	}
+}*/
+
+// function for return parameters for edit group
+/*function alert_group_edit_parameters_callback(){
+  if(!empty(arg(0)) && arg(0) == 'alert'){
+    if(!empty(arg(1)) && arg(1) == 'group-edit'){
+      if(!empty(arg(3))){
+
+      }
+    }
+  }
+}*/
+
+
+/********************  Common function ********************/
+function get_all_alert_group(){
+	global $company;
+	global $user;
+	$nid = $company->nid;
+	$uid = $user->uid;
+  $cm = '';
+  if(!empty(arg(3))){
+    $cm = arg(3);
+  }  
+	$getGroup = db_select('m6connect_alert_group', 'mag');
+	$getGroup->fields('mag');
+	$getGroup->condition('company_nid', $nid, '=');
+	$getGroup->condition('uid', $uid, '=');
+  if(!empty($cm)){
+    $getGroup->condition('cm_type', $cm, '=');
+  }
+	$result = $getGroup->execute()->fetchAll();
+	return $result;
+}
+
+function get_one_alert_group($group_id = 0){
+	$group_data = db_select('m6connect_alert_group', 'mag')
+  				->fields('mag')
+  				->condition('id', $group_id, '=')
+  				->execute()
+  				->fetchAssoc();
+	return $group_data;
+}
+// get group detail from group id
+function get_group_detail_from_group_id($group_id = 0){
+  if(!empty($group_id)){
+    $groupDetailData = db_select('m6connect_alert_group_detail', 'magd')
+                    ->fields('magd')
+                    ->condition('group_id', $group_id, '=')
+                    ->execute()
+                    ->fetchAll();
+    return $groupDetailData;
+  }
+}
+// get group detail from group detail id
+function get_one_alert_group_detail($groupDetailId = 0){
+	if(!empty($groupDetailId)){
+		$groupDetailData = db_select('m6connect_alert_group_detail', 'magd')
+          				->fields('magd')
+          				->condition('id', $groupDetailId, '=')
+          				->execute()
+          				->fetchAssoc();
+		return $groupDetailData;
+	}
+}
+
+function get_all_alert_template(){
+	global $user,$company;
+	$nid = $company->nid;
+	$uid = $user->uid;
+  $cm = '';
+  if(!empty(arg(3))){
+    $cm = arg(3);
+  }
+  $db_or = db_or()->condition('mat.uid', $uid, '=')->condition('mat.share', 1, '=');
+	$getTemplate = db_select('m6connect_alert_template', 'mat');
+	$getTemplate->fields('mat');
+	$getTemplate->condition('company_nid', $nid, '=');
+	//->condition('uid', $uid, '=')
+	$getTemplate->condition($db_or);
+  if(!empty($cm)){
+    $getTemplate->condition('cm_type', $cm, '=');
+  }
+	$result = $getTemplate->execute()->fetchAll();
+	return $result;
+}
+// get template from template id
+function get_one_alert_template($template_id){
+	$template_data = db_select('m6connect_alert_template', 'mat')
+					->fields('mat')
+					->condition('id', $template_id, '=')
+					->execute()
+					->fetchAssoc();
+	return $template_data;
+}
+// get sent message from message id
+function get_alert_sent_message_from_msg_id($msgId = 0){
+	if(!empty($msgId)){
+		$getMessage = db_select('m6connect_alert_group_message', 'magm')
+					->fields('magm')
+					->condition('id', $msgId, '=')
+					->execute()->fetchAssoc();
+		return $getMessage;
+	}
+}
+
+function m6connect_alert_send_email_to_unregistered_user($groupId = 0){	
+	global $base_url, $base_path, $user, $company;
+	$currentUser = user_load($user->uid);  
+	if(!empty($groupId)){
+  	/*if(!empty(arg(2))){
+  		$groupId = arg(2);
+  	}*/	
+    $alert = get_group_detail_from_group_id($groupId);
+  	$alert_email = array();$registered_emails = array();
+  	foreach ($alert as $key => $alertValue) {
+  		$alert_email[] = $alertValue->email;
+  	}
+  	$registered_emails_data = _get_user_details_by_og_multiple_emails($alert_email);
+  	if(!empty($registered_emails_data)){
+  		foreach ($registered_emails_data as $key => $registered_emails_value) {
+  			$registered_emails[] = $key;
+  		}
+  		$unregistered_emails = array_unique(array_diff($alert_email, $registered_emails));
+  	}	    
+  	foreach ($alert as $key => $alertValue) {
+  		$firstname = $alertValue->fname;
+  		$lastname = $alertValue->lname;
+  		$params = array(
+        'subject' => 'Congratulations',
+        'body' => '',
+        //'sender' => $award_giver_user->mail,
+        //'bcc' => $award_giver_user->mail,
+        'language' => language_default(),
+        'module' => 'm6connect_misc',
+        'key' => 'alert_email_for_unregistered_users',
+        'build' => TRUE,
+    );
+    $siteLink = '';$emailMessage = '';
+  	$siteLink = $base_url.$base_path.'user/register/alert-detail-id/'.$alertValue->id;
+  	if(!empty($groupId)){
+  		$siteLink .= '/alert-group-id/'.$groupId;
+  	}
+    $siteText = str_replace(array('http://','https://'), array('',''),$base_url);
+      //$emailMessage = 'you are not registered. Please click on this '.l('link', $siteLink);
+	  $emailMessage = 'You were recently sent a text from '.ucwords($currentUser->realname).' with '.ucwords($company->title).' on M6Connect. The Alerts system is for bulk texting for a emergencies, general updates and even education.  There are many other features in M6Connect that you may be interested in - please login at '.l($siteText, $base_url.$base_path).' to learn more.<br/><br/>You can you find new projects, RFPs and even update your skill set or add your resume.';    
+  		$params['body'] = $emailMessage;
+  		if(!empty($unregistered_emails)){			
+  			foreach ($unregistered_emails as $unregistered_emails_value) {
+  				if($unregistered_emails_value == $alertValue->email){					            
+  	    			$return = drupal_mail($params['module'], $params['key'], $unregistered_emails_value, $params['language'], $params);	    			
+  				}
+  			}
+  		}
+  		else{
+  			$return = drupal_mail($params['module'], $params['key'], $alertValue->email, $params['language'], $params);	
+  		}
+  	}	
+  }
+}
+
+function m6connect_alert_remove_template_image(){
+  	if(isset($_REQUEST) && $_REQUEST['remove_img'] == 1){
+	    $fid = array();$previous_remove_image_detail = array();
+	    $fid[] = $_REQUEST['attachFid'];
+	    //$remove_image_detail[] = $fid;
+	    //$remove_image_detail['attachFid'] = $_REQUEST['attachFid'];
+	    /*$previous_remove_image_detail = $_SESSION['alert_remove_image_detail'];     
+	    if(!empty($previous_remove_image_detail)){
+	      array_push($previous_remove_image_detail, $fid);   
+	      print_r($previous_remove_image_detail);
+	      $_SESSION['alert_remove_image_detail'] = $previous_remove_image_detail;
+	      print_r($_SESSION['alert_remove_image_detail']);
+	    }*/
+	    if(isset($_SESSION['alert_remove_image_detail']) && !empty($_SESSION['alert_remove_image_detail'])){    	
+	    	array_push($_SESSION['alert_remove_image_detail'], $_REQUEST['attachFid']);
+	    }
+	    else{
+	       $_SESSION['alert_remove_image_detail'] = $fid;	       
+	    }    
+	    echo $_REQUEST['templateID'].'_'.$_REQUEST['attachFid'];
+  	}
+} 
+
+function get_one_template_fid_from_template_id($templateId = 0){
+  	if(!empty($templateId)){
+	    $templateFid = db_select('m6connect_alert_template', 'mat')
+	                 ->fields('mat', array('attachment'))
+	                 ->condition('id', $templateId, '=')
+	                 ->execute()->fetchAssoc();
+	    return $templateFid;
+  	}
+}
+// update first name and last name in group on user signup
+function m6connect_alert_user_insert(&$edit, $account, $category){
+  	$fname = $account->field_first_name['und'][0]['value'];
+  	$lname = $account->field_last_name['und'][0]['value'];
+  	$email = $account->mail;
+  	$getEmailUser = db_select('m6connect_alert_group_detail', 'magd')
+                ->fields('magd', array('id'))
+                ->condition('email', $email, '=')
+                ->execute()->fetchAll();
+  	$idList = array();
+  	foreach ($getEmailUser as $getEmailUserId) {
+    	$idList[] = $getEmailUserId->id;
+  	}
+  	if(!empty($idList)){    
+    	$update_user_data = db_update('m6connect_alert_group_detail')
+	                      ->fields(array('fname' => $fname, 'lname' => $lname))
+	                      ->condition('id', $idList, 'IN')
+	                      ->execute();
+  	}
+}
+// existing template image html
+function alert_template_image_html($attachments = NULL, $templateId = 0){
+  $load_attach_url = array();
+  if(!empty($attachments)){
+    $attach_list = explode(',', $attachments);
+    $attach_div = '<div class="attach-preview margin-bottom-10">';
+    foreach ($attach_list as $attach_list_value) {
+      $load_attach = file_load($attach_list_value);
+      $load_attach_url = image_style_url('user_pic_32x32', $load_attach->uri);
+      //$remove_path = drupal_get_path('module',  'm6connect_alert') . '/js/m6connect_alert.js;
+      $attach_div .= '<img src="'.$load_attach_url.'" id="t_img_'.$templateId.'_'.$attach_list_value.'" class="del-alert-img">
+        <span class="del-alert-span" id="del_alert_img_'.$templateId.'_'.$attach_list_value.'" onclick="alert_remove_img('.$templateId.', '.$attach_list_value.');">
+          <i class="fa fa-close"></i>
+        </span>&nbsp;&nbsp;';
+    } 
+    $attach_div .= '</div>';  
+    return $attach_div;  
+  }
+}
+// get final attachment for template 
+function alert_final_template_attachment($template_id = 0, $attach_media = NULL){  
+  if(!empty($template_id) && is_numeric($template_id)){
+    $attach_arr = $new_attach_array = $save_media = '';$attach_array = array();$remove_images = array();
+    $exist_template_id = get_one_template_fid_from_template_id($template_id);// get existing attachment id
+    $attach_arr = $exist_template_id['attachment'];   
+    if(!empty($attach_arr)) {  
+      // if remove any existing image        
+      if(isset($_SESSION['alert_remove_image_detail']) && !empty($_SESSION['alert_remove_image_detail'])){      
+        $remove_images = $_SESSION['alert_remove_image_detail'];
+        if(!empty($remove_images)){ 
+          $attach_array = array_filter(explode(',', $attach_arr)); // explode existing attachment ids
+          foreach ($remove_images as $remove_images_fid) {
+            if(in_array($remove_images_fid, $attach_array)){
+              $key = array_search($remove_images_fid, $attach_array);
+              unset($attach_array[$key]);
+            }
+          }              
+          $new_attach_array = implode(',', $attach_array);
+        }
+      }
+    } 
+    if(!empty($new_attach_array)){
+      if(!empty($attach_media)){
+        $save_media = $new_attach_array.','.$attach_media;
+      }
+      else{
+        $save_media = $new_attach_array;
+      }
+    }
+    else{
+      $save_media = $attach_media;
+    }    
+    return $save_media;
+  }
+}
+
+function m6connect_alert_get_phone_code($country_name = NULL){
+	$countries = array();
+	$countries[] = array("code"=>"AF","name"=>"Afghanistan","d_code"=>"+93");
+	$countries[] = array("code"=>"AL","name"=>"Albania","d_code"=>"+355");
+	$countries[] = array("code"=>"DZ","name"=>"Algeria","d_code"=>"+213");
+	$countries[] = array("code"=>"AS","name"=>"American Samoa","d_code"=>"+1-684");
+	$countries[] = array("code"=>"AD","name"=>"Andorra","d_code"=>"+376");
+	$countries[] = array("code"=>"AO","name"=>"Angola","d_code"=>"+244");
+	$countries[] = array("code"=>"AI","name"=>"Anguilla","d_code"=>"+1-264");
+	$countries[] = array("code"=>"AQ","name"=>"Antarctica","d_code"=>"+672");
+	$countries[] = array("code"=>"AG","name"=>"Antigua and Barbuda","d_code"=>"+1-268");
+	$countries[] = array("code"=>"AR","name"=>"Argentina","d_code"=>"+54");
+	$countries[] = array("code"=>"AM","name"=>"Armenia","d_code"=>"+374");
+	$countries[] = array("code"=>"AW","name"=>"Aruba","d_code"=>"+297");
+	$countries[] = array("code"=>"AU","name"=>"Australia","d_code"=>"+61");
+	$countries[] = array("code"=>"AT","name"=>"Austria","d_code"=>"+43");
+	$countries[] = array("code"=>"AZ","name"=>"Azerbaijan","d_code"=>"+994");
+	$countries[] = array("code"=>"BH","name"=>"Bahrain","d_code"=>"+973");
+	$countries[] = array("code"=>"BD","name"=>"Bangladesh","d_code"=>"+880");
+	$countries[] = array("code"=>"BB","name"=>"Barbados","d_code"=>"+1-246");
+	$countries[] = array("code"=>"BY","name"=>"Belarus","d_code"=>"+375");
+	$countries[] = array("code"=>"BE","name"=>"Belgium","d_code"=>"+32");
+	$countries[] = array("code"=>"BZ","name"=>"Belize","d_code"=>"+501");
+	$countries[] = array("code"=>"BJ","name"=>"Benin","d_code"=>"+229");
+	$countries[] = array("code"=>"BM","name"=>"Bermuda","d_code"=>"+1-441");
+	$countries[] = array("code"=>"BT","name"=>"Bhutan","d_code"=>"+975");
+	$countries[] = array("code"=>"BO","name"=>"Bolivia","d_code"=>"+591");
+	$countries[] = array("code"=>"BA","name"=>"Bosnia and Herzegovina","d_code"=>"+387");
+	$countries[] = array("code"=>"BW","name"=>"Botswana","d_code"=>"+267");
+	$countries[] = array("code"=>"BR","name"=>"Brazil","d_code"=>"+55");
+	$countries[] = array("code"=>"IO","name"=>"British Indian Ocean Territory","d_code"=>"+246");
+	$countries[] = array("code"=>"VG","name"=>"British Virgin Islands","d_code"=>"+1-284");
+	$countries[] = array("code"=>"BN","name"=>"Brunei","d_code"=>"+673");
+	$countries[] = array("code"=>"BG","name"=>"Bulgaria","d_code"=>"+359");
+	$countries[] = array("code"=>"BF","name"=>"Burkina Faso","d_code"=>"+226");
+	$countries[] = array("code"=>"MM","name"=>"Burma Myanmar" ,"d_code"=>"+95");
+	$countries[] = array("code"=>"BI","name"=>"Burundi","d_code"=>"+257");
+	$countries[] = array("code"=>"KH","name"=>"Cambodia","d_code"=>"+855");
+	$countries[] = array("code"=>"CM","name"=>"Cameroon","d_code"=>"+237");
+	$countries[] = array("code"=>"CA","name"=>"Canada","d_code"=>"+1");
+	$countries[] = array("code"=>"CV","name"=>"Cape Verde","d_code"=>"+238");
+	$countries[] = array("code"=>"KY","name"=>"Cayman Islands","d_code"=>"+1-345");
+	$countries[] = array("code"=>"CF","name"=>"Central African Republic","d_code"=>"+236");
+	$countries[] = array("code"=>"TD","name"=>"Chad","d_code"=>"+235");
+	$countries[] = array("code"=>"CL","name"=>"Chile","d_code"=>"+56");
+	$countries[] = array("code"=>"CN","name"=>"China","d_code"=>"+86");
+  $countries[] = array("code"=>"CX","name"=>"Christmas Island","d_code"=>"+61");
+  $countries[] = array("code"=>"CC","name"=>"Cocos Islands","d_code"=>"+61");
+	$countries[] = array("code"=>"CO","name"=>"Colombia","d_code"=>"+57");
+	$countries[] = array("code"=>"KM","name"=>"Comoros","d_code"=>"+269");
+	$countries[] = array("code"=>"CK","name"=>"Cook Islands","d_code"=>"+682");
+	$countries[] = array("code"=>"CR","name"=>"Costa Rica","d_code"=>"+506");
+	$countries[] = array("code"=>"CI","name"=>"Côte d'Ivoire" ,"d_code"=>"+225");
+	$countries[] = array("code"=>"HR","name"=>"Croatia","d_code"=>"+385");
+	$countries[] = array("code"=>"CU","name"=>"Cuba","d_code"=>"+53");
+  $countries[] = array("code"=>"CW","name"=>"Curacao","d_code"=>"+599");
+	$countries[] = array("code"=>"CY","name"=>"Cyprus","d_code"=>"+357");
+	$countries[] = array("code"=>"CZ","name"=>"Czech Republic","d_code"=>"+420");
+	$countries[] = array("code"=>"CD","name"=>"Democratic Republic of the Congo","d_code"=>"+243");
+	$countries[] = array("code"=>"DK","name"=>"Denmark","d_code"=>"+45");
+	$countries[] = array("code"=>"DJ","name"=>"Djibouti","d_code"=>"+253");
+	$countries[] = array("code"=>"DM","name"=>"Dominica","d_code"=>"+1-767");
+	$countries[] = array("code"=>"DO","name"=>"Dominican Republic","d_code"=>"+1-809");
+  $countries[] = array("code"=>"TL","name"=>"East Timor","d_code"=>"+670");
+	$countries[] = array("code"=>"EC","name"=>"Ecuador","d_code"=>"+593");
+	$countries[] = array("code"=>"EG","name"=>"Egypt","d_code"=>"+20");
+	$countries[] = array("code"=>"SV","name"=>"El Salvador","d_code"=>"+503");
+	$countries[] = array("code"=>"GQ","name"=>"Equatorial Guinea","d_code"=>"+240");
+	$countries[] = array("code"=>"ER","name"=>"Eritrea","d_code"=>"+291");
+	$countries[] = array("code"=>"EE","name"=>"Estonia","d_code"=>"+372");
+	$countries[] = array("code"=>"ET","name"=>"Ethiopia","d_code"=>"+251");
+	$countries[] = array("code"=>"FK","name"=>"Falkland Islands","d_code"=>"+500");
+	$countries[] = array("code"=>"FO","name"=>"Faroe Islands","d_code"=>"+298");
+	$countries[] = array("code"=>"FM","name"=>"Federated States of Micronesia","d_code"=>"+691");
+	$countries[] = array("code"=>"FJ","name"=>"Fiji","d_code"=>"+679");
+	$countries[] = array("code"=>"FI","name"=>"Finland","d_code"=>"+358");
+	$countries[] = array("code"=>"FR","name"=>"France","d_code"=>"+33");
+	$countries[] = array("code"=>"GF","name"=>"French Guiana","d_code"=>"+594");
+	$countries[] = array("code"=>"PF","name"=>"French Polynesia","d_code"=>"+689");
+	$countries[] = array("code"=>"GA","name"=>"Gabon","d_code"=>"+241");
+	$countries[] = array("code"=>"GE","name"=>"Georgia","d_code"=>"+995");
+	$countries[] = array("code"=>"DE","name"=>"Germany","d_code"=>"+49");
+	$countries[] = array("code"=>"GH","name"=>"Ghana","d_code"=>"+233");
+	$countries[] = array("code"=>"GI","name"=>"Gibraltar","d_code"=>"+350");
+	$countries[] = array("code"=>"GR","name"=>"Greece","d_code"=>"+30");
+	$countries[] = array("code"=>"GL","name"=>"Greenland","d_code"=>"+299");
+	$countries[] = array("code"=>"GD","name"=>"Grenada","d_code"=>"+1-473");
+	$countries[] = array("code"=>"GP","name"=>"Guadeloupe","d_code"=>"+590");
+	$countries[] = array("code"=>"GU","name"=>"Guam","d_code"=>"+1-671");
+	$countries[] = array("code"=>"GT","name"=>"Guatemala","d_code"=>"+502");
+  $countries[] = array("code"=>"GG","name"=>"Guernsey","d_code"=>"+44-1481");
+	$countries[] = array("code"=>"GN","name"=>"Guinea","d_code"=>"+224");
+	$countries[] = array("code"=>"GW","name"=>"Guinea-Bissau","d_code"=>"+245");
+	$countries[] = array("code"=>"GY","name"=>"Guyana","d_code"=>"+592");
+	$countries[] = array("code"=>"HT","name"=>"Haiti","d_code"=>"+509");
+	$countries[] = array("code"=>"HN","name"=>"Honduras","d_code"=>"+504");
+	$countries[] = array("code"=>"HK","name"=>"Hong Kong","d_code"=>"+852");
+	$countries[] = array("code"=>"HU","name"=>"Hungary","d_code"=>"+36");
+	$countries[] = array("code"=>"IS","name"=>"Iceland","d_code"=>"+354");
+	$countries[] = array("code"=>"IN","name"=>"India","d_code"=>"+91");
+	$countries[] = array("code"=>"ID","name"=>"Indonesia","d_code"=>"+62");
+	$countries[] = array("code"=>"IR","name"=>"Iran","d_code"=>"+98");
+	$countries[] = array("code"=>"IQ","name"=>"Iraq","d_code"=>"+964");
+	$countries[] = array("code"=>"IE","name"=>"Ireland","d_code"=>"+353");
+  $countries[] = array("code"=>"IM","name"=>"Isle of Man","d_code"=>"+44-1624");
+	$countries[] = array("code"=>"IL","name"=>"Israel","d_code"=>"+972");
+	$countries[] = array("code"=>"IT","name"=>"Italy","d_code"=>"+39");
+  $countries[] = array("code"=>"CI","name"=>"Ivory Coast","d_code"=>"+225");
+	$countries[] = array("code"=>"JM","name"=>"Jamaica","d_code"=>"+1-876");
+	$countries[] = array("code"=>"JP","name"=>"Japan","d_code"=>"+81");
+  $countries[] = array("code"=>"JE","name"=>"Jersey","d_code"=>"+44-1534");
+	$countries[] = array("code"=>"JO","name"=>"Jordan","d_code"=>"+962");
+	$countries[] = array("code"=>"KZ","name"=>"Kazakhstan","d_code"=>"+7");
+	$countries[] = array("code"=>"KE","name"=>"Kenya","d_code"=>"+254");
+	$countries[] = array("code"=>"KI","name"=>"Kiribati","d_code"=>"+686");
+	$countries[] = array("code"=>"XK","name"=>"Kosovo","d_code"=>"+381");
+	$countries[] = array("code"=>"KW","name"=>"Kuwait","d_code"=>"+965");
+	$countries[] = array("code"=>"KG","name"=>"Kyrgyzstan","d_code"=>"+996");
+	$countries[] = array("code"=>"LA","name"=>"Laos","d_code"=>"+856");
+	$countries[] = array("code"=>"LV","name"=>"Latvia","d_code"=>"+371");
+	$countries[] = array("code"=>"LB","name"=>"Lebanon","d_code"=>"+961");
+	$countries[] = array("code"=>"LS","name"=>"Lesotho","d_code"=>"+266");
+	$countries[] = array("code"=>"LR","name"=>"Liberia","d_code"=>"+231");
+	$countries[] = array("code"=>"LY","name"=>"Libya","d_code"=>"+218");
+	$countries[] = array("code"=>"LI","name"=>"Liechtenstein","d_code"=>"+423");
+	$countries[] = array("code"=>"LT","name"=>"Lithuania","d_code"=>"+370");
+	$countries[] = array("code"=>"LU","name"=>"Luxembourg","d_code"=>"+352");
+	$countries[] = array("code"=>"MO","name"=>"Macau","d_code"=>"+853");
+	$countries[] = array("code"=>"MK","name"=>"Macedonia","d_code"=>"+389");
+	$countries[] = array("code"=>"MG","name"=>"Madagascar","d_code"=>"+261");
+	$countries[] = array("code"=>"MW","name"=>"Malawi","d_code"=>"+265");
+	$countries[] = array("code"=>"MY","name"=>"Malaysia","d_code"=>"+60");
+	$countries[] = array("code"=>"MV","name"=>"Maldives","d_code"=>"+960");
+	$countries[] = array("code"=>"ML","name"=>"Mali","d_code"=>"+223");
+	$countries[] = array("code"=>"MT","name"=>"Malta","d_code"=>"+356");
+	$countries[] = array("code"=>"MH","name"=>"Marshall Islands","d_code"=>"+692");
+	$countries[] = array("code"=>"MQ","name"=>"Martinique","d_code"=>"+596");
+	$countries[] = array("code"=>"MR","name"=>"Mauritania","d_code"=>"+222");
+	$countries[] = array("code"=>"MU","name"=>"Mauritius","d_code"=>"+230");
+	$countries[] = array("code"=>"YT","name"=>"Mayotte","d_code"=>"+262");
+	$countries[] = array("code"=>"MX","name"=>"Mexico","d_code"=>"+52");
+  $countries[] = array("code"=>"FM","name"=>"Micronesia","d_code"=>"+691");
+	$countries[] = array("code"=>"MD","name"=>"Moldova","d_code"=>"+373");
+	$countries[] = array("code"=>"MC","name"=>"Monaco","d_code"=>"+377");
+	$countries[] = array("code"=>"MN","name"=>"Mongolia","d_code"=>"+976");
+	$countries[] = array("code"=>"ME","name"=>"Montenegro","d_code"=>"+382");
+	$countries[] = array("code"=>"MS","name"=>"Montserrat","d_code"=>"+1-664");
+	$countries[] = array("code"=>"MA","name"=>"Morocco","d_code"=>"+212");
+	$countries[] = array("code"=>"MZ","name"=>"Mozambique","d_code"=>"+258");
+  $countries[] = array("code"=>"MM","name"=>"Myanmar","d_code"=>"+95");
+	$countries[] = array("code"=>"NA","name"=>"Namibia","d_code"=>"+264");
+	$countries[] = array("code"=>"NR","name"=>"Nauru","d_code"=>"+674");
+	$countries[] = array("code"=>"NP","name"=>"Nepal","d_code"=>"+977");
+	$countries[] = array("code"=>"NL","name"=>"Netherlands","d_code"=>"+31");
+	$countries[] = array("code"=>"AN","name"=>"Netherlands Antilles","d_code"=>"+599");
+	$countries[] = array("code"=>"NC","name"=>"New Caledonia","d_code"=>"+687");
+	$countries[] = array("code"=>"NZ","name"=>"New Zealand","d_code"=>"+64");
+	$countries[] = array("code"=>"NI","name"=>"Nicaragua","d_code"=>"+505");
+	$countries[] = array("code"=>"NE","name"=>"Niger","d_code"=>"+227");
+	$countries[] = array("code"=>"NG","name"=>"Nigeria","d_code"=>"+234");
+	$countries[] = array("code"=>"NU","name"=>"Niue","d_code"=>"+683");
+	$countries[] = array("code"=>"NF","name"=>"Norfolk Island","d_code"=>"+672");
+	$countries[] = array("code"=>"KP","name"=>"North Korea","d_code"=>"+850");
+	$countries[] = array("code"=>"MP","name"=>"Northern Mariana Islands","d_code"=>"+1-670");
+	$countries[] = array("code"=>"NO","name"=>"Norway","d_code"=>"+47");
+	$countries[] = array("code"=>"OM","name"=>"Oman","d_code"=>"+968");
+	$countries[] = array("code"=>"PK","name"=>"Pakistan","d_code"=>"+92");
+	$countries[] = array("code"=>"PW","name"=>"Palau","d_code"=>"+680");
+	$countries[] = array("code"=>"PS","name"=>"Palestine","d_code"=>"+970");
+	$countries[] = array("code"=>"PA","name"=>"Panama","d_code"=>"+507");
+	$countries[] = array("code"=>"PG","name"=>"Papua New Guinea","d_code"=>"+675");
+	$countries[] = array("code"=>"PY","name"=>"Paraguay","d_code"=>"+595");
+	$countries[] = array("code"=>"PE","name"=>"Peru","d_code"=>"+51");
+	$countries[] = array("code"=>"PH","name"=>"Philippines","d_code"=>"+63");
+  $countries[] = array("code"=>"PN","name"=>"Pitcairn","d_code"=>"+64");
+	$countries[] = array("code"=>"PL","name"=>"Poland","d_code"=>"+48");
+	$countries[] = array("code"=>"PT","name"=>"Portugal","d_code"=>"+351");
+	$countries[] = array("code"=>"PR","name"=>"Puerto Rico","d_code"=>"+1-787");
+	$countries[] = array("code"=>"QA","name"=>"Qatar","d_code"=>"+974");
+	$countries[] = array("code"=>"CG","name"=>"Republic of the Congo","d_code"=>"+242");
+	$countries[] = array("code"=>"RE","name"=>"Reunion" ,"d_code"=>"+262");
+	$countries[] = array("code"=>"RO","name"=>"Romania","d_code"=>"+40");
+	$countries[] = array("code"=>"RU","name"=>"Russia","d_code"=>"+7");
+	$countries[] = array("code"=>"RW","name"=>"Rwanda","d_code"=>"+250");
+	$countries[] = array("code"=>"BL","name"=>"Saint Barthelemy" ,"d_code"=>"+590");
+	$countries[] = array("code"=>"SH","name"=>"Saint Helena","d_code"=>"+290");
+	$countries[] = array("code"=>"KN","name"=>"Saint Kitts and Nevis","d_code"=>"+1-869");
+	$countries[] = array("code"=>"MF","name"=>"Saint Martin","d_code"=>"+590");
+	$countries[] = array("code"=>"PM","name"=>"Saint Pierre and Miquelon","d_code"=>"+508");
+	$countries[] = array("code"=>"VC","name"=>"Saint Vincent and the Grenadines","d_code"=>"+1-784");
+	$countries[] = array("code"=>"WS","name"=>"Samoa","d_code"=>"+685");
+	$countries[] = array("code"=>"SM","name"=>"San Marino","d_code"=>"+378");
+	$countries[] = array("code"=>"ST","name"=>"Sao Tome and Principe" ,"d_code"=>"+239");
+	$countries[] = array("code"=>"SA","name"=>"Saudi Arabia","d_code"=>"+966");
+	$countries[] = array("code"=>"SN","name"=>"Senegal","d_code"=>"+221");
+	$countries[] = array("code"=>"RS","name"=>"Serbia","d_code"=>"+381");
+	$countries[] = array("code"=>"SC","name"=>"Seychelles","d_code"=>"+248");
+	$countries[] = array("code"=>"SL","name"=>"Sierra Leone","d_code"=>"+232");
+	$countries[] = array("code"=>"SG","name"=>"Singapore","d_code"=>"+65");
+  $countries[] = array("code"=>"SX","name"=>"Sint Maarten","d_code"=>"+1-721");
+	$countries[] = array("code"=>"SK","name"=>"Slovakia","d_code"=>"+421");
+	$countries[] = array("code"=>"SI","name"=>"Slovenia","d_code"=>"+386");
+	$countries[] = array("code"=>"SB","name"=>"Solomon Islands","d_code"=>"+677");
+	$countries[] = array("code"=>"SO","name"=>"Somalia","d_code"=>"+252");
+	$countries[] = array("code"=>"ZA","name"=>"South Africa","d_code"=>"+27");
+	$countries[] = array("code"=>"KR","name"=>"South Korea","d_code"=>"+82");
+  $countries[] = array("code"=>"SS","name"=>"South Sudan","d_code"=>"+211");
+	$countries[] = array("code"=>"ES","name"=>"Spain","d_code"=>"+34");
+	$countries[] = array("code"=>"LK","name"=>"Sri Lanka","d_code"=>"+94");
+	$countries[] = array("code"=>"LC","name"=>"Saint Lucia","d_code"=>"+1-758");
+	$countries[] = array("code"=>"SD","name"=>"Sudan","d_code"=>"+249");
+	$countries[] = array("code"=>"SR","name"=>"Suriname","d_code"=>"+597");
+  $countries[] = array("code"=>"SJ","name"=>"Svalbard and Jan Mayen","d_code"=>"+47");
+	$countries[] = array("code"=>"SZ","name"=>"Swaziland","d_code"=>"+268");
+	$countries[] = array("code"=>"SE","name"=>"Sweden","d_code"=>"+46");
+	$countries[] = array("code"=>"CH","name"=>"Switzerland","d_code"=>"+41");
+	$countries[] = array("code"=>"SY","name"=>"Syria","d_code"=>"+963");
+	$countries[] = array("code"=>"TW","name"=>"Taiwan","d_code"=>"+886");
+	$countries[] = array("code"=>"TJ","name"=>"Tajikistan","d_code"=>"+992");
+	$countries[] = array("code"=>"TZ","name"=>"Tanzania","d_code"=>"+255");
+	$countries[] = array("code"=>"TH","name"=>"Thailand","d_code"=>"+66");
+	$countries[] = array("code"=>"BS","name"=>"Bahamas","d_code"=>"+1-242");
+	$countries[] = array("code"=>"GM","name"=>"Gambia","d_code"=>"+220");
+	$countries[] = array("code"=>"TL","name"=>"Timor-Leste","d_code"=>"+670");
+	$countries[] = array("code"=>"TG","name"=>"Togo","d_code"=>"+228");
+	$countries[] = array("code"=>"TK","name"=>"Tokelau","d_code"=>"+690");
+	$countries[] = array("code"=>"TO","name"=>"Tonga","d_code"=>"+676");
+	$countries[] = array("code"=>"TT","name"=>"Trinidad and Tobago","d_code"=>"+1-868");
+	$countries[] = array("code"=>"TN","name"=>"Tunisia","d_code"=>"+216");
+	$countries[] = array("code"=>"TR","name"=>"Turkey","d_code"=>"+90");
+	$countries[] = array("code"=>"TM","name"=>"Turkmenistan","d_code"=>"+993");
+	$countries[] = array("code"=>"TC","name"=>"Turks and Caicos Islands","d_code"=>"+1-649");
+	$countries[] = array("code"=>"TV","name"=>"Tuvalu","d_code"=>"+688");
+	$countries[] = array("code"=>"UG","name"=>"Uganda","d_code"=>"+256");
+	$countries[] = array("code"=>"UA","name"=>"Ukraine","d_code"=>"+380");
+	$countries[] = array("code"=>"AE","name"=>"United Arab Emirates","d_code"=>"+971");
+	$countries[] = array("code"=>"GB","name"=>"United Kingdom","d_code"=>"+44");
+	$countries[] = array("code"=>"US","name"=>"United States","d_code"=>"+1");
+	$countries[] = array("code"=>"UY","name"=>"Uruguay","d_code"=>"+598");
+	$countries[] = array("code"=>"VI","name"=>"U.S. Virgin Islands","d_code"=>"+1-340");
+	$countries[] = array("code"=>"UZ","name"=>"Uzbekistan","d_code"=>"+998");
+	$countries[] = array("code"=>"VU","name"=>"Vanuatu","d_code"=>"+678");
+	$countries[] = array("code"=>"VA","name"=>"Vatican","d_code"=>"+379");
+	$countries[] = array("code"=>"VE","name"=>"Venezuela","d_code"=>"+58");
+	$countries[] = array("code"=>"VN","name"=>"Vietnam","d_code"=>"+84");
+	$countries[] = array("code"=>"WF","name"=>"Wallis and Futuna","d_code"=>"+681");
+  $countries[] = array("code"=>"EH","name"=>"Western Sahara","d_code"=>"+212");
+	$countries[] = array("code"=>"YE","name"=>"Yemen","d_code"=>"+967");
+	$countries[] = array("code"=>"ZM","name"=>"Zambia","d_code"=>"+260");
+	$countries[] = array("code"=>"ZW","name"=>"Zimbabwe","d_code"=>"+263");
+
+	foreach($countries as $con){
+		if($con['name'] == $country_name){
+ 			return $con['d_code'];
+		}		
+	}
+}
+/********************  Common function end ********************/
+
+
+//twilio sms send function customization
+function m6connect_alert_twilio_send($number, $message, $country = TWILIO_DEFAULT_COUNTRY_CODE, $media = NULL, $options = array()) {
+  switch (variable_get('twilio_long_sms', TWILIO_SMS_LONG_MULTIPLE)) {
+    case TWILIO_SMS_LONG_TRUNCATE:
+      // Truncate the message to 160 characters.
+      $message_truncated = substr($message, 0, 160);
+      $response = m6connect_alert_twilio_command('sendmsg', array(
+        'country' => $country,
+        'number' => $number,
+        'message' => $message_truncated,
+        'media' => $media,
+        'options' => $options,
+      ));
+      break;
+
+    case TWILIO_SMS_LONG_MULTIPLE:
+      // Break up the message into 160 character chunks and send multiple.
+      $iterator = ceil(strlen($message) / 160);
+      for ($i = 0; $i < $iterator; $i++) {
+        $sms = array(
+          'country' => $country,
+          'number' => $number,
+          'message' => substr($message, $i * 160, 160),
+          'options' => $options,
+        );
+        // Attach the media array only to the first message.
+        if ($i === 0) {
+          $sms['media'] = $media;
+        }
+        $response = m6connect_alert_twilio_command('sendmsg', $sms);
+      }
+      break;
+  }
+  return $response;
+}
+// main function for send SMS from twilio
+function m6connect_alert_twilio_command($command = '', $data = array()) {
+  	// Try to load the library and check if that worked.
+  	global $base_url, $base_path;
+  	if (($library = libraries_load(TWILIO_LIBRARY)) && !empty($library['loaded'])) {
+	    // Set our account_sid, auth_token, and number.
+	    $account_sid = variable_get('twilio_account', FALSE);
+	    $auth_token = variable_get('twilio_token', FALSE);
+	    $number = variable_get('twilio_number', FALSE);
+	    // If we don't have one of our twilio variables don't bother doing anything.
+	    if (!$account_sid || !$auth_token || !$number) {
+	      return FALSE;
+	    }
+    	// Twilio REST API version.
+    	$api_version = !empty($data['options']['api_version']) ? $data['options']['api_version'] : TWILIO_API_VERSION;
+
+    	switch ($api_version) {
+      		case '2010-04-01':
+        		switch ($command) {
+          			case 'sendmsg':
+            			// Instantiate a new Twilio Rest Client.
+			            $client = new Services_Twilio($account_sid, $auth_token);
+			            $sms = array(
+			              'To' => '+' . $data['country'] . $data['number'],
+			              'From' => $number,
+			              'Body' => $data['message'],
+			              'StatusCallbackMethod' => 'POST',
+		    			  'StatusCallback' => $base_url.$base_path.'receive-response-from-twilio',					
+			            );
+			            if (!empty($data['media'])) {
+			              $sms['MediaUrl'] = $data['media'];
+			            }								            
+			            try {
+			            	$response = $client->account->messages->create($sms);
+			              	if(is_object($response)){
+			              		$response_data = array("sid" => $response->sid, "date_created" => $response->date_created, "date_updated" => $response->date_updated, "date_sent" => $response->date_sent, "account_sid" => $response->account_sid, "to" => $response->to, "from" => $response->from, "messaging_service_sid" => $response->messaging_service_sid, "status" => $response->status, "num_segments" => $response->num_segments
+			              		, "num_media" => $response->num_media, "direction" => $response->direction, "price" => $response->price, "price_unit" => $response->price_unit, "error_code" => $response->error_code, "error_msg" => $response->error_message, "uri" => $response->uri, "media" => $response->subresource_uris->media);
+			              	}
+			              	return $response_data;
+			            }
+			            catch (Exception $e){
+			              watchdog('Twilio', $e->getMessage(), array(), WATCHDOG_ERROR);
+			              $link = l($e->getInfo(), $e->getInfo());
+			              $message = t('Twilio has returned the error: "@error". For more information visit the following link. !link', array('@error' => $e->getMessage(), '!link' => $link));
+			              drupal_set_message($message, 'error');
+			            }
+			            if (!empty($response->status) && $response->status == 'failed') {
+			              watchdog('Twilio', 'An unkown error occured during the HTTP request');
+			            }
+            		break;
+
+	          		case 'validate':
+			            $validator = new Services_Twilio_RequestValidator($auth_token);
+			            $type = !empty($data['type']) ? $data['type'] : 'sms';
+			            $url = $GLOBALS['base_url'] . '/twilio/' . $type;
+			            $signature = $_SERVER["HTTP_X_TWILIO_SIGNATURE"];
+			            $post_vars = $_POST;
+			            if ($validator->validate($signature, $url, $post_vars)) {
+			              watchdog('Twilio', 'Incoming SMS message validated');
+			              return TRUE;
+			            }
+			            else {
+			              watchdog('Twilio', 'Incoming SMS could not be validated');
+			            }
+	            	break;
+	        	}
+	        break;
+
+      		case '2008-08-01':
+        		switch ($command) {
+          			case 'sendmsg':
+            			// Instantiate a new Twilio Rest Client.
+			            $client = new TwilioRestClient($account_sid, $auth_token);
+			            try {
+			              $response = $client->request("/$api_version/Accounts/$account_sid/SMS/Messages",
+			                "POST", array(
+			                  "To" => '+' . $data['country'] . $data['number'],
+			                  "From" => $number,
+			                  "Body" => $data['message'],
+			                )
+			              );
+			              return TRUE;
+			            }
+			            catch (Exception $e) {
+			              watchdog('Twilio', $e, array(), WATCHDOG_ERROR);
+			            }
+			            if ($response->IsError) {
+			              watchdog('Twilio', 'An error occured during the HTTP request: @error', array('@error' => $response->ErrorMessage));
+			            }
+            		break;
+        		}
+        	break;
+    	}
+  	}
+  	else {
+    	watchdog('Twilio', 'The twilio library was not loaded properly');
+  	}
+  	return FALSE;
+}
+// function for copy template message
+function alert_copy_template_callback($ajax, $templateId = 0){
+	
+	if ($ajax) {
+    ctools_include('ajax');
+    ctools_include('modal');
+    $form_state = array(
+        'ajax' => TRUE,
+        'templateId' => $templateId,
+    );
+    $output = ctools_modal_form_wrapper('template_copy_form', $form_state);
+    if (!empty($form_state['ajax_commands'])) {
+      $output = $form_state['ajax_commands'];
+    }
+    print ajax_render($output);
+    drupal_exit();
+  }
+    return drupal_get_form('template_copy_form', $templateId);
+  	
+}
+function template_copy_form($form, &$form_state, $templateId = 0) {
+  if(!$templateId)
+    {
+      $templateId = $form_state['templateId'];
+    }  
+  $form['template_action_title'] = array(
+    '#type' => 'markup',
+    '#title' => t('status'),
+    '#markup' => '<div class="group-action-status"><p>Are you sure you want to copy this Template ?</p></div>',
+  );  
+  $form['templateId'] = array(
+      '#type' => 'hidden', 
+      '#value' => $templateId, 
+    );    
+  $form['submit_action_template'] = array(
+    '#type' => 'submit',
+    '#value' => t('Confirm')
+  );
+  $form['submit_action_cancel']['close'] = array(
+    '#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('template-delete-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+    '#weight' => 10,
+  );
+  return $form;
+}
+function template_copy_form_submit($form, &$form_state) { 
+ global $user;
+ 
+  $form_values = $form_state['values'];
+  $templateId = $form_values['templateId'];
+  if(!empty($templateId)){
+   $query = db_select('m6connect_alert_template', 'mat');
+     $query->fields('mat');
+     $query->condition('id', $templateId, '=');
+   
+   $fields = $query->execute()->fetchAssoc();
+   if($fields && !empty($fields)){
+	 unset($fields['id']);
+	 $date = date('Y-m-d H:i:s');
+	 $fields['uid'] = $user->uid;
+	 $fields['share'] = 0;
+	 $fields['created_dt'] = $date;
+	 $fields['updated_dt'] = $date;
+	 $fields['keyword'] = 'Copy'.' '.$fields['keyword'];
+	 db_insert('m6connect_alert_template')->fields($fields)->execute();
+	 drupal_set_message('Template copied successfully', 'status'); 
+   }  
+    if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+      $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+      $form_state['ajax_commands'][] = ctools_ajax_command_redirect('/alert/templates');  
+      }
+  }
+}

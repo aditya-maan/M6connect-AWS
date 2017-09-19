@@ -1,0 +1,2045 @@
+<?php
+/**
+ * @file
+ * Returns the HTML for a single Drupal page.
+ *
+ * Complete documentation for this file is available online.
+ * @see https://drupal.org/node/1728148
+ */
+?>
+
+<?php
+
+if (arg(0) == 'node') {
+  $nid = arg(1);
+  }
+  
+$site_url = $GLOBALS['base_url'];
+$path = current_path();
+$node = node_load($nid);
+$content_type = $node->type;
+//echo 'test'.getcwd();
+
+?>
+
+<?php global $user; ?>
+<?php if ($user->uid == 0) : ?>
+
+<div id="page">
+  <div class="container-fluid">
+	<div class="box">
+		<div class="inner-box">
+			<header class="header" id="header" role="banner">
+				<?php if ($logo): ?>
+				<a href="<?php print $front_page; ?>" title="<?php print t('Home'); ?>" rel="home" class="header__logo" id="logo"><img src="<?php print $logo; ?>" alt="<?php print t('Home'); ?>" class="header__logo-image" /></a>
+				<?php endif; ?>
+			</header>
+			<div id="main">
+				<div id="content" class="column frontbox" role="main"> <?php print render($page['highlighted']); ?>
+                
+                    <?php if ($title): ?>
+					  <h1 class="page__title title" id="page-title"><?php print $title; ?></h1>
+					<?php endif; ?>
+                        
+					<?php if ($action_links): ?>
+					<ul class="action-links">
+						<?php print render($action_links); ?>
+					</ul>
+					<?php endif; ?>
+					<?php print $messages; ?>
+					<?php if ($user->uid == 0) { ?>
+					<?php print render($page['content']); ?>
+					<?php } ?>
+				</div>
+			</div>
+		</div>
+	</div>
+  </div> <!-- .container-fluid -->
+</div>
+
+<?php endif; ?>
+<?php if ($user->uid != 0) : ?>
+
+<div id="page">
+	<header class="header" id="header" role="banner">
+		<div class="container">
+			<div id="top-navigation"><?php print render($page['top_navigation']); ?></div>
+			<?php if ($logo): ?>
+			<a href="<?php print $front_page; ?>" title="<?php print t('Home'); ?>" rel="home" class="header__logo" id="logo"><img src="<?php print $logo; ?>" alt="<?php print t('Home'); ?>" class="header__logo-image" /></a>
+			<?php endif; ?>
+			<?php if ($site_name || $site_slogan): ?>
+			<div class="header__name-and-slogan" id="name-and-slogan">
+				<?php if ($site_name): ?>
+				<h1 class="header__site-name" id="site-name"> <a href="<?php print $front_page; ?>" title="<?php print t('Home'); ?>" class="header__site-link" rel="home"><span><?php print $site_name; ?></span></a> </h1>
+				<?php endif; ?>
+				<?php if ($site_slogan): ?>
+				<div class="header__site-slogan" id="site-slogan"><?php print $site_slogan; ?></div>
+				<?php endif; ?>
+			</div>
+			<?php endif; ?>
+            
+			<?php print render($page['header']); ?> </div>
+	</header>
+	<div id="navigation">
+		<div class="container"><?php print render($page['navigation']); ?></div>
+	</div>
+	<div id="preface" class="<?php if(!$page['preface']) { print 'dispaly_none'; } else { print 'preface'; } ?>">
+		<div class="container-fluid"><?php print render($page['preface']); ?></div>
+	</div>
+	<div id="main">
+		<div class="container-fluid">
+			<?php if($page['top_header']): ?>
+			<div class="top_header clearfix"> <?php print render($page['top_header']); ?> </div>
+			<?php endif; ?>
+			<div id="content" class="column" role="main">
+				<div class="box">
+					<div class="inner-box"> <?php print render($page['highlighted']); ?> <?php print $breadcrumb; ?> <a id="main-content"></a> <?php print render($title_prefix); ?>
+						<?php if ($title): ?>
+						<h1 class="page__title title" id="page-title"><?php print $title; ?></h1>
+						<?php endif; ?>
+						<?php print render($title_suffix); ?> <?php print $messages; ?> <?php print render($tabs); ?> <?php print render($page['help']); ?>
+						<?php if ($action_links): ?>
+						<ul class="action-links">
+							<?php print render($action_links); ?>
+						</ul>
+						<?php endif; ?>
+						<?php print render($page['content']); ?> <?php print $feed_icons; ?> </div>
+						
+	<!-- view proposal page start -->
+<?php if($content_type == "my_proposal"){ 
+$logged_user = $user->uid;
+
+$query_status = db_select('node','publish')
+  ->condition('publish.nid', $nid, '=')
+  ->fields('publish',array('status'));
+   $result_status = $query_status->execute()->fetchAll();   
+   $published_status = $result_status[0]->status;
+   
+$submitted_for = $node->field_choose_from_the_options_li['und'][0]['value'];
+
+// project details
+$submitted_project = $node->field_field_sub_proposal_pjt['und'];
+for($p=0;$p<count($submitted_project);$p++)
+{	
+  $Sub_proposal_project .= $submitted_project[$p]['entity']->title."@@";
+$Sub_proposal_project_user_id .= $submitted_project[$p]['entity']->uid."@@";
+ $Sub_proposal_project_cont_view .= "<span>".$submitted_project[$p]['entity']->title."</span>";	
+}
+$project_user_id_exp = explode("@@",$Sub_proposal_project_user_id);
+$project_user_title_exp = explode("@@",$Sub_proposal_project);
+$project_key_search = array_search($logged_user, $project_user_id_exp);
+$proposal_project_view_user = $project_user_id_exp[$project_key_search];
+$proposal_projectTitle_view_user = $project_user_title_exp[$project_key_search];
+
+
+//member details
+$submitted_member = $node->field_submit_proposal_member['und'];
+for($m=0;$m<count($submitted_member);$m++)
+{	
+//$Sub_proposal_member .= $submitted_member[$m]['entity']->title."@@";
+$Sub_proposal_member_user_id .= $submitted_member[$m]['entity']->uid."@@";
+$Sub_proposal_member .= $node->field_submit_proposal_member['und'][$m]['entity']->field_first_name['und'][0]['value']." ". $node->field_submit_proposal_member['und'][$m]['entity']->field_last_name['und'][0]['value']."@@"	;
+$Sub_proposal_member_cont_view .= "<span>".$node->field_submit_proposal_member['und'][$m]['entity']->field_first_name['und'][0]['value']." ". $node->field_submit_proposal_member['und'][$m]['entity']->field_last_name['und'][0]['value']."</span>"	;
+}
+
+//echo $Sub_proposal_member;
+$member_user_id_exp = explode("@@",$Sub_proposal_member_user_id);
+$member_user_title_exp = explode("@@",$Sub_proposal_member);
+$member_key_search = array_search($logged_user, $member_user_id_exp);
+$proposal_member_view_user = $member_user_id_exp[$member_key_search];
+$proposal_memberTitle_view_user = $member_user_title_exp[$member_key_search];
+
+// rfp details
+$submitted_rfp_owner = $node->field_submit_proposal_in_respons['und'][0]['entity']->uid;
+$submitted_rfp_name = $node->field_submit_proposal_in_respons['und'][0]['entity']->title;
+
+//company details
+$submitted_company = $node->field_submit_proposal_to_company['und'];
+for($c=0;$c<count($submitted_company);$c++)
+{	
+ $Sub_proposal_company .= $submitted_company[$c]['entity']->title."@@";
+ $Sub_proposal_company_view_cont .= "<span>".$submitted_company[$c]['entity']->title."</span>";
+$Sub_proposal_company_user_id .= $submitted_company[$c]['entity']->uid."@@";	
+}
+$company_user_id_exp = explode("@@",$Sub_proposal_company_user_id);
+$key_search = array_search($logged_user, $company_user_id_exp);
+$proposal_view_company_user = $company_user_id_exp[$key_search];
+
+// other fields
+$proposal_number = $node->field_proposal_number['und'][0]['value'];
+$scope_of_work = $node->field_proposal_scope_of_work['und'][0]['value'];
+$Proposal_bid_amount = $node->field_proposal_bid_amount['und'][0]['value'];
+$Proposoal_bid_types= $node->field_proposoal_bid_types['und'][0]['value'];
+
+ $contractor_id = $node->uid;
+ 
+ $query_contractor_addr = db_select('field_data_field_org_address','addr')
+  ->condition('addr.entity_id', $contractor_id, '=')
+  ->fields('addr',array('field_org_address_locality','field_org_address_administrative_area','field_org_address_postal_code'));
+   $result_contractor_addr = $query_contractor_addr->execute()->fetchAll();
+ 
+
+$query_contractor = db_select('users','c')
+  ->condition('c.uid', $contractor_id, '=')
+  ->fields('c',array('name','mail'));
+   $result_contractor = $query_contractor->execute();
+    foreach($result_contractor as $item_contractor)
+	{	
+		
+	$contractor_name_split = explode("_",$item_contractor->name);
+	 $contractor_name = strtoupper($contractor_name_split[0]);
+	$contractor_email = $item_contractor->mail;	
+    } 
+
+   $query_contractor_phone = db_select('field_revision_field_phone','ph')
+  ->condition('ph.entity_id', $contractor_id, '=')
+  ->fields('ph',array('field_phone_value'));
+   $result_contractor_phone = $query_contractor_phone->execute()->fetchAll();
+   $contractor_phone_num =  $result_contractor_phone[0]->field_phone_value;
+
+
+for($s=0;$s<count($submitted_member);$s++)
+{
+	$Sub_proposal_mem = $submitted_member[$s]['entity']->title;	
+}
+ if(($logged_user == $submitted_rfp_owner) || ($logged_user == $proposal_view_company_user )||($logged_user == $proposal_project_view_user)|| ($logged_user == $proposal_member_view_user) || ($logged_user == $contractor_id)){
+	 
+	 
+	if($submitted_rfp_owner != "")
+	{		
+		$Submit_rfp_store_value = $submitted_rfp_owner;
+	}
+	else if($proposal_view_company_user != "")
+	{
+		$Submit_rfp_store_value = $proposal_view_company_user;		
+	}
+	else if($proposal_project_view_user != "")
+	{
+		$Submit_rfp_store_value = $proposal_project_view_user;		
+	}
+	else if($proposal_member_view_user != "")
+	{	
+		$Submit_rfp_store_value = $proposal_member_view_user;			
+	}
+
+	
+	$query_owner = db_select('users','o')
+  ->condition('o.uid', $Submit_rfp_store_value, '=')
+  ->fields('o',array('name','mail'));
+   $result_owner = $query_owner->execute();
+    foreach($result_owner as $item_owner)
+	{	
+	$owner_name_split = explode("_",$item_owner->name);
+	$owner_name = strtoupper($owner_name_split[0]);
+	 $owner_email = $item_owner->mail;	
+    } 
+	
+  $query_owner_phone = db_select('field_revision_field_phone','ph')
+  ->condition('ph.entity_id', $Submit_rfp_store_value, '=')
+  ->fields('ph',array('field_phone_value'));
+   $result_owner_phone = $query_owner_phone->execute()->fetchAll();
+   $owner_phone_num =  $result_owner_phone[0]->field_phone_value;
+   
+   $query_owner_company = db_select('node','organization')
+  ->fields('organization',array('title')); 
+  $db_or_owner = db_or();  
+  $db_or_owner->condition(db_and()->condition('organization.type','organization', '=')->condition('organization.uid', $Submit_rfp_store_value, '='));  
+  $src_owner_company =  $query_owner_company->condition($db_or_owner);  
+  $result_owner_company = $src_owner_company->execute()->fetchAll();
+  $owner_company = $result_owner_company[0]->title;   
+  
+  // owner company info
+   $query_owner_vid = db_select('node','mynode')
+  ->fields('mynode',array('vid')); 
+  $db_or_owner_vid = db_or();  
+  $db_or_owner_vid->condition(db_and()->condition('mynode.type','organization', '=')->condition('mynode.uid', $Submit_rfp_store_value, '='));  
+  $src_owner_company_vid =  $query_owner_vid->condition($db_or_owner_vid);  
+  $result_owner_company_vid = $src_owner_company_vid->execute()->fetchAll();
+  $owner_company_vid = $result_owner_company_vid[0]->vid;    
+
+  
+  
+	
+  //$bidder_type = $src_div_company_vid[0]->title;
+  // user company diversity info ends
+   
+    $query_owner_addr = db_select('field_data_field_org_address','addr')
+  ->condition('addr.entity_id', $owner_company_vid, '=')
+  ->fields('addr',array('field_org_address_locality','field_org_address_administrative_area','field_org_address_postal_code','field_org_address_thoroughfare'));
+   $result_owner_addr = $query_owner_addr->execute()->fetchAll();
+   $result_owner_city = $result_owner_addr[0]->field_org_address_locality ;
+   $result_owner_state = $result_owner_addr[0]->field_org_address_administrative_area ;
+   $result_owner_zip = $result_owner_addr[0]->field_org_address_postal_code ;
+   $result_owner_address = $result_owner_addr[0]->field_org_address_thoroughfare ;
+   
+     // contractor company info
+   $query_cont_vid = db_select('node','contnode')
+  ->fields('contnode',array('vid')); 
+  $db_or_cont_vid = db_or();  
+  $db_or_cont_vid->condition(db_and()->condition('contnode.type','organization', '=')->condition('contnode.uid', $contractor_id, '='));  
+  $src_cont_company_vid =  $query_cont_vid->condition($db_or_cont_vid);  
+  $result_cont_company_vid = $src_cont_company_vid->execute()->fetchAll();
+  $cont_company_vid = $result_cont_company_vid[0]->vid;    
+
+   
+    $query_cont_addr = db_select('field_data_field_org_address','addrcon')
+  ->condition('addrcon.entity_id', $cont_company_vid, '=')
+  ->fields('addrcon',array('field_org_address_locality','field_org_address_administrative_area','field_org_address_postal_code','field_org_address_thoroughfare'));
+   $result_cont_addr = $query_cont_addr->execute()->fetchAll();
+   $result_cont_city = $result_cont_addr[0]->field_org_address_locality ;
+   $result_cont_state = $result_cont_addr[0]->field_org_address_administrative_area ;
+   $result_cont_zip = $result_cont_addr[0]->field_org_address_postal_code ;
+   $result_cont_address = $result_cont_addr[0]->field_org_address_thoroughfare ;
+   
+
+?>
+<div class="view_my_proposal">
+  <div class="head_creat_prop">  
+     <div class="left_cre_prop">
+      <a href="#"><img src="/sites/all/themes/m6connect/images/log_creat_prop.png"/></a> 
+		<?php if($published_status == 0) {  ?> <h1>Draft</h1>  <?php } ?>	  
+     </div>     
+  </div>
+<div class="box box-with-image"></div>
+<div class="m6_view_proposal">
+       <div class="m6_main_view">
+       
+        <div class="left_m6_view">
+        
+          <div class="m6_top_drywall">
+            <h3># <?php print($proposal_number); ?></h3>
+            <h6><?php print $title; ?></h6>
+          </div>
+		  <?php 
+		 if( $Proposal_bid_amount != '')
+		 {
+		 $pro_bid_amt =  "$".$Proposal_bid_amount.".00";
+		 }
+		if( $Proposoal_bid_types != '')
+		  {
+		  $bid_type = "(".$Proposoal_bid_types.")";
+		  }
+		  		
+		  ?>
+		  
+           
+           <div class="m6_view_content">
+           <ul>
+           <li><label>Bid Amount:</label><h1> <?php print $pro_bid_amt; ?></h1></li>
+		   <li class="bidder-type"><label>Bidder Diversity Type:</label>
+		   <?php // user company diversity info
+   $query_diversity_info = db_select('node','diver')
+  ->fields('diver',array('title')); 
+  $db_div_owner_vid = db_or();  
+  $db_div_owner_vid->condition(db_and()->condition('diver.type','diversity', '=')->condition('diver.uid', $logged_user , '='));  
+  $src_diver_company_vid =  $query_diversity_info->condition($db_div_owner_vid);  
+  $src_div_company_vid = $src_diver_company_vid->execute()->fetchAll();
+	for($m=0;$m<count($src_div_company_vid);$m++)
+	{
+	$bidder_type = '<span>'.$src_div_company_vid[$m]->title.'</span>';
+		echo $bidder_type;	
+	}
+	
+	 ?>
+		  </li>
+           <li><label>Bid Type:</label><span><?php echo $bid_type;?></span></li>
+           <li class="m6_sub_add"><label>Submitted For:</label>
+		   <span><?php print $submitted_for; ?></span>		   
+		   </li>
+		  <?php if($submitted_rfp_name != ""){ ?>
+          <li class="m6_sub_add"><label>RFP</label><span><?php echo $submitted_rfp_name;  ?></span></li>
+		 <?php } ?>
+		 <?php if($Sub_proposal_project_cont_view != ""){ ?>
+          <li class="m6_sub_add"><label>Project List</label><?php echo $Sub_proposal_project_cont_view;  ?></li>
+		 <?php } ?>
+		 <?php if($Sub_proposal_member_cont_view != ""){ ?>
+          <li class="m6_sub_add"><label>Individual Member List</label><?php echo $Sub_proposal_member_cont_view;  ?></li>
+		 <?php } ?>
+		 <?php if($Sub_proposal_company_view_cont != ""){ ?>
+          <li class="m6_sub_add"><label>Company List</label><span><?php echo $Sub_proposal_company_view_cont;  ?></span></li>
+		 <?php } ?>
+           	  
+		   
+          <li class="m6_sub_add"><label>Job Location:</label>
+		  <div id="view_map">
+		 <span id="addr-pro"></span>
+		  <!--<span id="addr-pro-city"></span>-->
+		  <span id="addr-pro-state"></span>
+		  <span id="addr-pro-country"></span>
+		  </div>
+		  </li>
+           
+           </ul>
+           </div>
+           
+           <div class="m6_view_map" id="map_dis"></div>
+           
+        </div>
+		<?php
+		  $owner_addr = $result_owner_city." ". $result_owner_state ." ". $result_owner_zip;
+		  if(trim($owner_addr) == "")
+		  {
+			 $owner_addr = "-"; 			  
+		  }	
+         if(trim($result_owner_address) == "")
+		  {
+			 $result_owner_address = "-"; 			  
+		  }				  
+		  ?>
+        
+        
+        <div class="right_m6_view">
+          <div class="m6_own_con">
+	
+           <div class="m6_own">
+          <h1>Owner Information</h1>
+          <ul class="m6_own_info">
+          <li><label>Name</label><span><?php echo  $owner_company; ?></span></li>
+          <li><label>Address</label><span><?php echo $result_owner_address;  ?></span></li>
+          <li><label>City, State Zip</label><span><?php echo $owner_addr; ?></span></li>
+          <li><label>Phone</label><span><?php echo $owner_phone_num; ?></span></li>
+          <li><label>Email</label><span><?php echo $owner_email;  ?></span></li>
+		 <?php if($submitted_rfp_name != ""){ ?>
+          <li><label>RFP</label><span><?php echo $submitted_rfp_name;  ?></span></li>
+		 <?php } ?>
+		 <?php if($proposal_project_view_user != ""){ ?>
+          <li><label>Project</label><span><?php echo $proposal_projectTitle_view_user;  ?></span></li>
+		 <?php } ?>
+		 <?php if($proposal_member_view_user != ""){ ?>
+          <li><label>Individual Member</label><span><?php echo $proposal_memberTitle_view_user;  ?></span></li>
+		 <?php } ?>
+		 <?php if($proposal_view_user != ""){ ?>
+          <li><label>Company</label><span><?php echo $owner_company;  ?></span></li>
+		 <?php } ?>
+		 
+		 
+          </ul>
+          </div>	  
+		  
+          <?php		  
+		  $contractor_addr = $result_cont_city." ". $result_cont_state ." ". $result_cont_zip;
+		  if(trim($contractor_addr) == "")
+		  {
+			 $contractor_addr = "-"; 			  
+		  }	
+		if(trim($result_cont_address == ""))
+		  {
+			$result_cont_address = "-";  			  
+		  }		  
+		  ?>	  
+		  
+          <div class="m6_own">
+          <h1>Contractor Information</h1>
+          <ul class="m6_own_info">
+          <li><label>Name</label><span id="cont_name"></span></li>
+          <li><label>Address</label><span><?php echo $result_cont_address;  ?></span></li>
+          <li><label>City, State Zip</label><span><?php echo $contractor_addr;?></span></li>
+          <li><label>Phone</label><span><?php echo $contractor_phone_num;  ?></span></li>
+          <li><label>Email</label><span><?php echo $contractor_email;  ?></span></li>
+         
+          </ul>
+          </div>
+          
+            <div class="m6_own" id="m6_scope">
+          <h1>Scope of Work</h1>
+          <ul class="m6_own_info">
+          <li><?php echo nl2br($scope_of_work); ?></li>
+          </ul>
+          </div>
+		  
+		  
+		          
+          <div class="m6_own" id="m6_scope">
+          <h1>Proposal Documents</h1>
+       <div class="doc_det m6_prop_tab">
+        <div id="page-wrap1_viewprop">
+		
+		
+    <table cellpadding="0" cellspacing="0" border="0">
+		<thead>
+		<tr>
+            <th>Select</th>
+			<th>Document Name</th>
+			<th style="text-align:center;">Type</th>
+			<th>Uploaded Date</th>
+        </tr>
+		</thead>
+		<tbody>
+		
+		<?php $time =  $node->field_proposal_document_picture['und'];
+		$count_docu = count($time);
+		if($count_docu == '0')
+		{
+		echo '<tr>
+			<td colspan="4" style="text-align:center;">No Proposal Document</td>
+			</tr>';
+		}
+		else
+		{
+		$file_data = '';
+			for($c=0;$c<count($time);$c++)
+			{ 
+				$det_time = $time[$c]['timestamp'];
+				$det_name = $time[$c]['filename'];
+				$det_mine = $time[$c]['filemime'];			
+				
+				switch ($det_mine) {
+				case "image/jpeg":
+				case "image/jpg":
+				case "image/png":
+				case "image/gif":
+				case "image/tif":
+					$img_src = "image-x-generic";
+					break;					
+				case "application/pdf":		
+					$img_src = "application-pdf";
+					break;				
+				case "text/plain":
+					$img_src = "text-plain";
+					break;	
+				case "application/msword":
+				case "application/vnd.ms-word.document.macroEnabled.12":
+				case "application/vnd.oasis.opendocument.text":
+				case "application/vnd.oasis.opendocument.text-template":
+				case "application/vnd.oasis.opendocument.text-master":
+				case "application/vnd.oasis.opendocument.text-web":
+				case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+				case "application/vnd.stardivision.writer":
+				case "application/vnd.sun.xml.writer":
+				case "application/vnd.sun.xml.writer.template":
+				case "application/vnd.sun.xml.writer.global":
+				case "application/vnd.wordperfect":
+				case "application/x-abiword":
+				case "application/x-applix-word":
+				case "application/x-kword":
+				case "application/x-kword-crypt":
+					$img_src = "x-office-document";
+					break;
+			   // Spreadsheet document types.
+				case "application/vnd.ms-excel":
+				case "application/vnd.ms-excel.sheet.macroEnabled.12":
+				case "application/vnd.oasis.opendocument.spreadsheet":
+				case "application/vnd.oasis.opendocument.spreadsheet-template":
+				case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+				case "application/vnd.stardivision.calc":
+				case "application/vnd.sun.xml.calc":
+				case "application/vnd.sun.xml.calc.template":
+				case "application/vnd.lotus-1-2-3":
+				case "application/x-applix-spreadsheet":
+				case "application/x-gnumeric":
+				case "application/x-kspread":
+				case "application/x-kspread-crypt":
+				  $img_src = "x-office-spreadsheet";
+				  break;
+
+				// Presentation document types.
+				case "application/vnd.ms-powerpoint":
+				case "application/vnd.ms-powerpoint.presentation.macroEnabled.12":
+				case "application/vnd.oasis.opendocument.presentation":
+				case "application/vnd.oasis.opendocument.presentation-template":
+				case "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+				case "application/vnd.stardivision.impress":
+				case "application/vnd.sun.xml.impress":
+				case "application/vnd.sun.xml.impress.template":
+				case "application/x-kpresenter":
+				  $img_src = "x-office-presentation";
+				  break;
+
+				// Compressed archive types.
+				case "application/zip":
+				case "application/x-zip":
+				case "application/stuffit":
+				case "application/x-stuffit":
+				case "application/x-7z-compressed":
+				case "application/x-ace":
+				case "application/x-arj":
+				case "application/x-bzip":
+				case "application/x-bzip-compressed-tar":
+				case "application/x-compress":
+				case "application/x-compressed-tar":
+				case "application/x-cpio-compressed":
+				case "application/x-deb":
+				case "application/x-gzip":
+				case "application/x-java-archive":
+				case "application/x-lha":
+				case "application/x-lhz":
+				case "application/x-lzop":
+				case "application/x-rar":
+				case "application/x-rpm":
+				case "application/x-tzo":
+				case "application/x-tar":
+				case "application/x-tarz":
+				case "application/x-tgz":
+				  $img_src = "package-x-generic";
+				  break;
+
+				// Script file types.
+				case "application/ecmascript":
+				case "application/javascript":
+				case "application/mathematica":
+				case "application/vnd.mozilla.xul+xml":
+				case "application/x-asp":
+				case "application/x-awk":
+				case "application/x-cgi":
+				case "application/x-csh":
+				case "application/x-m4":
+				case "application/x-perl":
+				case "application/x-php":
+				case "application/x-ruby":
+				case "application/x-shellscript":
+				case "text/vnd.wap.wmlscript":
+				case "text/x-emacs-lisp":
+				case "text/x-haskell":
+				case "text/x-literate-haskell":
+				case "text/x-lua":
+				case "text/x-makefile":
+				case "text/x-matlab":
+				case "text/x-python":
+				case "text/x-sql":
+				case "text/x-tcl":
+				  $img_src = "text-x-script";
+				  break;
+				// HTML aliases.
+				case "application/xhtml+xml":
+				  $img_src = "text-html";
+				  break;
+				// Executable types.
+				case "application/x-macbinary":
+				case "application/x-ms-dos-executable":
+				case "application/x-pef-executable":
+				  $img_src = "application-x-executable";
+				  break;
+				default:
+				  $img_src = "application-octet-stream";
+			}	
+			echo '<tr>
+			<td><input name="chk[]" class="down_valu" value="'.$det_name.'" type="checkbox" id="download_'. $c .'"/></td>
+			<td><a class="down_url">'. $det_name .'</a></td>
+			<td align="center"><img src ="/modules/file/icons/'.$img_src.'.png"></td>
+			<td><span>'. date('m/d/Y g:i A', $det_time) .'</span></td>            
+			</tr>';
+			$file_data.= "'".$det_name."',";
+			
+			//echo $det_mine;
+			} 
+			$file_data = substr_replace($file_data ,"",-1);
+			
+			}
+
+
+			?>
+		
+		</tbody>
+	</table>
+    
+   </div> <!---page-wrap1-viewprop end ---->
+
+     </div>
+	<?php	if($count_docu > 0)	{ ?>
+    <div class="m6_download">
+    <button id="download-sel" class="m6_down_sel" >Download Selected Documents</button>
+	<button id="download-btn" class="m6_down_all" >(Download All Documents)</button>
+	<div id="down_all_test" style="display:none;"></div>
+	</div>
+     <?php } ?>
+          </div>
+	  
+	<script src="/sites/all/themes/m6connect/js/browser.js"></script>
+  <script>
+ var url_dess = [];
+ var value_des = [];
+
+	$('#download-btn').click(function(){
+	
+	$lend = $('#page-wrap1_viewprop input:checkbox').length;	
+    for(var i=0; i<$lend; i++)
+    {
+	  var idss = $("#download_"+ i).val();
+      url_dess[i] = idss;
+	  //value_des[i] = idss.substring(idss.lastIndexOf('/') + 1);
+	}
+	
+	
+	$.ajax({							
+		type: 'POST',
+		url: '<?php echo $site_url; ?>/sites/default/download_all.php',
+		data: { url_down: url_dess },
+		dataType: "html",
+		success: function(content) {
+		$('#down_all_test').html('<iframe src="'+ content +'"></iframe>');  // replace								   
+		}
+	});
+	});
+	
+	//$('#download-sel').click(function(){	
+	document.querySelector('#download-sel').addEventListener('click', function (e) {		
+	var chkArray = [];	
+	// look for all checkboes that have a class 'chk' attached to it and check if it was checked 
+	var i=0;
+	$(".down_valu:checked").each(function() {
+		chkArray.push($(this).val());
+		i = i+1;
+	});		
+	
+	if(i == '0')
+	{
+		$("#proposal_pop_content").fadeIn();
+		$(".pro_required_title").text("Proposal Documents");
+		$(".pro_required").text("Please select at least one of the checkbox");
+	}
+	if(i == '1')
+	{
+	getValueUsingClass();  
+    var files = e.target.dataset.files.split(',');
+    multiDownload(files);
+	}
+	if(i > 1)
+	{
+		$.ajax({							
+			type: 'POST',
+			url: '<?php echo $site_url; ?>/sites/default/download_all.php',
+			data: { url_down: chkArray },
+			dataType: "html",
+			success: function(content) {
+			$('#down_all_test').html('<iframe src="'+ content +'"></iframe>');  // replace								   
+			}
+		});
+	}
+	
+	
+	});
+  
+function getValueUsingClass(){
+	// declare an checkbox array 
+	var chkArray1 = [];	
+	var chk = [];	
+	// look for all checkboes that have a class 'chk' attached to it and check if it was checked 
+	$(".down_valu:checked").each(function() {
+		chkArray1.push('<?php echo $site_url; ?>/sites/default/files/'+ $(this).val());
+	});		
+	// we join the array separated by the comma 
+	var selected;
+	selected = chkArray1.join(',') ;
+	// check if there is selected checkboxes, by default the length is 1 as it contains one single comma 
+	if(selected.length > 1){
+	$("#download-sel").attr('data-files', selected);		
+	}	
+}   
+   
+  </script>
+          
+           <div class="m6_own" id="m6_scope">
+			<h1>Proposal Communications</h1>
+			<div class="doc_det m6_prop_tab">
+				<div id="page-wrap2_prop_comm">
+				<table cellpadding="0" cellspacing="0" border="0">
+				<thead>
+				<tr>
+					<th>Id</th>
+					<th>Status</th>
+					<th>Subject</th>
+					<th>From</th>
+					<th>Message Date</th>
+			
+				</tr>
+				</thead>
+				<tbody>
+<?php
+		//read msg starts
+			$query_status1 = db_select('read_unread_message','tes')
+			  ->condition('tes.user_id', $logged_user , '=')
+			  ->fields('tes',array('proposal_id','comment_id','user_id','staus'));
+			   $result_status1 = $query_status1->execute(); 
+			 $i =0;
+			  foreach($result_status1 as $item_read)
+			   {
+				$read_cmd_id[$i] = $item_read->comment_id;	
+				$i++;  }
+				//echo '<pre>'; print_r($read_cmd_id); echo '</pre>';
+			//read msg ends
+
+
+ $query_comment = db_select('comment','com')
+  ->condition('com.nid', $nid, '=')
+  ->fields('com',array('cid','uid','subject','created'));  
+   $query_comment->orderBy('cid', 'DESC');  
+   $result_comment = $query_comment->execute();
+  $result_comment_count = $query_comment->execute()->fetchAll();
+  
+	$sub1= count($result_comment_count);
+	$j =0;
+	foreach($result_comment_count as $item_read_st)
+		{
+		$read_cmd_id_st[$j] = $item_read_st->cid;	
+		$j++;  }
+		
+    $cmb_in = array_intersect($read_cmd_id_st,$read_cmd_id);
+	$sub2 = count($cmb_in);
+	$unread_msg = $sub1 - $sub2;
+	//echo 'Unread msg = '.$unread_msg;
+	
+ 
+	if(count($result_comment_count) == 0)
+	{
+			echo '<tr>
+			<td style="text-align:center;" colspan="5">No Proposal Communication</td>
+			</tr>';
+	}
+	else
+	{
+	$i=1;
+   foreach($result_comment as $item_comment)
+   {
+		$query_commenter_lname = db_select('field_revision_field_last_name','lname')
+	  ->condition('lname.entity_id', $item_comment->uid, '=')
+	  ->fields('lname',array('field_last_name_value'));
+	   $result_commenter_lname = $query_commenter_lname->execute();
+	   
+	  
+		foreach($result_commenter_lname as $item_commenter_lname)
+		{
+		$commenter_lname = $item_commenter_lname->field_last_name_value;
+		$query_commenter_fname = db_select('field_revision_field_first_name','fname')
+		->condition('fname.entity_id', $item_comment->uid, '=')
+		->fields('fname',array('field_first_name_value'));
+	   $result_commenter_fname = $query_commenter_fname->execute();
+	   
+	   
+		foreach($result_commenter_fname as $item_commenter_fname)
+		{
+		$commenter_fname = $item_commenter_fname->field_first_name_value;	
+		$com_id = $item_comment->cid;
+		$com_msg = $item_comment->subject;	
+		$com_name = $commenter_fname ." ". $commenter_lname;
+		$com_date = date('m/d/Y g:i A', $item_comment->created);
+		$comts_id = date('Y', $item_comment->created).'-'.$proposal_number.'-'.$i;
+		$user_id = $user->uid;
+		
+		$show_msg = "'".$com_id."','".$proposal_number."','".$user_id."'";
+		
+	?>	
+				<tr onclick="javascript:showmsg(<?php echo $show_msg; ?>);" class="<?php if (in_array($com_id, $read_cmd_id)) { echo 'read'; }	else {echo 'unread'; }	?>">
+					<td class="m6_unread"><a href="#" class="view_new_message"><span><?php echo $comts_id; ?></span></a></td>
+					<td class="m6_unread"><a href="#" class="view_new_message"><span><?php if (in_array($com_id, $read_cmd_id)) { echo "read"; }	else {echo 'unread'; }	?></span></a></td>
+					<td class="m6_unread"><a href="#" class="view_new_message"><span><?php echo $com_msg; ?></span></a></td>
+					<td class="m6_unread"><a href="#" class="view_new_message"><span><?php echo $com_name; ?></span></a></td>
+					<td class="m6_unread"><a href="#" class="view_new_message"><span><?php echo $com_date ; ?></span></a></td>
+				</tr>
+	<?php } } $i++;} 
+		}?>
+			
+				</tbody>
+				</table>
+				</div> <!----- page-wrap2_prop_comm  end ----->
+			</div>
+				<div class="m6_download">
+					<a href="#" class="m6_down_sel proposal_send_click"  data="<?php print($proposal_number); ?>" id="send_my_new_message">Send New Message</a>
+				</div>
+          </div>
+          
+          
+          </div>
+        </div>
+        
+       </div>
+    </div>
+
+
+<!----  start view message popup --->                    	
+ 						
+                         <div id="create_new_prop_pop_content" class="view_new_message_popup">
+                          <div class="overlay"></div><!--overlay-->	
+                           <div class="create_pop_text" id="view_pop_text">
+						  
+							<script>
+							function showmsg($cid, $pro_no, $us_id)
+							{
+							 //alert($cid); alert($pro_no); alert($us_id);
+							document.getElementById("proposal_msg_no").innerHTML = "View Message For Proposal " + $pro_no;
+							var current_cmdid = $cid;
+							var current_proid = $pro_no;
+							var current_userid = $us_id;
+														
+							$.ajax({							
+								type: 'POST',
+								url: '<?php echo $site_url; ?>/sites/all/themes/m6connect/templates/view_proposal_comment.php',
+								data: { cmd_id: current_cmdid , use_id: current_userid, pro_id: current_proid },
+								dataType: "html",
+								success: function(content) {
+									 $('#proposal_msg_text').html(content);  // replace								   
+								}
+							});												
+							
+							}
+							</script>							
+                              <div class="create_new_pop_inner1">
+                                  <h2 id="proposal_msg_no"></h2>
+								  <div id="proposal_msg_text"></div>
+                                 <div class="create_new_btn_last" id="send_new_message">
+                                   <!--<input type="submit" class="form-submit my_new_message " value="Send New Message" name="op" id="edit-submit">-->
+                                   <a class="cancel_create">Close</a>
+                                   </div>
+                                </div><!--create_new_pop_inner1-->
+                           </div><!--create_pop_text-->
+							</div><!--create_new_prop_pop_content-->  
+						
+						</div> <!--view_my_proposal_content_end-->  
+      <?php   } ?>
+	  
+	  
+<?php } ?>	
+	<!-- view proposal page end -->	
+
+<?php
+   $user_order_role = "";
+   $user_order_price = ""; 
+    $user_role_proposal = "";
+   
+  $query_2 = db_select('users_roles', 'ur') 
+  ->fields('ur', array('uid', 'rid')) ;
+  $db_or = db_or();  
+  $db_or->condition(db_and()->condition('ur.uid', $user->uid, '=')->condition('ur.rid', array(1, 2, 3, 5, 6), 'NOT IN'));
+  $src_1 =  $query_2->condition($db_or);  
+  $result_2 = $src_1->execute();  
+  foreach($result_2 as $item_2)
+  { 
+    $user_order_role = $item_2->rid; 	 
+  } 
+  
+  /** proposal query for fining user role start **/
+  
+  $propsal_query = db_select('users_roles', 'up') 
+  ->fields('up', array('uid', 'rid')) ;
+  $db_or_proposal = db_or();  
+  $db_or_proposal->condition(db_and()->condition('up.uid', $user->uid, '=')->condition('up.rid', array(3, 5, 6), 'IN'));
+  $src_propsal =  $propsal_query->condition($db_or_proposal);  
+  $result_proposal = $src_propsal->execute();  
+  foreach($result_proposal as $item_proposal)
+  { 
+    $user_role_proposal = $item_proposal->rid; 	 
+  }
+  
+  /** proposal query for fining user role end **/
+  
+  
+  
+  
+
+  $query = db_select('uc_orders', 'o')
+  ->fields('o', array('order_id','uid', 'order_status', 'order_total')) ; 
+  $db_or_1 = db_or();  
+  $db_or_1->condition(db_and()->condition('o.uid', $user->uid, '=')->condition('o.order_status', 'completed', '='));
+  $query->orderBy('order_id', 'DESC');
+  $query ->range(0, 1);  
+  $src =  $query->condition($db_or_1);  
+  $result = $src->execute();
+  foreach($result as $item) 
+  {
+	  $user_order = $item->order_status;  
+	  $user_order_id = $item->order_id;  
+	  $user_order_price = $item->order_total;   
+  }
+  
+  if($user_order_id != "")
+  {  
+  $query_1 = db_select('uc_order_products', 'p')
+  ->condition('p.order_id', $user_order_id, '=')
+  ->fields('p', array('order_id','title','model','price'));
+   $result_1 = $query_1->execute();
+    foreach($result_1 as $item_1)
+	{
+	 $user_order_product = $item_1->title;
+	 $user_order_sku = $item_1->model;
+	 $user_order_price = $item_1->price;	
+    }  
+ } 
+?>						
+						
+<?php if($nid == 36){ ?>
+
+<!--- upgrade page start modified by colan --->
+
+<div class="row year-content active" id="monthly">
+    <!--<div class="col-md-2"></div>-->
+    <div class="col-md-12">
+        <div class="col-md-3 pricing-block-grid">
+            <!--PRICING BLOCK ROW START-->
+            <div class="pricing-block clearfix">
+
+                <!--PRICING HEADING START-->
+                <div class="head clearfix">
+                    <h3><span>Free</span>Plan</h3>
+                    <p>Get started for FREE today.</p>
+                </div>
+                <!--//PRICING HEADING END-->
+                <!--CURRENCY PRICE START-->
+                <div class="currency">
+                    <p><span class="sign"></span><span class="cost">FREE</span><span class="point"></span><span class="cent"></span><span class="month"></span></p>
+                    <p class="savings"><span>No Risk Plan, Sign Up Today!</span></p>
+                </div>
+                <!--//CURRENCY PRICE END-->
+                <!--INFORMATION ALERT START-->
+                <div class="alert alert-info">
+                    <p><small>Our basic membership level<sup></sup></small>
+                </div>
+                <!--//INFORMATION ALERT END-->
+                <!--PRICING DESCRIPTION START-->
+                <div class="pricing-description clearfix">
+                    <p>Get started for FREE today to build your company profile, connect with companies, view projects and express interest.</p>
+                </div>
+                <!--PRICING DESCRIPTION START-->
+                <!--FEATURE LIST START-->
+                <ul>
+                    <li><a href="#"><i class="fa fa-users"></i>Accept Connection Requests </a></li>
+                    <li><a href="#"><i class="fa fa-file-text-o"></i>Receive RFPs</a></li>
+					<li><a href="#"><i class="fa fa-plus"></i>Create & Send RFPs</a></li>
+                    <li class="check"><a href="#"><i class="fa fa-file-text-o"></i>Receive Proposals</a></li>
+                    <li><a href="#"><i class="fa fa-file-text-o"></i>Receive Contracts</a></li>
+					<li><a href="#"><i class="fa fa-plus"></i>Create & Post Projects</a></li>
+                    <li><a href="#"><i class="fa fa-eye"></i>View Projects & Express Interest</a></li>
+                    <li><a href="#"><i class="fa fa-user"></i>Assign Primary Company Contact Information</a></li>
+                    <li class="deActive"><a href="#"><i class="fa fa-life-ring"></i>24/7 Customer Support</a></li>
+                </ul>
+                <!--//FEATURE LIST END-->
+                <!--PRICING SUBMIT BUTTON START-->
+				<?php if(($user_order_role != 4)||($user_order_role == "")){ ?>				
+                <div class="pricing-btn clearfix">
+                    <a href="#" class="btn"><span>Get Now</span></a>
+                </div>
+				<?php } ?>
+                <!--//PRICING SUBMIT BUTTON END-->
+
+            </div>
+            <!--//PRICING BLOCK ROW END-->
+        </div>
+        <div class="col-md-3 pricing-block-grid">
+            <!--PRICING BLOCK ROW START-->
+            <div class="pricing-block clearfix">
+
+                <!--PRICING HEADING START-->
+                <div class="head clearfix">
+                    <h3><span>Silver</span>Plan</h3>
+                    <p>Pay as you go</p>
+                </div>
+                <!--//PRICING HEADING END-->
+                <!--CURRENCY PRICE START-->
+                <div class="currency">
+                    <p><span class="sign">$</span><span class="cost">150</span><span class="point"></span><span class="cent"></span><span class="month">/monthly</span></p>
+                    <p class="savings"><span>Pay only as you need too</span></p>
+
+                </div>
+                <!--//CURRENCY PRICE END-->
+                <!--INFORMATION ALERT START-->
+                <div class="alert alert-info">
+                    <p><small>Add Additional Users for $100.00/month<sup>4</sup></small>
+                </div>
+                <!--//INFORMATION ALERT END-->
+                <!--PRICING DESCRIPTION START-->
+                <div class="pricing-description clearfix">
+                    <p>Pay as you go! At this membership level you will be able to View/Create RFPs, Proposals and post your own projects.</p>
+                </div>
+                <!--PRICING DESCRIPTION START-->
+                <!--FEATURE LIST START-->
+                <ul>
+                    <li><a href="#"><i class="fa fa-user"></i>Additional Users Available for Purchase</a></li>
+                    <li><a href="#"><i class="fa fa-users"></i>Send Connection Requests </a></li>
+                    <li><a href="#"><i class="fa fa-check-square-o"></i>Accept Connection Requests </a></li>
+                    <li><a href="#"><i class="fa fa-file-text-o"></i>Receive RFPs</a></li>
+                    <li><a href="#"><i class="fa fa-plus"></i>Create & Send RFPs</a></li>
+                    <li><a href="#"><i class="fa fa-eye"></i>View RFPs</a></li>
+                    <li class="check"><a href="#"><i class="fa fa-pencil-square-o"></i>Create & Send Proposals</a></li>
+                    <li class="check"><a href="#"><i class="fa fa-file-text-o"></i>Receive Proposals</a></li>
+                    <li><a href="#"><i class="fa fa-plus"></i>Create & Send Contracts</a></li>
+                    <li><a href="#"><i class="fa fa-file-text-o"></i>Receive Contracts</a></li>
+                    <li><a href="#"><i class="fa fa-pencil-square-o"></i>Sign Contracts</a></li>
+                    <li><a href="#"><i class="fa fa-plus"></i>Create & Post Projects</a></li>
+                    <li><a href="#"><i class="fa fa-eye"></i>View Projects & Express Interest</a></li>
+                    <li><a href="#"><i class="fa fa-users"></i>Assign Primary Company Contact Information</a></li>
+                    <li class="deActive"><a href="#"><i class="fa fa-life-ring"></i>24/7 Customer Support</a></li>
+                </ul>
+                <!--//FEATURE LIST END-->
+                <!--PRICING SUBMIT BUTTON START-->
+                <div class="pricing-btn clearfix">
+                  <!--  <a href="" class="btn"><span>Get Now</span></a>	-->				
+					 <?php
+					 if ($page['cart_silverplan']){
+						print render($page['cart_silverplan']);	
+											
+				      }
+				    ?>				
+					
+                </div>
+                <!--//PRICING SUBMIT BUTTON END-->
+
+            </div>
+            <!--//PRICING BLOCK ROW END-->
+        </div>
+        <div class="col-md-3 pricing-block-grid">
+            <!--PRICING BLOCK ROW START-->
+            <div class="pricing-block enable clearfix">
+
+			    <!--RECOMMENDED PLAN-->
+                <div class="featured-label clearfix">
+                    <p>Our Best Value Plan</p>
+                </div>
+                <!--END RECOMMENDED PLAN-->
+			
+                <!--PRICING HEADING START-->
+                <div class="head clearfix">
+                    <h3><span>Gold</span>Plan</h3>
+                    <p>Our best value plan.</p>
+                </div>
+                <!--//PRICING HEADING END-->
+                <!--CURRENCY PRICE START-->
+                <div class="currency">
+                    <p><span class="sign">$</span><span class="cost">890</span><span class="point"></span><span class="cent"></span><span class="month">/yearly</span></p>
+                    <p class="savings">was <strike>1,800.00</strike><span>Save +50%</span></p>
+
+                </div>
+                <!--//CURRENCY PRICE END-->
+                <!--INFORMATION ALERT START-->
+                <div class="alert alert-info">
+                    <p><small>Add Additional Users for $275.00/year<sup>4</sup></small>
+                </div>
+                <!--//INFORMATION ALERT END-->
+                <!--PRICING DESCRIPTION START-->
+                <div class="pricing-description clearfix">
+                    <p>Save over <strong>50%</strong> over the Silver Plan by purchasing the yearly Gold Plan. This is the best value plan!</p>
+                </div>
+                <!--PRICING DESCRIPTION START-->
+                <!--FEATURE LIST START-->
+                <ul>
+                    <li><a href="#"><i class="fa fa-user"></i>Additional Users Available for Purchase</a></li>
+                    <li><a href="#"><i class="fa fa-users"></i>Send Connection Requests </a></li>
+                    <li><a href="#"><i class="fa fa-check-square-o"></i>Accept Connection Requests </a></li>
+                    <li><a href="#"><i class="fa fa-file-text-o"></i>Receive RFPs</a></li>
+                    <li><a href="#"><i class="fa fa-plus"></i>Create & Send RFPs</a></li>
+                    <li><a href="#"><i class="fa fa-eye"></i>View RFPs</a></li>
+                    <li class="check"><a href="#"><i class="fa fa-pencil-square-o"></i>Create & Send Proposals</a></li>
+                    <li class="check"><a href="#"><i class="fa fa-file-text-o"></i>Receive Proposals</a></li>
+                    <li><a href="#"><i class="fa fa-plus"></i>Create & Send Contracts</a></li>
+                    <li><a href="#"><i class="fa fa-file-text-o"></i>Receive Contracts</a></li>
+                    <li><a href="#"><i class="fa fa-pencil-square-o"></i>Sign Contracts</a></li>
+                    <li><a href="#"><i class="fa fa-plus"></i>Create & Post Projects</a></li>
+                    <li><a href="#"><i class="fa fa-eye"></i>View Projects & Express Interest</a></li>
+                    <li><a href="#"><i class="fa fa-users"></i>Assign Primary Company Contact Information</a></li>
+                    <li><a href="#"><i class="fa fa-users"></i>Review Employee Activity</a></li>
+                    <li class="deActive"><a href="#"><i class="fa fa-life-ring"></i>24/7 Customer Support</a></li>
+                </ul>
+                <!--//FEATURE LIST END-->
+                <!--PRICING SUBMIT BUTTON START-->
+                <div class="pricing-btn clearfix">
+                 <!--   <a href="#" class="btn"><span>Get Now</span></a> -->
+					 <?php
+					 if ($page['cart_goldPlan']){
+						print render($page['cart_goldPlan']);	
+											
+				      }
+				    ?>
+					
+					
+					
+                </div>
+                <!--//PRICING SUBMIT BUTTON END-->
+
+            </div>
+            <!--//PRICING BLOCK ROW END-->
+        </div>
+        <div class="col-md-3 pricing-block-grid">
+            <!--PRICING BLOCK ROW START-->
+            <div class="pricing-block clearfix">
+
+                <!--RECOMMENDED PLAN-->
+                <div class="featured-label clearfix">
+                    <p>More Power And Security</p>
+                </div>
+                <!--END RECOMMENDED PLAN-->
+                <!--PRICING HEADING START-->
+                <div class="head clearfix">
+                    <h3><span>Corporate</span>Plan</h3>
+                    <p>Corporate Level Access</p>
+                </div>
+                <!--//PRICING HEADING END-->
+                <!--CURRENCY PRICE START-->
+                <div class="currency">
+                    <p><span class="sign">$</span><span class="cost">12,500</span><span class="point"></span><span class="cent"></span><span class="month">/yearly</span></p>
+                    <p class="savings"><span>Maximum Access - Dedicated Support</span></p>
+                </div>
+                <!--//CURRENCY PRICE END-->
+                <!--INFORMATION ALERT START-->
+                <div class="alert alert-info">
+                    <p><small>Add Additional Users for $400.00/year<sup>4</sup></small>
+                </div>
+                <!--//INFORMATION ALERT END-->
+                <!--PRICING DESCRIPTION START-->
+                <div class="pricing-description clearfix">
+                    <p>Unlock the full power of M6 Connect by becoming a corporate partner and taking full control of your work.</p>
+                </div>
+                <!--PRICING DESCRIPTION START-->
+                <!--FEATURE LIST START-->
+                <ul>
+                    <li><a href="#"><i class="fa fa-user"></i>25 Users</a></li>
+                    <li><a href="#"><i class="fa fa-users"></i>Send Connection Requests </a></li>
+                    <li><a href="#"><i class="fa fa-check-square-o"></i>Accept Connection Requests </a></li>
+                    <li><a href="#"><i class="fa fa-file-text-o"></i>Receive RFPs</a></li>
+                    <li><a href="#"><i class="fa fa-plus"></i>Create & Send RFPs</a></li>
+                    <li><a href="#"><i class="fa fa-eye"></i>View RFPs</a></li>
+                    <li class="check"><a href="#"><i class="fa fa-pencil-square-o"></i>Create & Send Proposals</a></li>
+                    <li class="check"><a href="#"><i class="fa fa-file-text-o"></i>Receive Proposals</a></li>
+                    <li><a href="#"><i class="fa fa-plus"></i>Create & Send Contracts</a></li>
+                    <li><a href="#"><i class="fa fa-file-text-o"></i>Receive Contracts</a></li>
+                    <li><a href="#"><i class="fa fa-pencil-square-o"></i>Sign Contracts</a></li>
+                    <li><a href="#"><i class="fa fa-plus"></i>Create & Post Projects</a></li>
+                    <li><a href="#"><i class="fa fa-eye"></i>View Projects & Express Interest</a></li>
+                    <li><a href="#"><i class="fa fa-users"></i>Assign Primary Company Contact Information</a></li>
+                    <li><a href="#"><i class="fa fa-users"></i>Review Employee Activity</a></li>
+                    <li><a href="#"><i class="fa fa-bar-chart"></i>Custom Reports & Verification</a></li>
+                    <li class="deActive"><a href="#"><i class="fa fa-life-ring"></i>24/7 Customer Support</a></li>
+                </ul>
+                <!--//FEATURE LIST END-->
+                <!--PRICING SUBMIT BUTTON START-->
+                <div class="pricing-btn clearfix">
+                  <!--  <a href="#" class="btn"><span>Get Now</span></a>-->
+				  
+					<?php
+					 if ($page['cart_corporatePlan']){
+						print render($page['cart_corporatePlan']);	
+											
+				      }
+				    ?>
+					
+                </div>
+                <!--//PRICING SUBMIT BUTTON END-->
+
+            </div>
+        </div>
+    </div>
+    <!--<div class="col-md-2"></div>-->
+</div>
+<div class="row pricing-faq-row">
+    <div class="col-md-12">
+        <div class="row offset-row">
+            <div class="col-md-12">
+                <div class="pricing-faq-header">
+                    <h3>PRICING FAQ</h3>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-4 pricing-info-block">
+                <h3>When and How Do I Get Billed?</h3>
+                <p>
+                    All payments are processed via our safe and secure payment processing system.
+                    Our monthly membership plans are billed every 30 days from the date that your membership started.
+                    Our yearly subscriptions are billed every 365 days on the anniversery of your membership start date.
+                </p>
+                <p>
+                    All subscriptions will continue to renew until you cancel your subscription.
+                </p>
+            </div>
+            <div class="col-md-4 pricing-info-block">
+                <h3>How do I purchase additional user licenses?</h3>
+                <p>
+                    You may purchase additional user licenses for our Silver, Gold, and Corporate plans at any time. You may purchase these by...
+                </p>
+                <p>
+                    The cost per additional user license varries based on the membership level choosen. The list below shows the costs by level.
+                    <ul>
+                        <li>Silver - $100 per user /month</li>
+                        <li>Gold - $275 per user /year</li>
+                        <li>Corporate - $400 per user/year </li>
+                    </ul>
+                </p>
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+        <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-4 pricing-info-block">
+                <h3>When and How Can I Cancel My Membership</h3>
+                <p>
+                    You may switch to the Free plan or cancel your membership at any point. Please note, you will continue to have access to the M6 Connect system
+                    until the subscription period that you have already paid for expires. Once your subscription has expired you can sign up again at any point.
+                </p>
+            </div>
+            <div class="col-md-4 pricing-info-block">
+                <h3>How Safe is My Payment Information?</h3>
+                <p>
+                    We have taken great steps to ensure your payment information remains safe and secure. Our servers are all PCI and HIPPA compliant and we never store your payment information.
+                    All transactions are encrypted via our SSL certificate.
+                </p>
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-2"></div>
+    <div class="col-md-8 contact-us-row">
+        <h3>Have any questions? <strong>Contact us today!</strong><a href="/contact">Contact Us</a></h3>
+    </div>
+    <div class="col-md-2"></div>
+</div>
+<script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+        $('.select-plan a').click(function (e) {
+            e.preventDefault();
+            $(this).tab('show');
+        })
+    });
+	
+	var get_now = $('.node-add-to-cart.form-submit').val('GET NOW');
+
+</script>
+<?php } ?>
+
+<!--- upgrade page end modified by colan --->						
+						
+				</div>
+			</div>
+			<?php
+      // Render the sidebars to see if there's anything in them.
+      $sidebar_first  = render($page['sidebar_first']);
+      $sidebar_second = render($page['sidebar_second']);
+    ?>
+			<?php if ($sidebar_first || $sidebar_second): ?>
+			<aside class="sidebars"> <?php print $sidebar_first; ?> <?php print $sidebar_second; ?> </aside>
+			<?php endif; ?>
+		</div>
+	</div>
+	<div id="footer-message">
+		<div class="container"> <?php print render($page['footer']); ?> </div>
+	</div>
+	<div class="container"><?php print render($page['bottom']); ?> </div>
+</div>
+
+<?php endif; ?>
+
+<!-- -- code modified by colan start --- -->
+<script>
+var page_alias = "<?php echo $path; ?>";
+if(page_alias == "proposals/sent")
+{
+$(".rpf-exposed-filter .views-exposed-form #edit-submit-proposals").val('Search');
+}
+if(page_alias == "proposals/draft")
+{
+$(".view-filters .views-exposed-form #edit-submit-proposals").val('Search');
+}
+
+if(page_alias == "cart")
+{
+$("th:nth-child(2)").text("Membership plan");
+$("#uc-cart-view-form .desc>a").attr("href", "javascript:void(null)");
+}
+if(page_alias == "cart/checkout")
+{
+$("th:nth-child(2)").text("Membership plan");
+$("#uc-cart-checkout-form .products>a").attr("href", "javascript:void(null)");
+var d = new Date(),    
+    n = d.getMonth(),    
+    y = d.getFullYear();
+
+$('#edit-panes-payment-details-cc-exp-month option:eq('+n+')').prop('selected', true);
+
+$('#edit-panes-payment-details-cc-exp-year option[value="'+y+'"]').prop('selected', true);
+}
+if(page_alias == "cart/checkout/review")
+{
+$(".order-review-table .products>a").attr("href", "javascript:void(null)");
+}
+var page_id = "<?php echo $nid; ?>";
+if (page_id == 36){
+
+function change_button()
+{
+document.getElementById('edit-actions--2').innerHTML ='<input type="button" <?php if($user_result_role != ""){ echo 'data-toggle="modal"';  echo 'data-target="#myModal"'; }?>onClick="check_plan(1)" data="Plan1" value="GET NOW" name="op" id="edit-submit-429" class="node-add-to-cart form-submit plan">';
+
+document.getElementById('edit-actions--3').innerHTML ='<input type="button" <?php if($user_result_role != ""){ echo 'data-toggle="modal"';  echo 'data-target="#myModal"'; }?> onClick="check_plan(2)" data="Plan2" value="GET NOW" name="op" id="edit-submit-430" class="node-add-to-cart form-submit planactive">';
+
+document.getElementById('edit-actions--4').innerHTML ='<input type="button" <?php if($user_result_role != ""){ echo 'data-toggle="modal"';  echo 'data-target="#myModal"'; }?> onClick="check_plan(3)" data="Plan3" value="GET NOW" name="op" id="edit-submit-431" class="node-add-to-cart form-submit plan">';
+}
+change_button();
+
+
+ function check_plan(plan_id)
+ {
+	if(plan_id ==1)
+	{
+	 $(".region-cart-silverplan form").addClass( "myClass" ); 
+	  var plan_form  = $(".myClass").attr('id');	  	
+	}
+	else if(plan_id ==2)
+	{
+	$(".region-cart-goldplan form").addClass( "myClass1" ); 
+	 var plan_form  = $(".myClass1").attr('id');	
+	}
+	else if(plan_id ==3)
+	{
+	 $(".region-cart-corporateplan form").addClass( "myClass2" ); 
+	 var plan_form  = $(".myClass2").attr('id');
+	}
+	var membership_role_no = "<?php echo $user_order_role ; ?>";	
+	form_id = plan_form.substring(plan_form.lastIndexOf("-") + 1, plan_form.length);
+	
+	//alert(membership_role_no);
+	//alert(form_id);	
+	var plan_form_submit  = document.getElementById('uc-product-add-to-cart-form-'+form_id);
+	
+  if((membership_role_no == "")||(membership_role_no == 4))
+    {		$(plan_form_submit).submit();			
+		
+	}
+	else
+	{ 		
+			$.ajax({  
+			type: 'POST',  
+			url: '<?php echo $site_url; ?>/sites/all/themes/m6connect/unsubscribe_ajax.php', 
+			data: { data_plan: form_id },
+			success: function(response)
+			{
+				var my_data = response.split('@@');					
+				my_click_plan_id = my_data[0];
+				my_click_plan_sku = my_data[1];
+			    my_click_plan_price = my_data[2];					 
+			    var user_order_price = "<?php echo $user_order_price; ?>";	
+
+				//alert(user_order_price);
+				//alert(my_click_plan_price);
+			    user_order_price = parseFloat(user_order_price);
+			    my_click_plan_price = parseFloat(my_click_plan_price);
+			   if(user_order_price == my_click_plan_price)
+			    {								
+					$('#myModal').modal('show');			
+					$(".text-upgrade").text("you have currently choose this plan.Please select another plan");
+					$("#current_id").text("close");
+					$("#ok_btn").css("opacity",0);							 
+				 }
+				else if(user_order_price != my_click_plan_price )
+				{						
+					if(user_order_price > my_click_plan_price)	  
+					{	
+						$('#myModal').modal('show');
+						$("#ok_btn").css("opacity",1);
+						$("#current_id").text("cancel");	      			
+						$(".text-upgrade").text("Are you sure want to degrade this plan?");	
+						return false;					
+					}
+					else
+					{										
+					     $('#myModal').modal('hide');
+						$(plan_form_submit).submit(); 
+				    }
+				}													   	
+			}		
+		});
+		
+		this.myFunction =  function() 
+			{				
+				$(plan_form_submit).submit(); 
+			}
+	}
+  }
+  
+  $('.node-add-to-cart.form-submit').each(function(){
+         var button_data =  $(this).attr('data');
+		 var order_product_sku = "<?php echo $user_order_sku ?>";
+		 if(button_data == order_product_sku)
+		  {
+			$(this).val('My Current Plan');
+		  
+		  }
+ 
+  });
+  
+  
+}
+</script>
+<?php
+$form_submit_value = $_SESSION['form_submitted'];
+$form_submit_id_value = explode("_",$form_submit_value);
+if($form_submit_id_value[6] != "") { ?>
+<script>
+if( $('#edit-items-1-remove').length)     
+{
+    $('#edit-items-0-remove').trigger('click');
+}
+</script>
+<?php } ?>
+<?php if($nid == 36){ ?>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+<style>
+.alert{margin-bottom:0px !important;}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+<div class="container pop_modal"> 
+
+  <!-- Modal -->
+ <div class="modal fade" id="myModal" role="dialog">  
+    <div class="modal-dialog modal-md">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title" style="color:#3f8bc0">Membership Plan Upgrade</h4>
+        </div>
+        <div class="modal-body">
+          <p class="text-upgrade"></p>
+        </div>
+        <div class="modal-footer">
+<button type="button" class="btn btn-default" data-dismiss="modal" id="ok_btn" onclick="myFunction()" >yes</button>
+          <button type="button" class="btn btn-default" id="current_id" data-dismiss="modal">cancel</button>         
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<?php }
+
+if( $user->uid != $user_rfp_id )
+{ 
+  if(($content_type == "rfp") && ($user_order_role == 4)){
+		header("Location: ".$GLOBALS['base_url']."/rfps/public?access=denied");
+	}		
+}
+
+if(($path == "node/add/my-proposal")&&($user_order_role == 4)){
+	header("Location: ".$GLOBALS['base_url']."/proposals/received?access=denied");	
+}
+
+ ?>
+<script>
+<!-- popup starts -->
+var my_role = "<?php echo $user_order_role; ?>";
+if (my_role == 4)
+{
+$("#popup_lock-upgrade").attr("class","pop_title");
+
+	$('.view-id-rfps .row > .col-md-2.col-sm-2.col-xs-12:first-child a').each(function(){
+         var a =  $(this).attr('href');		
+		 var partsOfStr = a.split('/');	
+		 var site_a = partsOfStr[2];
+		  console.log(site_a); 		 
+		  
+		  var listItem = $(this);
+		  var pos = $('.view-id-rfps .row > .col-md-2.col-sm-2.col-xs-12:first-child a').index( listItem );	 
+		  var pos_cor = pos+1; 
+		 
+		 
+		 var b = "<?php echo $user_rfp_node_1; ?>";		
+		 var partsOfStr_1 = b.split('_');
+		 var site_b = partsOfStr_1.length;
+		
+		
+if(jQuery.inArray(site_a, partsOfStr_1) != -1) {  
+  $(".view-id-rfps .views-row-"+pos_cor+" h3").attr("class","");
+} else {   
+	$(".view-id-rfps .views-row-"+pos_cor+" h3").attr("class","pop_title");
+} 
+	});		
+	
+ }
+ 
+ $(".pop_title").click(function(){
+	$("#pop_content").fadeIn();	
+	return false;
+	});
+	
+ $(".pop_close").click(function(){ 
+    $("#pop_content").fadeOut();
+  });	
+  
+  $(".overlay").click(function(){
+    $("#pop_content").fadeOut();
+  });
+  
+  window.onkeydown = function( event ) {
+    if ( event.keyCode === 27 ) {
+       $("#pop_content").fadeOut();
+    }
+	};
+<!-- popup ends -->
+	</script>
+
+
+
+<!--- free plan popup start --->
+                         <div id="pop_content">
+                          <div class="overlay"></div><!--overlay-->	
+                           <div class="pop_text">
+                           
+                           <div class="pop-main-top">  
+							 <a href="#close" class="pop_close">
+							 <img src="../sites/all/themes/m6connect/images/pop_close.png"/></a>
+                               <h2>Unlock this Feature Today!</h2>
+                               <div class="m6_pop_log">
+							   <img src="../sites/all/themes/m6connect/images/m6_pop_log.png"/>
+							   </div>
+                               </div>
+                           <div class="pop_text_inner">
+                               <p>Unlock the full power of M6Connect and access this content 
+by upgrading to one of our paid subscription levels. Click
+below to choose the subscription that is right for you!</p>
+                              <div class="m6_pop_list_im">
+                               <ul class="m6_pop_list"> 
+                               <li>View RFPs & Express Interest in Bidding<li>
+                               <li>Create & Send Proposals<li>
+                               <li>Connect with Other Companies<li>
+                               <li>Create & Post Projects<li>
+                               <li>Create & Send Contracts<li>
+                               <li>and Much More!<li>
+                                <img src="../sites/all/themes/m6connect/images/m6_pop_comp.png" class="compimg"/>
+                               </ul>
+                              
+                               
+                              <div class="m6_pop_upgrade_btn">
+							  <a href="/upgrade-your-membership-subscription">
+							  <img src="../sites/all/themes/m6connect/images/m6_pop_btn.png"/>
+							  </a>
+							  </div>
+                               </div><!------m6_pop_list_im--->
+                                </div><!--pop text inner-->
+                           </div><!--pop text-->
+                        </div><!--pop content-->
+                     
+<!--- free plan popup end --->
+
+<script>
+
+var getUrlParameter = function getUrlParameter(sParam) {
+    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+};
+
+var tech = getUrlParameter('access');
+if(tech == "denied"){ $("#pop_content").fadeIn(); }
+
+  $(".pop_text .pop_close").click(function(){
+    $("#pop_content").fadeOut();
+  });  
+ 
+ 
+ edit_proposal = '<?php echo $content_type; ?>';
+ if((page_alias == "node/add/my-proposal") || ( edit_proposal == 'my_proposal'))
+{
+	
+ $(document).ready(function(){
+ 
+$( "#comment-form #edit-actions #edit-submit" ).live( "click", function() { 
+	$text_sub = $(".create_pop_text_click #edit-subject").val();
+	if(($text_sub).trim() == '' )
+	  {
+	  $("#proposal_pop_content").fadeIn();
+	  $(".pro_required_title").text("Message for Proposal");
+			$(".pro_required").text("Please Enter the Subject");			
+			return false;  
+	  }	
+	$text_com = $("#edit-comment-body #edit-comment-body-und-0-value").val();	
+      if(($text_com).trim() == '' )
+	  {
+	  $("#proposal_pop_content").fadeIn();
+	  $(".pro_required_title").text("Message for Proposal");
+			$(".pro_required").text("Please Enter the Message");			
+			return false;  
+	  }	
+	});
+ 
+ $(".pro_close").click(function(){
+    $("#proposal_pop_content").fadeOut();
+  });
+ 
+$(document).on('click','#edit-submit',function(e) {
+
+		
+  if( document.getElementById("edit-field-choose-from-the-options-li-und-submit-proposal-in-response-to-a-rfp").checked == true)
+	{
+	
+	if($('#field-submit-proposal-in-respons-values input:checkbox:checked').length > 0)
+		{		 
+		  $('#field-field-sub-proposal-pjt-values input:checkbox').removeAttr('checked');
+		  $('#field-submit-proposal-member-values input:checkbox').removeAttr('checked');
+		  $('#field-submit-proposal-to-company-values input:checkbox').removeAttr('checked');        
+		}
+		else{			          	
+          $("#proposal_pop_content").fadeIn();
+			$(".pro_required").text("Please select any one of the RFP");			
+			return false;			
+		}
+		
+	}
+	if( document.getElementById("edit-field-choose-from-the-options-li-und-submit-proposal-in-response-to-a-project").checked == true)
+	{
+		
+	if($('#field-field-sub-proposal-pjt-values input:checkbox:checked').length > 0)
+		{
+		  $('#field-submit-proposal-in-respons-values input:checkbox').removeAttr('checked');		 
+		  $('#field-submit-proposal-member-values input:checkbox').removeAttr('checked');
+		  $('#field-submit-proposal-to-company-values input:checkbox').removeAttr('checked');		
+		}
+		else
+		{			
+			$("#proposal_pop_content").fadeIn();
+			$(".pro_required").text("Please select any one of the Project");	
+			return false;
+		}
+		
+	}
+	if( document.getElementById("edit-field-choose-from-the-options-li-und-submit-proposal-to-an-individual-member").checked == true)
+	{		
+		if($('#field-submit-proposal-member-values input:checkbox:checked').length > 0)
+		{
+		  $('#field-submit-proposal-in-respons-values input:checkbox').removeAttr('checked');
+		  $('#field-field-sub-proposal-pjt-values input:checkbox').removeAttr('checked');		 
+		  $('#field-submit-proposal-to-company-values input:checkbox').removeAttr('checked');			
+		}
+		else{			
+			$("#proposal_pop_content").fadeIn();
+			$(".pro_required").text("Please select any one of the Individual Member");	
+			return false;			
+		}		
+	}
+	if( document.getElementById("edit-field-choose-from-the-options-li-und-submit-proposal-to-a-company").checked == true)
+	{
+		
+		if($('#field-submit-proposal-to-company-values input:checkbox:checked').length > 0)
+		{
+		  $('#field-submit-proposal-in-respons-values input:checkbox').removeAttr('checked');
+		  $('#field-field-sub-proposal-pjt-values input:checkbox').removeAttr('checked');
+		  $('#field-submit-proposal-member-values input:checkbox').removeAttr('checked');			
+		}
+		else{			
+			$("#proposal_pop_content").fadeIn();	
+			$(".pro_required").text("Please select any one of the Company");		
+			return false;			
+		}
+		
+	}	
+
+});
+ 
+ 
+ $("#edit-field-proposal-bid-amount-und-0-value").attr('maxlength','20'); 
+ 
+		$("#edit-field-proposal-job-location input").blur(function(){		
+		$add1 = $("#edit-field-proposal-job-location-und-0-thoroughfare").val();
+		$add2 = $("#edit-field-proposal-job-location-und-0-premise").val();
+		$city = $("#edit-field-proposal-job-location-und-0-locality").val();
+		$state = $("#edit-field-proposal-job-location-und-0-administrative-area").val();
+		$zip = $("#edit-field-proposal-job-location-und-0-postal-code").val();
+		$full_add = $add1+' '+$add2+' '+$city+' '+$state+' '+$zip;
+		
+		var emb_map ='<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d25895663.485556133!2d-95.665!3d37.599999999999994!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x54eab584e432360b%3A0x1c3bb99243deb742!2sUnited+States!5e0!3m2!1sen!2sin!4v1440572410597" width="510" height="350" frameborder="0" style="border:0" allowfullscreen></iframe>';
+		
+		if($add1 == '' || $city == '' || $state == '' || $zip == '') 
+		{
+		var emb_map ='<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d25895663.485556133!2d-95.665!3d37.599999999999994!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x54eab584e432360b%3A0x1c3bb99243deb742!2sUnited+States!5e0!3m2!1sen!2sin!4v1440572410597" width="510" height="350" frameborder="0" style="border:0" allowfullscreen></iframe>';
+		//alert('Enter All the Fields');
+		}
+		else
+		{
+		var emb_map ="<iframe width='510' height='350' frameborder='0' scrolling='no' marginheight='0' marginwidth='0' src='https://maps.google.com/maps?&amp;q="+ encodeURIComponent( $full_add ) +"&amp;output=embed'></iframe>";
+		}		
+		$("#mymap").html(emb_map);
+		}); 
+		
+		//for edit map section starts		
+		$edit_add1 = $("#edit-field-proposal-job-location-und-0-thoroughfare").val();
+		$edit_add2 = $("#edit-field-proposal-job-location-und-0-premise").val();
+		$edit_city = $("#edit-field-proposal-job-location-und-0-locality").val();
+		$edit_state = $("#edit-field-proposal-job-location-und-0-administrative-area").val();
+		$edit_zip = $("#edit-field-proposal-job-location-und-0-postal-code").val();
+		$edit_full_add = $edit_add1+' '+$edit_add2+' '+$edit_city+' '+$edit_state+' '+$edit_zip;
+		
+		if($edit_add1 == '' || $edit_city == '' || $edit_state == '' || $edit_zip == '') 
+		{
+		var edit_emb_map ='<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d25895663.485556133!2d-95.665!3d37.599999999999994!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x54eab584e432360b%3A0x1c3bb99243deb742!2sUnited+States!5e0!3m2!1sen!2sin!4v1440572410597" width="510" height="350" frameborder="0" style="border:0" allowfullscreen></iframe>';
+		//alert('Enter All the Fields');
+		}
+		else
+		{
+		var edit_emb_map ="<iframe width='510' height='350' frameborder='0' scrolling='no' marginheight='0' marginwidth='0' src='https://maps.google.com/maps?&amp;q="+ encodeURIComponent( $edit_full_add ) +"&amp;output=embed'></iframe>";
+		}		
+		$("#edit-field-mymap #mymap").html(edit_emb_map);		
+		//for edit map section ends
+		
+		
+ $( ".form-item.form-type-radio.form-item-field-choose-from-the-options-li-und:nth-child(1)" ).append( "<div id='sub_menu1'></div>" );
+ $( ".form-item.form-type-radio.form-item-field-choose-from-the-options-li-und:nth-child(2)" ).append( "<div id='sub_menu2'></div>" );
+ $( ".form-item.form-type-radio.form-item-field-choose-from-the-options-li-und:nth-child(3)" ).append( "<div id='sub_menu3'></div>" );
+ $( ".form-item.form-type-radio.form-item-field-choose-from-the-options-li-und:nth-child(4)" ).append( "<div id='sub_menu4'></div>" );
+
+  
+ var view_popup_permission = "<?php echo $user_role_proposal ; ?>";
+// Rfp click starts
+$('#edit-field-choose-from-the-options-li-und-submit-proposal-in-response-to-a-rfp').click(function(){ 
+ $div_st1 = $("#edit-field-submit-proposal-in-respons").height() + 'px';  
+    $('#sub_menu1').css('min-height',$div_st1);
+	$('#sub_menu2').css('min-height','0px');
+	$('#sub_menu3').css('min-height','0px');
+	//$('#sub_menu4').css('min-height','0px');		
+		$( "#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .entity-reference-view-widget-select.form-checkbox" ).live( "click", function() {
+		  var atLeastOneIsChecked1 = $('#views-form-m6rfp-for-proposal-entityreference-view-widget-1 :checkbox:checked').length;
+
+		   //$cou_click1 = atLeastOneIsChecked1 * 20;
+		   $cou_click1 = 20;
+		   $div1 = $("#edit-field-submit-proposal-in-respons").height() + $cou_click1;
+		  $('#sub_menu1').css('min-height',$div1 + 'px');
+		}); 	
+	$('#edit-field-submit-proposal-in-respons-und-add-more').val("Click Here to Select the RFP(s) to Submit this Proposal For");	
+			if($('input:radio:checked').length > 0)
+			 {							 
+				  $("#edit-field-submit-proposal-in-respons").css("display","block");				
+				  $("#edit-field-field-sub-proposal-pjt").css("display","none");				
+				  $("#edit-field-submit-proposal-member").css("display","none");
+				  $("#edit-field-submit-proposal-to-company").css("display","none");
+			 }                          
+            });
+// Rfp click ends
+			
+// Project click starts		
+  $('#edit-field-choose-from-the-options-li-und-submit-proposal-in-response-to-a-project').click(function(){ 
+	$div_st2 = $("#edit-field-field-sub-proposal-pjt").height() + 'px';
+    $('#sub_menu2').css('min-height',$div_st2);
+	$('#sub_menu1').css('min-height','0px');
+	$('#sub_menu3').css('min-height','0px');	
+		$( "#views-form-m6project-for-proposal-entityreference-view-widget-1 .entity-reference-view-widget-select.form-checkbox" ).live( "click", function() {		 
+		var atLeastOneIsChecked2 = $('#views-form-m6project-for-proposal-entityreference-view-widget-1 :checkbox:checked').length;		 
+		   $cou_click2 = atLeastOneIsChecked2 * 30;
+		   $div2 = $("#edit-field-field-sub-proposal-pjt").height() + $cou_click2;
+		  $('#sub_menu2').css('min-height',$div2 + 'px');
+		});	
+	$('#edit-field-field-sub-proposal-pjt-und-add-more').val("Click Here to Select the Projects(s) to Submit this Proposal For");   
+			if($('input:radio:checked').length > 0)
+			 {				
+			     $("#edit-field-field-sub-proposal-pjt").css("display","block");				 
+				 $("#edit-field-submit-proposal-in-respons").css("display","none");				
+				 $("#edit-field-submit-proposal-member").css("display","none");
+				 $("#edit-field-submit-proposal-to-company").css("display","none");
+			 }                          
+            });	
+// Project click Ends
+
+// Members click starts			
+  $('#edit-field-choose-from-the-options-li-und-submit-proposal-to-an-individual-member').click(function(){	  
+    $div_st3 = $("#edit-field-submit-proposal-member").height() + 'px';  
+    $('#sub_menu3').css('min-height',$div_st3);
+	$('#sub_menu1').css('min-height','0px');
+	$('#sub_menu2').css('min-height','0px');
+	//$('#sub_menu4').css('min-height','0px');	
+		$( "#views-form-m6individual-member-entityreference-view-widget-1 .entity-reference-view-widget-select.form-checkbox" ).live( "click", function() {
+		   var atLeastOneIsChecked3 = $('#views-form-m6individual-member-entityreference-view-widget-1 :checkbox:checked').length;		   
+		   $cou_click3 = atLeastOneIsChecked3 * 30;
+		   $div3 = $("#edit-field-submit-proposal-member").height() + $cou_click3;
+		  $('#sub_menu3').css('min-height',$div3 + 'px');
+		});			
+	$('#edit-field-submit-proposal-member-und-add-more').val("Click Here to Select the Individual Member(s) to Submit this Proposal For");   
+			if($('input:radio:checked').length > 0)
+			 {
+				 $("#edit-field-submit-proposal-member").css("display","block");
+				 $("#edit-field-submit-proposal-to-company").css("display","none");
+				 $("#edit-field-submit-proposal-in-respons").css("display","none");				
+				 $("#edit-field-field-sub-proposal-pjt").css("display","none");		
+			 }		                          
+            });	
+// Members click ends
+
+// Company click starts			
+  $('#edit-field-choose-from-the-options-li-und-submit-proposal-to-a-company').click(function(){
+	//$('#sub_menu4').css('min-height','100px'); 
+	$('#sub_menu1').css('min-height','0px');
+	$('#sub_menu2').css('min-height','0px');
+	$('#sub_menu3').css('min-height','0px');	
+	
+	$('#edit-field-submit-proposal-to-company-und-add-more').val("Click Here to Select the Company(s) to Submit this Proposal For");   
+			if($('input:radio:checked').length > 0)
+			 {
+				 $("#edit-field-submit-proposal-to-company").css("display","block");
+				 $("#edit-field-submit-proposal-member").css("display","none");				 
+				 $("#edit-field-submit-proposal-in-respons").css("display","none");				
+				 $("#edit-field-field-sub-proposal-pjt").css("display","none");	
+			 }                          
+            });	
+// Company click ends			
+			
+//if rfp,project,member,company is checked set min-height
+  if($('#edit-field-choose-from-the-options-li-und-submit-proposal-in-response-to-a-rfp').is(':checked'))
+{
+	$("#edit-field-submit-proposal-in-respons").css("display","block");
+	$div_st1 = $("#edit-field-submit-proposal-in-respons").height() + 'px';  
+    $('#sub_menu1').css('min-height',$div_st1);
+	$('#edit-field-submit-proposal-in-respons-und-add-more').val("Click Here to Select the RFP(s) to Submit this Proposal For");  
+}   
+  if($('#edit-field-choose-from-the-options-li-und-submit-proposal-in-response-to-a-project').is(':checked'))
+{
+	$("#edit-field-field-sub-proposal-pjt").css("display","block");
+	$div_st2 = $("#edit-field-field-sub-proposal-pjt").height() + 'px';
+    $('#sub_menu2').css('min-height',$div_st2);
+	$('#edit-field-field-sub-proposal-pjt-und-add-more').val("Click Here to Select the Projects(s) to Submit this Proposal For"); 
+} 
+    if($('#edit-field-choose-from-the-options-li-und-submit-proposal-to-an-individual-member').is(':checked'))
+{
+	$("#edit-field-submit-proposal-member").css("display","block");
+	$div_st3 = $("#edit-field-submit-proposal-member").height() + 'px';  
+    $('#sub_menu3').css('min-height',$div_st3);
+	$('#edit-field-submit-proposal-member-und-add-more').val("Click Here to Select the Individual Member(s) to Submit this Proposal For");
+} 
+    if($('#edit-field-choose-from-the-options-li-und-submit-proposal-to-a-company').is(':checked'))
+{
+	$("#edit-field-submit-proposal-to-company").css("display","block");
+	$('#edit-field-submit-proposal-to-company-und-add-more').val("Click Here to Select the Company(s) to Submit this Proposal For");
+} 
+//rfp is checked end min-height			
+			
+			
+// zip code validation starts
+	$("#edit-field-proposal-bid-amount-und-0-value").keypress(function (e) {
+     //if the letter is not digit then display error and don't type anything
+     if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) {
+        //display error message
+       // $("#errmsg").html("Digits Only").show().fadeOut("slow");
+               return false;
+    }
+   });	
+   
+   $("#edit-field-proposal-bid-amount-und-0-value").attr('onchange','fixit(this)');
+	
+	$("#edit-field-proposal-job-location-und-0-postal-code").keypress(function (e) {
+     //if the letter is not digit then display error and don't type anything
+     if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) {
+        //display error message
+       // $("#errmsg").html("Digits Only").show().fadeOut("slow");
+               return false;
+    }
+   });
+    $("#edit-field-proposal-job-location-und-0-postal-code").keyup(function() {	
+		
+        var maxChars = 5;
+        if ($(this).val().length > maxChars) {
+            $(this).val($(this).val().substr(0, maxChars));          
+            //Take action, alert or whatever suits          	
+        }
+    });		
+	
+	
+$(".form-item-title label" ).append( "<strong class='form-required'>*</strong>" );
+$(".form-item-field-proposal-scope-of-work-und-0-value label" ).append( "<strong class='form-required'>*</strong>" );
+$("#edit-field-proposal-bid-amount label" ).append( "<strong class='form-required'>*</strong>" );
+$("#edit-field-proposoal-bid-types>div>label" ).append( "<strong class='form-required'>*</strong>" );
+			
+  
+//popup comments starts
+	$( "#comment-form > div" ).addClass('create_pop_text_click');
+	$( "<div class='overlay'></div>" ).insertBefore( ".create_pop_text_click" ); 
+   $( "#comment-form #edit-actions" ).append( '<a class="cancel_create_comment">Cancel</a>' );
+   $('#comment-form #edit-actions #edit-submit').val('Send New Message');
+   
+  $(".proposal_send_click").click(function(){	
+     $serial_data_num = $(this).attr('data');
+	 $("#serial_proposal_no").text(" "+$serial_data_num);    	 
+	$("#comment-form").fadeIn();	
+	});
+  $(".cancel_create_comment").click(function(){	 
+    $("#comment-form").fadeOut();
+  });
+  $(".overlay").click(function(){
+    $("#comment-form").fadeOut();
+  });
+  
+  window.onkeydown = function( event ) {
+    if ( event.keyCode === 27 ) {
+       $("#comment-form").fadeOut();
+    }
+	};
+	
+	//read popup starts
+	$(".view_new_message").click(function(){	
+		//alert($(this).attr('id'));		
+	$(".view_new_message_popup").fadeIn();	
+	});
+		$(".cancel_create").click(function(){
+		$(".view_new_message_popup").fadeOut();
+		location.reload();
+		});
+	$(".view_new_message_popup .overlay").click(function(){
+		$(".view_new_message_popup").fadeOut();
+		location.reload();
+		});
+	//read popup ends
+
+//popup comments ends
+
+	});	 
+	
+	//extra .00 in bit amount starts
+	function fixit( obj ) {
+    obj.value = parseFloat( obj.value ).toFixed( 2 )
+	}
+	//extra .00 in bit amount ends
+			
+  }
+  
+
+	$(document).ready(function(){
+		
+   view_proposal = '<?php echo $content_type; ?>';
+	if( view_proposal == 'my_proposal')
+		{	
+		  var author_contractor = $(".node-my-proposal > header .submitted a.username").text();
+		   $('#cont_name').html(author_contractor);	
+		  var addresspro1 = $("div.thoroughfare").text();		 
+		   $('#addr-pro').html(addresspro1);		   
+		   var city_myproposal = $("span.locality").text();	
+		   var postal = $(".postal-code").html();
+		   //$('#addr-pro-city').html(city_myproposal );					
+		   var state_myproposal = $("span.state").text();
+		   $('#addr-pro-state').html(city_myproposal +" "+ state_myproposal +" "+ postal);		  
+		   var country_myproposal = $("span.country" ).text();	
+		     $('#addr-pro-country').html(country_myproposal);	
+
+	
+		$("#view_map").each(function(){
+		var embed ="<iframe width='238' height='238' frameborder='0' scrolling='no' marginheight='0' marginwidth='0' src='https://maps.google.com/maps?&amp;q="+ encodeURIComponent( $(this).text() ) +"&amp;output=embed'></iframe>";
+		$('#map_dis').html(embed);
+		});	
+		
+		//$("#my-proposal-node-form #edit-draft").val('Save as Draft');
+		//$('#my-proposal-node-form #edit-submit').val('Save as Draft'); 
+		
+	}
+});	
+
+</script>
+<style>
+.droppable-controls #ajax_msg > div {  display: block !important; }
+</style>
+
+<!--- create Proposal popup start --->
+
+                         <div id="proposal_pop_content">
+                         <div class="overlay"></div><!--overlay-->
+                          	
+                           <div class="proposal_pop_text">
+                           <div class="proposal_pop_text_inner">
+                            <!--<a href="#close" class="close"><img src="images/close.png" /></a>-->
+                               <h2 class="pro_required_title" style="font-weight:bold">Submit RFP For</h2>
+                               <p class="pro_required"></p>
+                               <button id="current_pop" class="pro_close"  type="button">close</button>
+                                </div><!--pop text inner-->
+                           </div><!--pop text-->
+                        </div><!--pop content-->
+
+
+<!--- create Proposal popup end --->

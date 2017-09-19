@@ -1,0 +1,10 @@
+name = Opt out
+description = Allow users to opt out of emails.
+core = 7.x
+
+; Information added by Drupal.org packaging script on 2014-06-20
+version = "7.x-1.0"
+core = "7.x"
+project = "opt_out"
+datestamp = "1403287151"
+

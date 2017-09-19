@@ -1,0 +1,72 @@
+@media (max-width: 320px) {
+	.pricing-block-grid{
+		margin-bottom:50px;
+	}
+}
+@media (max-width: 767px) {
+	.pricing-block-grid{
+		margin-bottom:50px;
+	}
+	.pricing-block .currency{
+		padding-left:10px;
+	}
+}
+@media (min-width: 768px) and (max-width: 991px) {
+	
+	
+}
+@media (min-width: 992px) and (max-width: 1199px) {
+	.pricing-block .featured-label p{
+		font-size:14px;
+	}
+	.cost{
+		font-size:70px;
+	}
+	.sign{
+		line-height:112px;
+	}
+	.cent{
+		line-height:100px;
+	}
+	.pricing-block .currency{
+		padding-left:10px;
+	}
+}
+@media (min-width: 1200px) {
+	
+}
+/*******************************code added by colan***************************/
+@media only screen and (min-width: 320px) and (max-width: 479px) 
+{
+.pricing-block .currency{padding-left:0px !important;}
+.pricing-block .head h3{font-size:22px !important;}
+#monthly { padding: 40px 0px !important;}
+.upgrade-header h1{font-size:2.5em;}
+.col-md-8.contact-us-row strong{width:100%; float:left;}
+.contact-us-row h3 a{margin-left:0px !important;}
+.col-md-3.pricing-block-grid{margin-top:20px;}
+}
+@media only screen and (min-width: 480px) and (max-width: 640px) 
+{
+.pricing-block .head h3{font-size:22px !important;}
+.col-md-8.contact-us-row strong{width:100%; float:left;}
+.contact-us-row h3 a{margin-left:0px !important;}
+.col-md-3.pricing-block-grid{margin-top:20px;}
+}
+@media only screen and (min-width: 641px) and (max-width: 979px) 
+{
+.col-md-8.contact-us-row strong{width:100%; float:left;}
+.contact-us-row h3 a{margin-left:0px !important;}
+.col-md-3.pricing-block-grid{margin-top:20px}
+}
+@media only screen and (min-width: 980px) and (max-width: 1022px) 
+{
+.col-md-3.pricing-block-grid{margin-top:20px;}
+}
+@media only screen and (min-width: 1024px) and (max-width: 1279px) 
+{
+#monthly { padding: 40px 10px !important;}
+.pricing-block .head h3{font-size:23px !important;}
+.cost{font-size:40px !important;}
+.col-md-8.contact-us-row strong{width:100%; float:left;}
+}

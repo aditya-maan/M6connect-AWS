@@ -1,0 +1,5 @@
+<?php    
+/*function m6connect_routing_schema() {
+  $schema = array();
+  return $schema;
+}*/

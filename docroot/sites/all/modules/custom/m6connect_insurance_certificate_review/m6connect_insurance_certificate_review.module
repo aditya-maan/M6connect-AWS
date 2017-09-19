@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the M6Connect Insurance Certificate Review feature.
+ */
+
+include_once 'm6connect_insurance_certificate_review.features.inc';

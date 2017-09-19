@@ -1,0 +1,5 @@
+name = M6Connect Group Purchasing
+description = Group Purchasing Functionality for M6CONNECT
+package = CUSTOM
+core = 7.x
+

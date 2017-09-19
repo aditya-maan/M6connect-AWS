@@ -1,0 +1,659 @@
+/******************************create_proposal  page-node-add-my-proposal  Aug_17********************/
+.page-node-add-my-proposal #page-title{display:none;}
+.page-node-add-my-proposal .ds-2col-stacked .group-left{width:100%; margin-top:20px;}
+.page-node-add-my-proposal .group-left h3 span {border-bottom: 1px solid #337ab7;  color: rgb(51, 122, 183);display: block; font-weight: bold; padding-bottom: 15px;}
+.page-node-add-my-proposal .form-item.form-type-radios.form-item-field-choose-from-the-options-li-und > label {  font-size: 16px;margin-bottom: 9px;}
+.page-node-add-my-proposal .form-item.form-type-radio.form-item-field-choose-from-the-options-li-und {font-size: 12px; line-height: 23px; padding-bottom:10px;}
+.page-node-add-my-proposal .required-fields.group-basic-prp-inner.field-group-div span.form-required{display:none;}
+.page-node-add-my-proposal .required-fields.group-submit-rfp.field-group-div{margin:0 0 10px 0;}
+
+/*.page-node-add-my-proposal .required-fields.group-proposal-information.field-group-div{float:left; width:100%;}
+.page-node-add-my-proposal .required-fields.group-basic-prp-inner.field-group-div{width:50%; float:left; margin-right:30px;}
+.page-node-add-my-proposal #edit-field-proposoal-bid-types-und > div{float:left; width:50%; margin-bottom:20px;}*/
+.page-node-add-my-proposal .required-fields.group-document-for-proposal.field-group-div span{}
+.page-node-add-my-proposal #edit-field-proposal-job-location-und-0 > legend{display:none;}
+.page-node-add-my-proposal .vertical-tabs.clearfix{display:none;} 
+.page-node-add-my-proposal .node-form .description{display:none;}
+/*.page-node-add-my-proposal .addressfield-container-inline.locality-block.country-US{width:100%; float:left;}*/
+.page-node-add-my-proposal div.addressfield-container-inline > div.form-item {
+    width: 30%;
+}
+.page-node-add-my-proposal.logged-in .cancel {
+    background: none repeat scroll 0 0 #fff !important;
+    border: 1px solid #337ab7;
+    padding: 5px 0;
+    position: absolute;
+    right: 0;
+	text-decoration:none;
+	line-height:normal;
+    text-align: center;
+    top: 0 !important;
+    width: 72px;
+}
+
+.page-node-add-my-proposal #edit-field-submit-proposal-in-respons{display:none;}
+.page-node-add-my-proposal .node-form.node-my_proposal-form.ds-2col-stacked{position:relative;}
+.page-node-add-my-proposal .tabledrag-toggle-weight-wrapper{display:none;}
+.page-node-add-my-proposal .required-fields.group-document-for-proposal.field-group-div > h3{display:none;}
+
+/*.page-node-add-my-proposal.form-field-type-addressfield.form-field-name-field-proposal-job-location.field-widget-addressfield-standard.form-wrapper{width:50%; float:left;}*/
+.head_creat_prop .left_cre_prop h1{float:left;}
+
+/******************************create_proposal end********************/
+
+/********************August_21*************************/
+.page-node-add-my-proposal .form-field-type-entityreference.form-field-name-field-submit-proposal-in-respons.field-widget-entityreference-view-widget.form-wrapper{position:relative;}
+.page-node-add-my-proposal .views-exposed-widget.views-widget-filter-keys{ float: left; padding-right: 0; width: 50%;}
+.page-node-add-my-proposal #edit-keys-wrapper > label{ color: #000; float: left; font-family: arial; font-size: 20px;  font-weight: normal;padding-right:10px; width:40%;}
+.page-node-add-my-proposal .logged-in .box{overflow:visible !important; margin-bottom:0px !important;}
+.page-node-add-my-proposal .head_creat_prop .left_cre_prop h1{margin:0px !important; padding-top:18px;}
+/**********************************************alert table******************************************************/
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table { margin:30px 0px;}
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table  table { width: 100%; border-collapse: collapse; /*border:1px solid #bcbcbc;*/ }
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table  tr:nth-of-type(odd) { }
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table  th { background:linear-gradient(to bottom, #f2f2f2 0%, #e0e0e0 100%) repeat scroll 0 0 rgba(0, 0, 0, 0);border-top:1px solid #bcbcbc; border-bottom:1px solid #d5d5d5; color: #5f6062; font-weight: bold; font-size:14px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; padding:7px !important; line-height:13px;}
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table  td{ border-bottom:1px solid #d5d5d5;  font-size:12px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f83be; line-height:14px;}	 
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table td,
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table th { padding: 10px; text-align: left; }
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table { float: left !important; width:100% !important;}
+/*******************************************alert table ends*****************************************************/
+
+
+
+/**********************************************alert table******************************************************/
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table { margin:30px 0px;}
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table  table { width: 100%; border-collapse: collapse; /*border:1px solid #bcbcbc;*/ }
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table  tr:nth-of-type(odd) { }
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table  th { background:linear-gradient(to bottom, #f2f2f2 0%, #e0e0e0 100%) repeat scroll 0 0 rgba(0, 0, 0, 0);border-top:1px solid #bcbcbc; border-bottom:1px solid #d5d5d5; color: #5f6062; font-weight: bold; font-size:14px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; padding:7px !important; line-height:13px;}
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table  td{ border-bottom:1px solid #d5d5d5;  font-size:12px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f83be; line-height:14px;}	 
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table  td,
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table  th { padding: 10px; text-align: left; }
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table { float: left !important; width:100% !important;}
+/*#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table  table, thead, tbody, th, td{padding:10px 0px;  }*/
+/*******************************************alert table ends*****************************************************/
+
+/**********************************************alert table******************************************************/
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table { margin:30px 0px;}
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table  table { width: 100%; border-collapse: collapse; /*border:1px solid #bcbcbc;*/ }
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table  tr:nth-of-type(odd) { }
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table  th { background:linear-gradient(to bottom, #f2f2f2 0%, #e0e0e0 100%) repeat scroll 0 0 rgba(0, 0, 0, 0);border-top:1px solid #bcbcbc; border-bottom:1px solid #d5d5d5; color: #5f6062; font-weight: bold; font-size:14px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; padding:7px !important; line-height:13px;}
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table  td{ border-bottom:1px solid #d5d5d5;  font-size:12px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f83be; line-height:14px;}	 
+
+#views-form-m6companies-entityreference-view-widget-1 .views-table{ margin:0 0 10px 0; }
+#views-form-m6companies-entityreference-view-widget-1 .form-actions{
+	text-align:right;
+}
+
+#views-form-m6companies-entityreference-view-widget-1 .views-table  table { width: 100%; border-collapse: collapse;}
+/*******************************************alert table ends*****************************************************/
+
+
+#field-mymap-add-more-wrapper #mymap iframe{width:100% !important;}
+.page-node-add-my-proposal #edit-reset { margin-left: 10px;  margin-top: 0px !important;}
+#modalBackdrop{background:rgba(0,0,0,0.9)!important;}
+/*.page-node-add-my-proposal .node-form tr.even{background-color:#fff !important;}
+.page-node-add-my-proposal .node-form tr.odd{background-color:#fff !important;}*/
+.page-node-add-my-proposal .node-form .item-list:after,
+.page-node-add-my-proposal .node-form .item-list:before{
+	content:"";
+	clear:both;
+	width:100%;
+	display:table;
+}
+.page-node-add-my-proposal .node-form .item-list{
+	text-align:center;
+}
+/*.page-node-add-my-proposal .pager-item,
+.pager-first,
+.pager-previous,
+.pager-next, .pager-last, .pager-ellipsis, .pager-current{padding:0px !important;}*/
+
+.pager-current{margin:5px 12px;}
+/*.page-node-add-my-proposal .pager{border:1px solid #ddd; padding:0px !important; margin:0px !important; display:inline-block; vertical-align:top;}
+.page-node-add-my-proposal .pager li > a, .pager li > span{border-radius:0px !important; border-left:1px solid #ddd !important; border:0px;}*/
+.page-node-add-my-proposal .head_creat_prop{padding:0px !important;}
+.page-node-add-my-proposal .head_creat_prop .left_cre_prop{padding:0px 2%;}
+.indi_red {
+    color: #f00;
+    float: right;
+    font-size: 14px;
+    margin-top: -47px;
+}
+/*.page-node-add-my-proposal .ervw-add-items.form-submit.ajax-processed {
+    background: none repeat scroll 0 0 rgba(0, 0, 0, 0);
+    color: #1f83be;
+    font-size: 12px;
+	text-decoration:underline;
+	margin:0 0 0 20px;
+ }*/
+/*.page-node-add-my-proposal .ervw-add-items.form-submit.ajax-processed.node-edit-protection-processed {
+    background: none repeat scroll 0 0 rgba(0, 0, 0, 0);
+    color: #1f83be;
+    font-size: 12px;
+	text-decoration:underline;
+	margin:0 0 0 20px;
+	padding:0;
+ }*/
+/*#field-submit-proposal-member-values tbody{border:0px !important;}
+#field-submit-proposal-member-values thead tr th.field-label{border:0px !important;}
+#field-submit-proposal-member-values tbody .odd td{color:#f00 !important;}
+#field-submit-proposal-member-values tbody .odd { border: 0 none;}
+
+#field-submit-proposal-in-respons-values tbody{border:0px !important;}
+#field-submit-proposal-in-respons-values thead tr th.field-label{border:0px !important;}
+#field-submit-proposal-in-respons-values tbody .odd td{color:#f00 !important;}
+#field-submit-proposal-in-respons-values tbody .odd { border: 0 none;}
+
+#field-field-sub-proposal-pjt-values tbody{border:0px !important;}
+#field-field-sub-proposal-pjt-values thead tr th.field-label{border:0px !important;}
+#field-field-sub-proposal-pjt-values tbody .odd td{color:#f00 !important;}
+#field-field-sub-proposal-pjt-values tbody .odd { border: 0 none;}
+*/
+/*#field-submit-proposal-to-company-values tbody{border:0px !important;}
+#field-submit-proposal-to-company-values thead tr th.field-label{border:0px !important;}
+#field-submit-proposal-to-company-values tbody .odd td{color:#f00 !important;}
+#field-submit-proposal-to-company-values tbody .odd { border: 0 none;}*/
+
+.form-item.form-type-textfield.form-item-field-proposal-job-location-und-0-postal-code:last-child{margin-right:0px !important;}
+.form-field-type-markup.form-field-name-field-footer-buttton.field-widget-markup.form-wrapper {
+    border-top: 1px solid #ccc;
+    float: left;
+    margin-top:30px;
+    padding-top: 10px;
+    width: 100%;
+}
+.form-field-type-addressfield.form-field-name-field-proposal-job-location.field-widget-addressfield-standard.form-wrapper {
+    float: left;
+    width: 50%;
+}
+.form-field-type-markup.form-field-name-field-mymap{
+    float: left;
+    padding-left: 12px;
+    width: 50%;
+}
+
+
+#edit-field-proposal-document-picture .sticky-enabled.tabledrag-processed .tabledrag-handle { display: none;}
+#edit-field-proposal-document-picture .sticky-enabled.tabledrag-processed .file-size { display:none; }
+#edit-field-proposal-document-picture .sticky-enabled.tabledrag-processed td:first-child .file-icon {display: none;}
+#edit-field-proposal-document-picture .sticky-enabled.tabledrag-processed td:nth-child(3) .file > a {display: none;}
+#edit-field-proposal-document-picture .sticky-enabled.tabledrag-processed td{vertical-align:top; padding-top: 10px;}
+#edit-field-proposal-document-picture .sticky-enabled.tabledrag-processed tr {   border-bottom: 0 none; }
+#edit-field-proposal-document-picture .sticky-enabled.tabledrag-processed td input {  background: rgba(0, 0, 0, 0) url("http://mikes-team-m6connect.pantheon.io/sites/all/themes/m6connect/images/Close.png") no-repeat scroll 0 0;
+    font-size: 0;
+	 margin-left: 22px;
+    height: 26px !important;
+    width: 24px;}
+#edit-field-proposal-document-picture .sticky-enabled.tabledrag-processed .file-widget.form-managed-file.clearfix{min-height:100% !important;}
+.form-field-type-file.form-field-name-field-proposal-document-picture.field-widget-dragndrop-upload-file.form-wrapper  legend { margin-bottom: 15px; }
+#edit-field-proposal-document-picture .sticky-enabled.tabledrag-processed { margin-top:0; }
+.draggable.even {border-bottom:0px;}
+#edit-field-submit-proposal-member table td input[type="checkbox"] {
+    margin-right: 10px;
+}
+/*.sticky-header thead th.field-label {   display: none; }
+#field-submit-proposal-in-respons-values > thead { display: none; }
+#field-field-sub-proposal-pjt-values > thead {  display: none;}
+#field-submit-proposal-member-values > thead { display: none;}
+#field-submit-proposal-to-company-values > thead {  display: none;}
+
+#field-submit-proposal-in-respons-values > tbody .odd > td { display: none; }
+#field-field-sub-proposal-pjt-values > tbody .odd > td {  display: none;}
+#field-submit-proposal-member-values > tbody .odd > td { display: none;}
+#field-submit-proposal-to-company-values > tbody .odd > td {  display: none;}
+
+#field-submit-proposal-in-respons-values > tbody .draggable.odd > td { display: table-cell; padding:0;}
+#field-field-sub-proposal-pjt-values > tbody .draggable.odd > td {  display: table-cell; padding:0;}
+#field-submit-proposal-member-values > tbody .draggable.odd > td { display: table-cell; padding:0;}
+#field-submit-proposal-to-company-values > tbody .draggable.odd > td {  display: table-cell; padding:0;}
+*/
+/*#edit-field-submit-proposal-to-company-und-add-more {
+    margin-bottom: 15px;
+    margin-left: 30px !important;
+    margin-top: -10px !important;
+}
+*/
+#edit-actions-ervw > a#entityreference-view-widget-select-all {   display: none; }
+
+/** ***  create Proposal alert Popup *** **/
+#proposal_pop_content{ display:none; position: absolute; right: 0; top: 0; width: 100%;z-index:1000;}
+#proposal_pop_content .overlay{position:fixed; width:100%;height:100%; background:rgba(182,188,188,0.8); z-index:1100;}
+#proposal_pop_content .proposal_pop_text{ padding:10px;  position: relative; text-align: left; max-width:700px; width:90%; left:0px; z-index:1200; -webkit-transform-style: preserve-3d;-moz-transform-style: preserve-3d; transform-style: preserve-3d;  -webkit-box-sizing: content-box;-moz-box-sizing: content-box;box-sizing: content-box;zoom: 1; top:100px; margin:0 auto; }
+#proposal_pop_content .close { box-sizing: inherit; color: hsl(0, 0%, 40%);cursor: pointer;   display: inline-block;font: bold 24px/14px Arial,Helvetica,Verdana,sans-serif; overflow: hidden;padding: 4px;position: absolute; right: 20px; text-align: center; text-decoration: none;text-shadow: 1px 1px 1px hsl(0, 0%, 87%); top: 38px; z-index:1200;}
+.proposal_pop_text_inner{ background:#fff; float:left; width:100%; padding:24px 0px; border-radius:10px;}
+.proposal_pop_text_inner h2{color:#3f8bc0; font-size:20px; padding-bottom:20px; border-bottom:1px solid #ccc; width:100%; float:left; padding-left:3%; padding-right:3%;}
+.proposal_pop_text_inner p{color:#333; font-size:14px; padding-bottom:20px; border-bottom:1px solid #ccc; margin-top:8px;width:100%; float:left; padding-left:3%; padding-right:3%;}
+.proposal_pop_text_inner #current_pop{background:#3f8bc0; color:#fff; font-size:14px; padding:5px; border:0px; float:right; margin-right:30px; margin-top:20px; border-radius:5px; width:80px; text-transform:capitalize;}
+
+/************ Proposal edit css view hide ********/
+.page-node-edit.node-type-my-proposal .view_my_proposal{display:none}
+/*.node-type-my-proposal .node-my-proposal{display:none}*/
+/*.node-type-my-proposal #page-title{display:none}*/
+
+/*.node-type-my-proposal .box.box-with-image {
+    background: rgba(0, 0, 0, 0) linear-gradient(to bottom, #f2f2f2 0%, #e0e0e0 100%) repeat scroll 0 0;
+    border-top: 1px solid #ccc;
+    float: left;
+    height: 24px;
+    width: 100%;
+}*/
+
+
+/*.m6_own_con .m6_own .m6_own_info li span{width:55%;}*/
+
+.node-my-proposal div.field {  display: none; }
+.node-my-proposal .links.inline {   display: none; }
+.node-my-proposal #comments h2.comment-form {   display: none;}
+.node-my-proposal header {   display: none; }
+/*******************************SEP1**********************************/
+.node-my-proposal #comment-form{ display:none; position: absolute; right: 0; top: 0; width: 100%;z-index:1000; opacity: 1 !important;}
+.node-my-proposal #comment-form .overlay{position:fixed; width:100%;height:100%; background:rgba(182,188,188,0.8); z-index:1100;}
+.node-my-proposal #comment-form #send_pop_text{ width:36%;}
+.node-my-proposal #comment-form .create_pop_text_click{float: none; margin:0 auto; position: fixed; text-align: left; max-width:450px; width:60%; z-index:9999; -webkit-transform-style: preserve-3d;-moz-transform-style: preserve-3d; transform-style: preserve-3d;  -webkit-box-sizing: content-box;-moz-box-sizing: content-box;box-sizing: content-box;zoom: 1; top:40px;
+    left: 50%;
+    margin-left: -245px;}
+.node-my-proposal #comment-form .close { box-sizing: inherit; color: hsl(0, 0%, 40%);cursor: pointer;   display: inline-block;font: bold 24px/14px Arial,Helvetica,Verdana,sans-serif; overflow: hidden;padding: 4px;position: absolute; right: 20px; text-align: center; text-decoration: none;text-shadow: 1px 1px 1px hsl(0, 0%, 87%); top: 37px; z-index:1200;}
+
+
+
+.node-my-proposal #comment-form .overlay{top:0px; left:0px;}
+.node-my-proposal #comment-form .create_pop_text_click{background-color:#fff !important; padding:20px;}
+
+.node-my-proposal .create_pop_text_click .form-item.form-type-textfield.form-item-subject > label {
+    color: #6b6b6b;
+    float: left;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 16px;
+    margin-bottom: 10px;
+    width: 100%;
+	font-weight:normal;
+}
+.node-my-proposal .create_pop_text_click .form-item.form-type-textfield.form-item-subject input[type="text"] {
+    border: 1px solid #d1d1d1;
+    color: #6b6b6b;
+    float: left;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 16px;
+    outline: medium none;
+    padding: 8px 10px;
+    width: 100%;
+	margin-bottom:10px;
+}
+
+.node-my-proposal .create_pop_text_click .form-item.form-type-textarea.form-item-comment-body-und-0-value > label{
+    color: #6b6b6b !important;
+    float: left;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 16px;
+    margin-bottom: 10px;
+    width: 100%;
+	font-weight:normal !important;
+}
+.node-my-proposal .create_pop_text_click .form-item.form-type-textarea.form-item-comment-body-und-0-value .form-textarea-wrapper {
+    float: left;
+    width: 100%;
+}
+
+
+
+.node-my-proposal .create_pop_text_click .cke_skin_kama a.cke_toolbox_collapser, .cke_skin_kama a.cke_toolbox_collapser:hover{ background-image:none !important; border:0px !important; width:0px !important; height:0px !important;}
+.node-my-proposal .create_pop_text_click #edit-field-image-upload .image-widget.form-managed-file.clearfix {
+    background: none repeat scroll 0 0 #fff;
+    border: 0 none !important;
+    border-radius: 0;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+.node-my-proposal .create_pop_text_click #edit-field-image-upload .image-widget.form-managed-file.clearfix .droppable-message .droppable-standard-upload{min-height:100% !important;}
+.node-my-proposal .create_pop_text_click #edit-field-image-upload .image-widget.form-managed-file.clearfix .droppable-message{line-height:23px !important; padding:20px 0px !important;}
+.node-my-proposal .create_pop_text_click #edit-field-image-upload-und {
+    float: left;
+    width: 100%;
+}
+.node-my-proposal .create_pop_text_click #edit-comment-body-und-0-format{display:none !important;}
+.node-my-proposal .create_pop_text_click .form-item .description{display:none !important;}
+.node-my-proposal .create_pop_text_click .captcha.form-wrapper{display:none !important;}
+.node-my-proposal .create_pop_text_click #edit-preview{display:none !important;}
+.node-my-proposal .create_pop_text_click #wysiwyg-toggle-edit-comment-body-und-0-value{display:none !important;}
+.node-my-proposal .create_pop_text_click #edit-author--2 label {
+    color: #000;
+    float: left;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 26px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+.node-my-proposal .create_pop_text_click #edit-author--2 .username{display:none !important;}
+.node-my-proposal .sticky-enabled.tabledrag-processed.tableheader-processed.sticky-table { float: left; width: 100%;}
+.node-my-proposal .sticky-enabled.tabledrag-processed.tableheader-processed.sticky-table .image-preview{display:none !important;}
+.node-my-proposal .sticky-enabled.tabledrag-processed.tableheader-processed.sticky-table .file-size{display:none !important;}
+.node-my-proposal .sticky-enabled.tabledrag-processed.tableheader-processed.sticky-table td input {
+    background: url("http://mikes-team-m6connect.pantheon.io/sites/all/themes/m6connect/images/Close.png") no-repeat scroll 0 0 rgba(0, 0, 0, 0);
+    font-size: 0;
+    height: 26px !important;
+    margin-left: 22px;
+    width: 24px;
+}
+.node-my-proposal .sticky-enabled.tabledrag-processed.tableheader-processed.sticky-table td {font-size:12px; vertical-align:top; padding:12px;}
+.node-my-proposal .sticky-enabled.tabledrag-processed.tableheader-processed.sticky-table th {
+    background: none repeat scroll 0 0 #f4f4f4;
+    font-size: 12px;
+    padding: 10px;
+}
+.node-my-proposal .sticky-enabled.tabledrag-processed.tableheader-processed.sticky-table td div{padding:0px !important; min-height:100% !important;}
+.node-my-proposal .field-type-file.field-name-field-image-upload.field-widget-dragndrop-upload-file.form-wrapper > div {
+    float: left;
+    width: 100%;
+}
+.node-my-proposal .field-type-markup.field-name-field-message.field-widget-markup.form-wrapper > div .message_comment{
+    float: left;
+    width: 100%;
+}
+.node-my-proposal .tabledrag-toggle-weight-wrapper .tabledrag-toggle-weight{display:none !important;}
+.node-my-proposal .field-type-file.field-name-field-image-upload.field-widget-dragndrop-upload-file.form-wrapper legend{display:none !important;}
+.node-my-proposal .field-type-markup.field-name-field-message.field-widget-markup.form-wrapper label
+{ color: #6b6b6b !important;
+    float: left;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 16px;
+    margin-bottom: 10px;
+    width: 100%;
+	font-weight:normal !important;
+}
+
+.node-my-proposal .create_pop_text_click a.cancel_create_comment {
+    background: none repeat scroll 0 0 #fff;
+    border: 1px solid #337ab7;
+    color: #337ab7;
+    float: right;
+    font-size: 12px;
+    padding: 6px 10px;
+    text-decoration: none;
+	cursor:pointer;
+}
+.node-my-proposal #edit-field-image-upload .sticky-enabled.tabledrag-processed td:first-child .file-icon{display:none !important;}
+.node-my-proposal #edit-field-image-upload .sticky-enabled.tabledrag-processed td:nth-child(3) .file > a{display:none !important;}
+.node-my-proposal .droppable.dnd-upload-processed.dnd-upload-element-processed.dnd-upload-file-processed .droppable-message .droppable-standard-upload .droppable-browse-button.button:hover{background:none !important; color:#0f75bc !important; -webkit-appearance:none;}
+.droppable-browse-button.button{-webkit-appearance:none;}
+/*.m6_download #download-btn {
+    background: none repeat scroll 0 0 rgba(0, 0, 0, 0) !important;
+    border: 0 none;
+}*/
+.node-my-proposal .comments__title.title{display:none;}
+.node-my-proposal #comments{margin-top:0px !important;}
+.m6_down_sel {
+    border: 0 none !important;
+    margin-right: 10px;
+}
+.create_pop_text_click .form-item.form-type-item {display: none;}
+
+/*.foot-list {float: right; margin-right: 35px;}*/
+/*.foot-list .form-submit.node-edit-protection-processed { float: left; margin-right: 10px;}*/
+/*.foot-list .cancel-edit-proposal {border: 1px solid #337ab7;float: left;padding: 4px 0;  text-align: center;
+ width: 72px;}*/
+.read .m6_unread {  font-weight: normal !important;}
+.unread .m6_unread {  font-weight: bold !important;}
+.droppable-controls #ajax_msg > div {  display: block !important; }
+ /********************************************sep3**************************************/
+.comp_prop { background: none repeat scroll 0 0 #e1e1e1; border: 1px solid #cccccc; font-size: 14px; font-style: italic;
+ font-weight: bold; margin: 0; padding: 15px 10px;text-transform: capitalize;}
+.nav.nav-pills.nav-stacked.comp_prop_detail {/*border: 1px solid #ccc;*/ padding: 10px;}
+.nav.nav-pills.nav-stacked.comp_prop_detail a:hover{ background-color: #fff !important; border-bottom: 1px solid #ddd;
+border-left: 5px solid #337ab7;color: #2a2a2a; font-weight: 600;}
+.nav.nav-pills.nav-stacked.comp_prop_detail a{ border-left: 5px solid #fff;}
+.prop_new_det .col-md-2.col-sm-2.col-xs-12 > a {  float: left;text-align: left; width: 100%;}
+.prop_new_det .col-md-2.col-sm-2.col-xs-12 > p { float: left; text-align: left;width: 83%;color:#0c75c6; padding-left:17%;}
+.prop_new_det .col-md-2.col-sm-2.col-xs-12 > a img {  display: inline-block;}
+.prop_new_det .company-summary h3 { color: #337ab7; float: left; font-family: arial;font-size: 18px; text-transform: capitalize; width: 100%;}
+.prop_new_det .company-meta .fa {  margin-right: 5px;}
+.prop_new_det .company-meta span {font-size: 12px;  margin-right: 10px;}
+.prop_new_det .prop_miles { color: #337ab7; font-size: 13px; line-height: 26px;padding-bottom: 0;text-align:left; width:100%;}
+.prop_new_det .prop_unread { color: #8a1d04; cursor: pointer; font-size: 14px;margin-top: 10px;text-align:left; width:100%;}
+/*.prop_new_det .btn-group { margin-top: -80px !important;}*/
+.prop_new_det .row { border-bottom: 1px solid #ccc;float: left;margin: 0 0% 20px;padding: 20px 0; width: 100%;}
+.prop_cont_left .nav-pills li.active a{font-size:16px;}
+.prop_cont_left .nav-pills li a{font-size:16px;}
+.prop_cont_left .nav-pills li a:hover{font-size:15px;}
+.nav-pills li.active a{border-left:5px solid #337ab7 !important;}
+.prop_new_det .prop_created { margin-top: 25px; text-align:left; width:100%;}
+.new_pop_created_main{ left: 30px; position: relative; top: 0;}
+/****************************last-two-newly-added***************/
+.page-proposals .views-exposed-widget.views-widget-filter-title { padding-top: 0 !important;}
+.page-proposals .views-exposed-widget.views-widget-filter-title {  padding: 2px 0;width: 37%;}
+/******************************section spliting***********/
+.page-proposals .sidebars section {padding-left: 0%; width: 19%;}
+.page-proposals .view.view-proposals { float: right; width: 90%;}
+/******************************section spliting***********/
+.prop_new_det .company-ank {
+    float: left;
+    width: 20%;
+	padding:0px;
+}
+.prop_new_det .company-summary {
+    float: left;
+    width: 30%;
+}
+.new_pop_created_main{
+	 float: left;
+    width: 30%;
+}
+.new_pop_created_main strong {
+    float: left;
+}
+.new_pop_created_main span {
+    float: left;
+}
+
+#ajax_msg #browser_load .blockUI.blockMsg.blockPage{width:60% !important; left:20% !important;}
+/************************************sep3 end********************************/
+.page-proposals .view-id-proposals .views-exposed-form .views-exposed-widget .form-type-select {float: right; width: 100%;}
+.page-proposals .view-id-proposals .views-exposed-form .views-exposed-widget .form-type-select label {float: left;
+ line-height: 32px; width: 21%;}
+.page-proposals .view-id-proposals .views-exposed-form .views-exposed-widget .form-type-select select { float: right; width: 75%;}
+.page-proposals .view-id-proposals .views-exposed-form .views-exposed-widget .form-submit{margin-top:0px !important;}
+.page-proposals .view-id-proposals .views-exposed-form .views-exposed-widget {padding: 0 !important;}
+.page-proposals .view-id-proposals .views-exposed-form .views-widget-sort-by {
+    float: right; width:45%;}
+/**************************************sep9*************************/
+.page-proposals-rejected .m6_view_proposal{margin-top:0px;}
+.page-proposals-awarded .m6_view_proposal{margin-top:0px;}
+.page-proposals-received .m6_view_proposal{margin-top:0px;}
+.page-proposals-unread .m6_view_proposal{margin-top:0px;} 
+.prop_new_det .dropdown-menu { left: -84px;}
+#m6_prop1 ul li .dropdown-menu > li > a:focus, .dropdown-menu > li > a:hover{background-color:#fff !important; background-image:none !important;}
+.search_m6_prop1 input[type="submit"] {background: none repeat scroll 0 0 #2773b4;border: 0 none; color: #fff;  outline: medium none;}
+#download-btn-msg { background: none repeat scroll 0 0 #337ab7; border: 0 none; color: #fff;}
+#download-btn-msg:hover{text-decoration:underline;} 
+.view-id-proposals input.form-text, .view-id-proposals select{height:42px;}
+.view-id-proposals input[type="submit"]{height:42px !important;}
+.view-id-proposals .form-item.form-type-select.form-item-sort-by > label{display:none;}
+
+.m6_prop1_img > a {color: #000;}
+.m6_prop1_img > a span { color: #0c75c6; float: left;margin-top: 5px; padding-left: 10%; text-align: left; width: 80%;}
+/*.default_cmp{font-size:70px; margin-top:-15px;}*/
+.default_cmp .fa.fa-fw.fa-building {  margin: 0 !important; padding: 0 !important; text-align: left;}
+.m6_prop1_created ul li span a {color: #333;}
+.m6_prop1_created ul li.un_msg a{color:#8a1d04;}
+.prop_new_det .col-md-2.col-sm-2.col-xs-12 > a{color:#000;}
+.prop_new_det .col-md-2.col-sm-2.col-xs-12.company-ank p{color:#0c75c6; padding-left:10%; width:90%;}
+.prop_new_det .default_cmp{margin-top:-15px;}
+.new_pop_created_main span a{color:#333;}
+.prop_new_det .col-md-2.col-sm-2.col-xs-12.actions {
+    float: right;
+    text-align: right;
+}
+
+
+
+/*.page-node-add-my-proposal #field-footer-buttton-add-more-wrapper .cancel_bottom{float:left;}*/
+.page-node-add-my-proposal .chosen-container-single .chosen-drop{margin-top:0px !important; width:100%;}
+.page-node-add-my-proposal .chosen-container-active .chosen-single { border: 1px solid #ccc !important; box-shadow: 0 0 0 #fff !important;}
+.page-node-add-my-proposal .chosen-container-single .chosen-single{background:none repeat scroll 0 0 rgba(0, 0, 0, 0) !important;
+border-radius:0px !important;box-shadow:0 0 0 white inset, 0 1px 1px rgba(0, 0, 0, 0.1) !important;width:100%;height:32px !important;}
+.page-node-add-my-proposal .chosen-container{width:100% !important; display:block !important;}
+
+/*.bidder-type label {  width: 170px !important; }*/
+
+#edit-comment-body .cke_toolbar span.cke_rcombo { display: none !important; }
+#edit-comment-body .cke_toolbar > span:nth-child(6){  display: none !important; }
+#edit-comment-body .cke_toolbar .cke_toolgroup > span:nth-child(14) {display:none;}
+#edit-comment-body .cke_toolbar .cke_toolgroup > span:nth-child(15) {    display: none; }
+#edit-comment-body .cke_toolbar .cke_toolgroup > span:nth-child(16) {    display: none; }
+#edit-comment-body .cke_toolbar .cke_toolgroup > span:nth-child(17) {    display: none; }
+#edit-comment-body  #cke_contents_edit-comment-body-und-0-value.cke_contents {    height: 210px !important; }
+#edit-comment-body #cke_edit-comment-body-und-0-value.cke_skin_kama.cke_1.cke_editor_edit-comment-body-und-0-value { width: 100% !important;}
+.m6_own_con #download-sel{display:none;}
+#dol_sym { 
+    height: 32px;
+    width: 5%;
+    position: absolute;
+    right: 0;
+    text-align: center;
+    bottom: 0; }
+.form-item.form-type-textfield.form-item-field-proposal-bid-amount-und-0-value {
+	margin:0;
+	position:relative;
+}
+/*#edit-field-proposoal-bid-types {    float: left; width: 100%; }*/
+/********************************************jeevi sep15*************************/
+.page-proposals-sent .m6_view_proposal{margin-top:0px;}
+.page-proposals-draft .m6_view_proposal{margin-top:0px;}
+.page-proposals-all .m6_view_proposal{margin-top:0px;}
+.node-type-my-proposal .box .inner-box ul.tabs{margin:0 0 2px !important;}
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 #edit-submit{margin-top:50px; margin-right:30px; display:none;}
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 p{text-align:center; margin-top:70px;}
+#views-form-m6project-for-proposal-entityreference-view-widget-1 #edit-submit{margin-top:50px; margin-right:30px;display:none;}
+#views-form-m6project-for-proposal-entityreference-view-widget-1 p{text-align:center; margin-top:70px;}
+#views-form-m6companies-entityreference-view-widget-1 #edit-submit{margin-top:50px; margin-right:30px;display:none;}
+#views-form-m6companies-entityreference-view-widget-1 p{text-align:center; margin-top:70px;}
+
+/*********************************confirm_submission_sep16******************************/
+#confirm_pop_content{ display:none; position: absolute; right: 0; top: 0; width: 100%;z-index:1000;}
+#confirm_pop_content .overlay{position:fixed; width:100%;height:100%; background:rgba(182,188,188,0.8); z-index:1100;}
+#confirm_pop_content .create_pop_text_new{background-color: rgba(255, 255, 255, 0.7); float: none; margin:0 auto; position: relative; text-align: left; max-width:750px; width:60%; left:0px; z-index:1200; -webkit-transform-style: preserve-3d;-moz-transform-style: preserve-3d; transform-style: preserve-3d;  -webkit-box-sizing: content-box;-moz-box-sizing: content-box;box-sizing: content-box;zoom: 1; top:100px; }
+#confirm_pop_content .close { box-sizing: inherit; color: hsl(0, 0%, 40%);cursor: pointer;   display: inline-block;font: bold 24px/14px Arial,Helvetica,Verdana,sans-serif; overflow: hidden;padding: 4px;position: absolute; right: 20px; text-align: center; text-decoration: none;text-shadow: 1px 1px 1px hsl(0, 0%, 87%); top: 37px; z-index:1200;}
+#confirm_pop_content #send_pop_text_new{ width:35%;}
+.create_new_pop_inner_con_sub #send_new_message{width:100%; float:left; text-align:left;}
+.create_new_pop_inner_con_sub #send_new_message{width:100%; float:left; text-align:right;}
+.create_new_pop_inner_con_sub h2 {
+    color: #000;
+    float: left;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 26px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+.create_new_pop_inner_con_sub p{margin-bottom:20px; float:left; width:100%; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 14px;}
+.create_new_pop_inner_con_sub .create_new_btn_last .form-submit {
+    background: none repeat scroll 0 0 #337ab7;
+    border: 1px solid transparent;
+    border-radius: 0;
+    color: #fff;
+    cursor: pointer;
+    margin-right: 10px;
+    padding: 5px 15px;
+    text-align: center;
+    text-shadow: none;
+}
+.create_new_pop_inner_con_sub .create_new_btn_last .cancel_create {
+    background: none repeat scroll 0 0 #fff !important;
+    border: 1px solid #337ab7;
+    color: #337ab7;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    padding: 6px 10px;
+}
+.create_new_pop_inner_con_sub
+ { background: none repeat scroll 0 0 #fff; border-top: 1px solid #e1e1e1; float: left; padding: 24px 3%;  width: 94%;}
+
+/*******************************************************************************************/
+
+.node-type-my-proposal.admin-menu .box .tabs-primary li:first-child{display:block;}
+.node-type-my-proposal .box .tabs-primary li:first-child{display:none;}
+/*.node-type-my-proposal .box .tabs-primary li:last-child a {
+    background: none repeat scroll 0 0 #337ab7;
+    border-radius: 0;
+    color: #fff;
+    font-size: 14px;
+    padding: 3px 15px;
+	margin-bottom:10px;
+}
+.node-type-my-proposal.admin-menu .box .tabs-primary li:last-child a {
+    background: #fff;
+    color: #333;
+    font-size: 17px;
+    padding-left: 0px;
+    padding-right: 0px;
+    line-height: 38px;
+	margin-bottom:0px;
+}
+.node-type-my-proposal .box .inner-box ul.tabs-primary li{float:right;}
+.node-type-my-proposal .box .inner-box ul.tabs-primary {border-bottom:0px solid #ddd  !important;}
+
+.node-type-my-proposal.admin-menu .box .inner-box ul.tabs-primary li{float:left;}
+.node-type-my-proposal.admin-menu .box .inner-box ul.tabs-primary {border-bottom:1px solid #ddd !important;}
+*/
+.node-type-my-proposal .m6_view_proposal{margin:0px !important;}
+.node-type-my-proposal.admin-menu .m6_view_proposal{margin:40px 0 20px !important;}
+
+.node-type-my-proposal #better-messages-default table td .messages.status {
+    border: 0 none;
+    color: #0ebe03;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.node-type-my-proposal #better-messages-default .footer a {
+    background: none repeat scroll 0 0 #347ab8;
+    color: #fff;
+    font-size: 14px;
+	text-align:center;
+	height:25px;
+	line-height:25px;
+}
+.node-type-my-proposal #better-messages-default .footer{border-top:0px  !important;}
+.node-type-my-proposal #better-messages-default table{border:1px solid #ddd;}
+
+
+/*****************************sep23******************************/
+#view_close {
+    background: none repeat scroll 0 0 #fff;
+    border: 1px solid #337ab7;
+    color: #337ab7;
+    float: right;
+    padding: 4px 10px;
+}
+#current_cancel {
+    float: right;
+}
+#current_subproposal {
+    float: right;
+}
+#current_okey
+{
+    float: right;
+}
+.node-type-my-proposal.section-node-edit #edit-field-submit-proposal-in-respons,
+.page-node-add-my-proposal #edit-field-submit-proposal-in-respons{
+	position:absolute;
+	top:66px;
+	margin:0;
+}
+.page-node-add-my-proposal #edit-field-field-sub-proposal-pjt,
+.node-type-my-proposal.section-node-edit #edit-field-field-sub-proposal-pjt{
+	position:absolute;
+	top:106px;
+}
+.page-node-add-my-proposal #edit-field-submit-proposal-to-company,
+.node-type-my-proposal.section-node-edit #edit-field-submit-proposal-to-company{
+	position:absolute;
+	top:136px;
+}
+/*#edit-field-submit-proposal-to-company{
+    margin: 0;
+}
+#edit-field-field-sub-proposal-pjt .form-item,
+#edit-field-submit-proposal-to-company .form-item{
+	margin:0;
+}*/

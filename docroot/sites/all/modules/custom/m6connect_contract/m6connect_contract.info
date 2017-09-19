@@ -1,0 +1,5 @@
+name = M6Connect Contract
+description = Contract Functionality For M6CONNECT
+package = CUSTOM
+core = 7.x
+

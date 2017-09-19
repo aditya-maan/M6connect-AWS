@@ -1,0 +1,2127 @@
+<?php
+/**
+ * Implements hook_menu().
+ */
+function m6connect_m6_drive_menu() {
+  $items['program/m6-drive'] = array(
+    'page callback'   => 'program_drive_listing_content',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['load-drive-data/%/%/%ctools_js'] = array(
+    'page callback'   => 'load_drive_data_callback',
+    'page arguments'  => array(1,2,3),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  ); 
+  $items['addnew-m6drive/%/%ctools_js'] = array(
+    'title'           => 'Add new folder',
+    'page callback'   => 'm6drive_add_new_folder_callback',
+    'page arguments'  => array(1,2),
+    'access callback' => '_is_m6_user_logged_in',
+    'type'            => MENU_CALLBACK,
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['uploadfile-m6drive/%/%ctools_js'] = array(
+    'page callback'   => 'm6drive_upload_new_file_callback',
+    'page arguments'  => array(1,2),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['share-m6drive/revoke/%/%/%ctools_js'] = array(
+    'page callback'   => 'm6drive_share_with_other_callback',
+    'page arguments'  => array(2,3,4),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['m6drive-share-withme'] = array(
+    'page callback'   => 'm6drive_shared_withme_listing_content',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  ); 
+  $items['share-load-drivedata/%/%/%ctools_js'] = array(
+    'page callback'   => 'share_load_drivedata_callback',
+    'page arguments'  => array(1,2,3),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['m6drive-download/folder/%ctools_js'] = array(
+    'page callback'   => 'm6drive_download_callback',
+    'page arguments'  => array(2),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['m6drive-multiple-download/%/%'] = array(
+    'page callback'   => 'm6drive_download_multiple_folder_callback',
+    'page arguments'  => array(1,2),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['m6drive-delete-shared-folder/%/%/%ctools_js'] = array(
+    'page callback'   => 'm6drive_delete_shared_folder_callback',
+    'page arguments'  => array(1,2,3),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['m6drive-delete-folder/%/%/%ctools_js'] = array(
+    'page callback'   => 'm6drive_delete_folder_callback',
+    'page arguments'  => array(1,2,3),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['m6drive-trash-folder'] = array(
+    'page callback'   => 'm6drive_trash_folder_content',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['trash-load-drive-data/%/%/%ctools_js'] = array(
+    'page callback'   => 'm6drive_trash_load_drive_data_callback',
+    'page arguments'  => array(1,2,3),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['remove-drive-permanent/%/%/%ctools_js'] = array(
+    'page callback'   => 'm6drive_remove_drive_permanent_callback',
+    'page arguments'  => array(1,2,3),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  ); 
+  $items['m6drive-archive'] = array(
+    'page callback'   => 'm6drive_archive_content',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['archive-load-drive-data/%/%/%ctools_js'] = array(
+    'page callback'   => 'm6drive_archive_load_drive_data_callback',
+    'page arguments'  => array(1,2,3),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['m6drive-archive-folder/%/%/%ctools_js'] = array(
+    'page callback'   => 'm6drive_archive_folder_callback',
+    'page arguments'  => array(1,2,3),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['m6drive-restore/%/%/%ctools_js'] = array(
+    'page callback'   => 'm6drive_restore_callback',
+    'page arguments'  => array(1,2,3),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['m6drive-unarchive-folder/%/%/%ctools_js'] = array(
+    'page callback'   => 'm6drive_unarchive_folder_callback',
+    'page arguments'  => array(1,2,3),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['project/drive'] = array(
+    'page callback'   => 'm6drive_projects_drive_content',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['project-load-drive/%/%/%ctools_js'] = array(
+    'page arguments'  => array(1,2,3),
+    'page callback'   => 'project_drive_load_data_callback',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['project-drive-share/%/%/%ctools_js'] = array(
+    'page arguments'  => array(1,2,3),
+    'page callback'   => 'project_drive_share_callback',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['project/share-drive'] = array(
+    'page callback'   => 'm6drive_project_share_drive_content',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  ); 
+  $items['project-share-load-drive/%/%/%ctools_js'] = array(
+    'page arguments'  => array(1,2,3),
+    'page callback'   => 'project_drive_share_load_listing_content',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['project-drive-archive/%/%/%ctools_js'] = array(
+    'page arguments'  => array(1,2,3),
+    'page callback'   => 'project_drive_archive_folder_callback',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['project-drive-trash/%/%/%ctools_js'] = array(
+    'page arguments'  => array(1,2,3),
+    'page callback'   => 'project_drive_trash_folder_callback',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+   $items['project/archive-drive'] = array(
+    'page callback'   => 'm6drive_project_archive_drive_content',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['project-archive-load-drive/%/%/%ctools_js'] = array(
+    'page arguments'  => array(1,2,3),
+    'page callback'   => 'project_drive_archive_load_listing_content',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  ); 
+  $items['project-drive-unarchive/%/%/%ctools_js'] = array(
+    'page arguments'  => array(1,2,3),
+    'page callback'   => 'project_drive_unarchive_folder_callback',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+   $items['project/trash-drive'] = array(
+    'page callback'   => 'm6drive_project_trash_drive_content',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['project-trash-load-drive/%/%/%ctools_js'] = array(
+    'page arguments'  => array(1,2,3),
+    'page callback'   => 'project_drive_trash_load_listing_content',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['project-delete-drive/%/%/%ctools_js'] = array(
+    'page arguments'  => array(1,2,3),
+    'page callback'   => 'project_drive_delete_folder_file_callback',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['project-drive-delete-permanent/%/%/%ctools_js'] = array(
+    'page arguments'  => array(1,2,3),
+    'page callback'   => 'project_drive_delete_permanent_in_trash',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['m6drive-multiple-download/multi/%ctools_js'] = array(
+    'page callback'   => 'm6drive_download_multiple_folder_multi_callback',
+    'page arguments'  => array(2),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+
+  $items['m6drive-project-multiple-download/multi/%ctools_js'] = array(
+    'page callback'   => 'm6drive_project_download_multiple_folder_multi_callback',
+    'page arguments'  => array(2),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+
+  // Callbacks for adding new folder or file in project drive.
+  // Added on Dec 07, 2016 by Saurabh Bhardwaj.
+  $items['addnew-m6drive-project/%/%/%ctools_js'] = array(
+    'page callback'   => 'project_drive_add_new_folder',
+    'page arguments'  => array(1, 2, 3),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['uploadfile-m6drive-project/%/%/%ctools_js'] = array(
+    'page callback'   => 'project_drive_add_new_file',
+    'page arguments'  => array(1, 2, 3),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  // Added to add to my drive in shared tab.
+  $items['add-to-mydrive/%ctools_js'] = array(
+    'page callback'   => 'm6drive_add_tomydrive_callback',
+    'page arguments'  => array(1),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  $items['add-to-mydrive-project/%ctools_js'] = array(
+    'page callback'   => 'm6drive_project_add_tomydrive_callback',
+    'page arguments'  => array(1),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  );
+  // Grid view callback 
+   $items['personal-drive-grid-view/%'] = array(
+    'page callback'   => 'm6drive_personal_drive_grid_view',
+    'page arguments'  => array(1),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'drive.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_m6_drive') . '/include',
+  ); 
+  return $items;
+}
+  
+// ======================
+// Start M6 Drive Section
+// ======================
+
+function list_s3_bucket($bucket_name, $s3){
+    // initialize the data array
+    $data = array();
+    $bucket_content = $s3->getBucket($bucket_name);
+    foreach ($bucket_content as $key => $value) {
+        //ignore s3 "folders"
+        if (preg_match("/\/$/", $key)) continue;
+        // explode the path into an array
+        $file_path = explode('/', $key);
+        $file_name = end($file_path);
+        //$file_folder = substr($key, 0, (strlen($file_name) * -1)+1);
+        $file_folder = prev($file_path);
+        $s3_url = "https://console.aws.amazon.com/s3/home?region=us-west-2#/";
+        $data[$key] = array(
+            'file_name' => $file_name,
+            's3_key' => $key,
+            'file_folder' => $file_folder,
+            'file_size' => $value['size'],
+            'created_on' => date('Y-m-d H:i:s', $value['time']),
+            's3_link' => $s3_url,
+            'md5_hash' => $value['hash']
+    );
+    }
+    return $data;
+}
+//============ Get Parent folder using id=================//
+function m6drive_get_parent_folder($parentid){
+global $user, $company;
+$result = $parentid;
+$arr = array();
+//if(!empty($parentid) && is_numeric($parentid)){
+    while($result > 0) {
+     $query = db_select('m6connect_m6drive', 'm6d');
+     $query->fields('m6d', array('parent_id'));
+     $query->condition('m6d.Id', $result, '=');
+     $result = $query->execute()->fetchField();
+     $arr[] = $result;
+    }
+    $output = array();
+    foreach($arr as $val) {
+     if($val == 0) { continue; }
+     
+     $query2 = db_select('m6connect_m6drive', 'm6d');
+     $query2->fields('m6d', array('Id','foldername'));
+     $query2->condition('m6d.Id', $val, '=');
+     $result2 = $query2->execute()->fetchAllKeyed(0,1);
+     if (!empty($result2)) {
+      $output[] = $result2;
+     }
+     else {
+      $node = node_load($val);
+      $title = $node->title;
+      $folder_title = str_replace(' ', '_', $node->title);
+      $output[] = array($val => array($folder_title));
+     }
+    }
+  //}
+  return array_reverse($output); 
+}
+
+//============End Get Parent folder using id=================//
+//===============start m6drive share with other==============//
+function m6drive_folder_action_btn($shareType, $shareid){
+  global $company;
+  if($shareType == 'folder' && !empty($shareid)){  
+  $output =  '<div class="btn-group">
+      <div class="dropdown">
+        <button id="" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="">
+        <li>'.l('Share','share-m6drive/revoke/folder/'.$shareid.'/nojs', array('attributes'=> array('class'=>array('ctools-use-modal ctools-modal-assign-dashboard-popup-style')))).'</li>
+         <li>'.l('Archive','m6drive-archive-folder/folder/'.$shareid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+         <li>'.l('Delete','m6drive-delete-folder/folder/'.$shareid.'/nojs', array('attributes'=> array('class'=>array('ctools-use-modal ctools-modal-assign-dashboard-popup-style')))).'</li>
+        </ul>
+      </div>
+      </div>';
+  } 
+  if($shareType == 'file' && !empty($shareid)){ 
+     $output =  '<div class="btn-group">
+      <div class="dropdown">
+        <button id="" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="">
+        <li>'.l('Share','share-m6drive/revoke/file/'.$shareid.'/nojs', array('attributes'=> array('class'=>array('ctools-use-modal ctools-modal-assign-dashboard-popup-style')))).'</li>
+         <li>'.l('Archive','m6drive-archive-folder/file/'.$shareid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+         <li>'.l('Delete','m6drive-delete-folder/file/'.$shareid.'/nojs', array('attributes'=> array('class'=>array('ctools-use-modal ctools-modal-assign-dashboard-popup-style')))).'</li>
+        </ul>
+      </div>
+      </div>';
+
+  }
+  return $output;
+
+}
+//=============== End m6drive share with other==============//
+//=============== Strat share with me listing ==============//
+
+function m6connect_m6drive_sharedbyfolderID($foldID, $uid) {
+  $query = db_select('m6connect_m6drive_shared', 'd')
+        ->fields('d')
+        ->condition('folder_id', $foldID)
+        ->condition('share_to_uid', $uid)
+        ->execute()->fetchAll();
+    return $query[0]; 
+}
+
+function getJustparent_folderID($foldID, $uid){
+        
+            
+          $allprt = m6drive_get_parent_folder($foldID);
+          $total_prnt = count($allprt)-1;
+          for($k=$total_prnt; $k>=0; $k--){
+            $query = m6connect_m6drive_sharedbyfolderID(array_keys($allprt[$k])[0], $uid);
+             if($query->permissions) {
+              return $query->permissions;
+             }
+          }
+}
+//=============== End share with me listing ==============//
+//=============== start share load drive data ==============//
+//=============== End share load drive data ==============//
+//================ GLOBAL FUNCTION HERE==================//
+function get_m6drive_share_date_name($uid, $folderid){
+  if(!empty($folderid) && is_numeric($folderid)){
+    $query = db_select('m6connect_m6drive_shared','srd');    
+    $query->fields('srd',array('folder_id','share_by_uid','share_to_uid','shared_date'));
+    $query->condition('srd.share_to_uid', $uid);
+    $query->condition('srd.folder_id', $folderid);
+    $output = $query->execute()->fetchObject();
+  }
+  return $output;
+}
+function get_folder_name_by_folderid($folderid){
+  if(!empty($folderid) && is_numeric($folderid)){
+    $query = db_select('m6connect_m6drive','dri');    
+    $query->fields('dri',array('Id','foldername'));
+    $query->condition('dri.Id', $folderid);
+    $output = $query->execute()->fetchObject();
+  }
+  return $output;
+}
+function m6drive_get_all_file_by_folderid($folderid){
+   if(!empty($folderid) && is_numeric($folderid)){
+    $query = db_select('m6connect_m6drive_attachment','att');    
+    $query->fields('att',array('folder_id','file','user_uid'));
+    $query->condition('att.folder_id', $folderid);
+    $output = $query->execute()->fetchAll();
+  }
+  return $output;
+}
+function m6drive_get_inner_folder($parentid){
+global $user, $company;
+$result = $parentid;
+$arr = array();
+$output = array();
+    while($result > 0) {
+       $query = db_select('m6connect_m6drive', 'm6d');
+       $query->fields('m6d', array('id'));
+       $query->condition('m6d.parent_id', $result, '=');
+       $result = $query->execute()->fetchField();
+       $arr[] = $result;
+    }
+     foreach($arr as $val) {
+     if($val == 0) { continue; }    
+     $query2 = db_select('m6connect_m6drive', 'm6d');
+     $query2->fields('m6d', array('Id','foldername'));
+     $query2->condition('m6d.Id', $val, '=');
+     $result2 = $query2->execute()->fetchAllKeyed(0,1); 
+     $output[] = $result2;
+    }         
+  return $output; 
+}
+//================ END GLOBAL FUNCTION HERE==============//
+
+function getFinal($array) {
+  $return = array();
+  foreach ($array as $key => $value) {
+    if (isset($value['file'])) {
+      $parents = m6drive_get_parent_folder($value['id']);
+      $parent_path = 'm6DriveZip/';
+      foreach ($parents as $parent) {
+        $temp_path = array_shift($parent);
+        $parent_path .= $temp_path . '/';
+      }
+      $value['path'] = $parent_path;
+      $return[] = $value;
+    }
+    if (isset($value['children'])) {
+      $children = getFinal($value['children']);
+      $return = $return + $children;
+    }
+  }
+  return $return;
+}
+
+function _folder_doesnot_have_child($id) {
+  $data = &drupal_static(__FUNCTION__);
+  if (!isset($data)) {
+    $query = db_select('m6connect_m6drive', 'm')
+      ->fields('m')
+      ->condition('parent_id', $id)
+      ->execute()
+      ->rowCount();
+
+    $data[$id] = $query == 0 ? 0 : 1;
+  }
+  if (!isset($data[$id])) {
+    $query = db_select('m6connect_m6drive', 'm')
+      ->fields('m')
+      ->condition('parent_id', $id)
+      ->execute()
+      ->rowCount();
+
+    $data[$id] = $query == 0 ? 0 : 1;
+  }
+  return $data[$id];
+}
+
+function _get_last_parent_name($id) {
+  return db_select('m6connect_m6drive', 'm6d')
+    ->fields('m6d', array('foldername'))
+    ->condition('m6d.Id', $id)
+    ->execute()
+    ->fetchField();
+}
+/// multi download /////////////
+
+/// End here/////////////////
+function m6drive_shared_content_btn($shareType, $shareid){
+ global $company;
+  if($shareType == 'folder' && !empty($shareid)){  
+    $output =  '<div class="btn-group">
+      <div class="dropdown">
+        <button id="" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="">
+        <li>'.l('Download','m6drive-download/folder/'.$shareid.'/nojs', array('attributes'=> array('class'=>array('')))).'</li>
+        <li>'.l('Delete','m6drive-delete-shared-folder/folder/'.$shareid.'/nojs', array('attributes'=> array('class'=>array('ctools-use-modal ctools-modal-assign-dashboard-popup-style')))).'</li>
+        </ul>
+      </div>
+      </div>';
+  } 
+  if($shareType == 'file' && !empty($shareid)){ 
+      $output =  '<div class="btn-group">
+      <div class="dropdown">
+        <button id="" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="">
+        <li>'.l('Download','m6drive-download/file/'.$shareid.'/nojs', array('attributes'=> array('class'=>array('')))).'</li>
+        <li>'.l('Delete','m6drive-delete-shared-folder/file/'.$shareid.'/nojs', array('attributes'=> array('class'=>array('ctools-use-modal ctools-modal-assign-dashboard-popup-style')))).'</li>
+        </ul>
+      </div>
+      </div>';
+
+  }
+  return $output; 
+}
+
+function m6drive_update_status_child_file_folder($folderid){
+
+  if(is_numeric($folderid) && $folderid != 0){
+    $complteresult = array();
+    $query = db_select('m6connect_m6drive', 'm6d');    
+    $query->fields('m6d',array('Id','parent_id'));
+    $query->condition('m6d.parent_id', $folderid);
+    $record = $query->execute()->fetchAll();
+    $querysub = db_select('m6connect_m6drive_attachment','att');    
+    $querysub->fields('att',array('file','folder_id'));
+    $querysub->condition('att.folder_id', $folderid);
+    $recordsub = $querysub->execute()->fetchAll();
+    $complteresult = array_merge($record, $recordsub);
+  }
+    return $complteresult;
+}
+//==================== start Permanet Delete folder============// 
+function m6drive_trash_folder_content_btn($type, $folderid){
+  global $company;
+  if($type == 'folder' && !empty($folderid)){  
+    $output =  '<div class="btn-group">
+      <div class="dropdown">
+        <button id="" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="">
+         <li>'.l('Restore','m6drive-restore/folder/'.$folderid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+         <li>'.l('Delete','remove-drive-permanent/folder/'.$folderid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+        </ul>
+      </div>
+      </div>';
+  } 
+  if($type == 'file' && !empty($folderid)){ 
+      $output =  '<div class="btn-group">
+      <div class="dropdown">
+        <button id="" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="">
+        <li>'.l('Restore','m6drive-restore/file/'.$folderid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+        <li>'.l('Delete','remove-drive-permanent/file/'.$folderid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+        </ul>
+      </div>
+      </div>';
+
+  }
+  return $output; 
+}
+
+function m6drive_archive_folder_action_btn($shareType, $shareid){
+  global $company;
+  if($shareType == 'folder' && !empty($shareid)){  
+  $output =  '<div class="btn-group">
+      <div class="dropdown">
+        <button id="" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="">
+        <li>'.l('Unarchive','m6drive-unarchive-folder/folder/'.$shareid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+         <li>'.l('Delete','m6drive-delete-folder/folder/'.$shareid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+        </ul>
+      </div>
+      </div>';
+  } 
+  if($shareType == 'file' && !empty($shareid)){ 
+     $output =  '<div class="btn-group">
+      <div class="dropdown">
+        <button id="" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="">
+        <li>'.l('Unarchive','m6drive-unarchive-folder/file/'.$shareid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+         <li>'.l('Delete','m6drive-delete-folder/file/'.$shareid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+        </ul>
+      </div>
+      </div>';
+
+  }
+  return $output;
+}
+
+//====Start projects drive==============//
+function project_drive_action_btn($Type, $projectnid){
+  global $company;
+  if($Type == 'folder' && !empty($projectnid)){  
+  $output =  '<div class="btn-group">
+      <div class="dropdown">
+        <button id="" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="">
+        <li>'.l('Share','project-drive-share/folder/'.$projectnid.'/nojs', array('attributes'=> array('class'=>array('ctools-use-modal ctools-modal-assign-dashboard-popup-style')))).'</li>
+         <li>'.l('Archive','project-drive-archive/folder/'.$projectnid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+        </ul>
+      </div>
+      </div>';
+  } 
+  if($Type == 'file' && !empty($projectnid)){ 
+     $output =  '<div class="btn-group">
+      <div class="dropdown">
+        <button id="" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="">
+        <li>'.l('Share','project-drive-share/file/'.$projectnid.'/nojs', array('attributes'=> array('class'=>array('ctools-use-modal ctools-modal-assign-dashboard-popup-style')))).'</li>
+        <li>'.l('Archive','project-drive-archive/file/'.$projectnid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+        </ul>
+      </div>
+      </div>';
+
+  }
+  return $output;
+}
+
+//===============project Drive archive========================================//
+
+function _get_m6drive_total_space_user_uid($uid, $only_bytes = FALSE){
+ global $user;
+
+ $kilobyte = 1024;
+ $megabyte = $kilobyte * 1024;
+ $gigabyte = $megabyte * 1024;
+
+  $query = db_select('m6connect_m6drive_attachment','att');
+  $query->leftjoin ('file_managed', 'fmu', 'fmu.fid = att.file');
+  $query->fields('att', array('file','user_uid'));
+  $query->fields('fmu', array('uri'));
+  $query->fields('fmu', array('filesize'));
+  $query->condition('user_uid', $uid);  
+  $query->condition('services', 'm6drive');
+  $result = $query->execute()->fetchAll();
+  $bytes = 0;
+   foreach ($result as $value) {
+     $bytes += $value->filesize;
+   }
+
+    if ($only_bytes) {
+      return $bytes;
+    }
+     
+    if(($bytes >= 0) && ($bytes < $kilobyte)) {
+        return $bytes . ' B';
+ 
+    }elseif (($bytes >= $kilobyte) && ($bytes < $megabyte)) {
+        return round($bytes / $kilobyte, $precision) . ' KB';
+ 
+    }elseif (($bytes >= $megabyte) && ($bytes < $gigabyte)) {
+        return round($bytes / $megabyte, $precision) . ' MB';
+ 
+    }elseif (($bytes >= $gigabyte) && ($bytes < $terabyte)) {
+        return round($bytes / $gigabyte, $precision) . ' GB';
+ 
+    }elseif ($bytes >= $terabyte) {
+        return round($bytes / $terabyte, $precision) . ' TB';
+    }else{
+        return $bytes . ' B';
+    }
+}
+
+function _get_all_projectnid_in_archive_drive($uid, $projectnid){
+  $query = db_select('m6connect_project_drive_archive', 'pda');    
+  $query->fields('pda',array('project_nid'));
+  $query->condition('pda.user_uid', $uid);
+  $query->condition('pda.project_nid',$projectnid,'=');
+  $query->condition('pda.project_nid', 0,'!=');
+  $record = $query->execute()->fetchField();
+
+  return $record;
+}
+function _get_all_projectfid_in_archive_drive($uid, $fid){
+  $query = db_select('m6connect_project_drive_archive', 'pda');    
+  $query->fields('pda',array('fid'));
+  $query->condition('pda.user_uid', $uid);
+  $query->condition('pda.fid', $fid,'=');
+  $query->condition('pda.fid', 0,'!=');
+  $record = $query->execute()->fetchField();
+  return $record;
+ 
+}
+
+function project_drive_archive_action_btn($Type, $projectnid){
+  
+
+  if($Type == 'folder' && !empty($projectnid)){  
+  $output =  '<div class="btn-group">
+      <div class="dropdown">
+        <button id="" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="">
+         <li>'.l('Unarchive','project-drive-unarchive/folder/'.$projectnid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+        </ul>
+      </div>
+      </div>';
+  } 
+  if($Type == 'file' && !empty($projectnid)){ 
+     $output =  '<div class="btn-group">
+      <div class="dropdown">
+        <button id="" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="">
+        <li>'.l('Unarchive','project-drive-unarchive/file/'.$projectnid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+        </ul>
+      </div>
+      </div>';
+
+  }
+  return $output;
+}
+
+function project_drive_share_action_btn($Type, $projectnid){
+  if($Type == 'folder' && !empty($projectnid)){  
+  $output =  '<div class="btn-group">
+      <div class="dropdown">
+        <button id="" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="">
+         <li>'.l('Delete','project-delete-drive/folder/'.$projectnid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+        </ul>
+      </div>
+      </div>';
+  } 
+  if($Type == 'file' && !empty($projectnid)){ 
+     $output =  '<div class="btn-group">
+      <div class="dropdown">
+        <button id="" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="">
+        <li>'.l('Delete','project-delete-drive/file/'.$projectnid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+        </ul>
+      </div>
+      </div>';
+
+  }
+  return $output;
+}
+function _get_all_projectnid_in_trash_drive($uid, $projectnid){
+  $query = db_select('m6connect_project_drive_trash', 'pdt');    
+  $query->fields('pdt',array('project_nid'));
+  $query->condition('pdt.user_uid', $uid);
+  $query->condition('pdt.project_nid',$projectnid,'=');
+  $query->condition('pdt.project_nid', 0,'!=');
+  $record = $query->execute()->fetchField();
+
+  return $record;
+
+}
+function _get_all_projectfid_in_trash_drive($uid, $fid){
+
+  $query = db_select('m6connect_project_drive_trash','pdt');    
+  $query->fields('pdt', array('fid'));
+  $query->condition('pdt.user_uid', $uid, '=');
+  $query->condition('pdt.fid', $fid,'=');
+  $query->condition('pdt.fid', 0,'!=');
+  $record = $query->execute()->fetchField();
+  return $record;
+ }
+ function project_drive_delete_trash_action_btn($Type, $projectnid){
+  if($Type == 'folder' && !empty($projectnid)){  
+  $output =  '<div class="btn-group">
+      <div class="dropdown">
+        <button id="" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="">
+         <li>'.l('Delete','project-drive-delete-permanent/folder/'.$projectnid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+        </ul>
+      </div>
+      </div>';
+  } 
+  if($Type == 'file' && !empty($projectnid)){ 
+     $output =  '<div class="btn-group">
+      <div class="dropdown">
+        <button id="" class="btn btn-success" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="">
+        <li>'.l('Delete','project-drive-delete-permanent/file/'.$projectnid.'/nojs', array('attributes'=> array('class'=>array('use-ajax')))).'</li>
+        </ul>
+      </div>
+      </div>';
+
+  }
+  return $output;
+}
+
+function _get_all_rfp_nid_using_project_nid_project_drive($projectnid, $only_nids = FALSE){
+
+  $output = array();
+  $nids = array();
+  $query = db_select('node', 'n');
+  $query->leftJoin('field_data_field_project', 'fp', 'fp.entity_id = n.nid');
+  $query->leftJoin('field_data_field_rfp_documents', 'frd', 'frd.entity_id = n.nid');
+  $query->fields('n', array('nid'));
+  $query->fields('frd', array('field_rfp_documents_value'));
+  $query->condition('fp.field_project_target_id', $projectnid, '=');
+  $query->condition('n.type', 'rfp', '=');
+  //$query->condition('n.status', '1', '=');
+  $query->orderBy('n.created', 'DESC', '=');
+  $result = $query->execute()->fetchAll();
+  foreach($result as $value) {
+    $nids[] = $value->nid;
+      $fcid = $value->field_rfp_documents_value;
+      $fieldCollection = field_collection_item_load($fcid);
+          if (isset($fieldCollection->field_rfp_document['und']) && !empty($fieldCollection->field_rfp_document['und'])) {
+                  foreach ($fieldCollection->field_rfp_document['und'] as $index => $fileArr) {
+                    $output[] = $fileArr;
+                    }
+          }
+  }
+ 
+  return $only_nids ? $nids : $output;
+
+}
+
+//==== Get colobraete project for project add in drive=========//
+function get_collaboration_project_for_project_m6drive($uid, $companyNid){
+
+    $or = db_or();
+    $and = db_and();
+    $type = array('project');
+    $query = db_select('node', 'n')->extend('PagerDefault');
+    $query->fields('n', array('nid'));
+    $query->leftJoin('og_membership', 'ogm', 'ogm.etid=n.nid');
+    $query->leftJoin('field_data_field_project_invite_comapnies', 'pic', 'pic.entity_id=n.nid');
+    $query->leftJoin('field_data_field_company_nid_mail', 'pcne', 'pcne.entity_id = pic.field_project_invite_comapnies_value');
+    $query->leftJoin('field_data_field_comapny_manager', 'pcimu', 'pcimu.entity_id = pic.field_project_invite_comapnies_value');
+    $query->where('((pcimu.field_comapny_manager_value IS NOT NULL) AND (pcne.field_company_nid_mail_value=:companyNid) AND 
+      (FIND_IN_SET(:UserUid,pcimu.field_comapny_manager_value)>0))', array(':UserUid' => $uid, ':companyNid' => $companyNid));
+    $query->condition('n.type', $type, 'IN');
+    //$query->condition('n.status', 1, '=');
+    $query->groupBy('n.nid');
+    $result = $query->execute()->fetchAll();
+    return  $result;
+
+}
+
+//=====Get colobraete project for project add in drive=====//
+
+function _get_m6drive_total_space_user_fid($fid){
+ global $user;
+
+ $kilobyte = 1024;
+ $megabyte = $kilobyte * 1024;
+ $gigabyte = $megabyte * 1024;
+
+  $query = db_select('m6connect_m6drive_attachment','att');
+  $query->leftjoin ('file_managed', 'fmu', 'fmu.fid = att.file');
+  $query->fields('fmu', array('filesize'));
+  //$query->condition('user_uid', $uid); 
+  $query->condition('file', $fid);   
+  $value = $query->execute()->fetchField();
+  //$bytes = 0;
+  $bytes = $value;
+    if(($bytes >= 0) && ($bytes < $kilobyte)) {
+        return $bytes . ' B';
+ 
+    }elseif (($bytes >= $kilobyte) && ($bytes < $megabyte)) {
+        return round($bytes / $kilobyte, $precision) . ' KB';
+ 
+    }elseif (($bytes >= $megabyte) && ($bytes < $gigabyte)) {
+        return round($bytes / $megabyte, $precision) . ' MB';
+ 
+    }elseif (($bytes >= $gigabyte) && ($bytes < $terabyte)) {
+        return round($bytes / $gigabyte, $precision) . ' GB';
+ 
+    }elseif ($bytes >= $terabyte) {
+        return round($bytes / $terabyte, $precision) . ' TB';
+    }else{
+        return $bytes . ' B';
+    }
+    
+}
+function _get_m6drive_project_filesize_by_fid($fid){
+
+ $kilobyte = 1024;
+ $megabyte = $kilobyte * 1024;
+ $gigabyte = $megabyte * 1024;
+
+  $query = db_select('file_managed','fs');
+  $query->fields('fs', array('filesize'));
+  $query->condition('fid', $fid);   
+  $value = $query->execute()->fetchField();
+  $bytes = $value;
+    if(($bytes >= 0) && ($bytes < $kilobyte)) {
+        return $bytes . ' B';
+ 
+    }elseif (($bytes >= $kilobyte) && ($bytes < $megabyte)) {
+        return round($bytes / $kilobyte, $precision) . ' KB';
+ 
+    }elseif (($bytes >= $megabyte) && ($bytes < $gigabyte)) {
+        return round($bytes / $megabyte, $precision) . ' MB';
+ 
+    }elseif (($bytes >= $gigabyte) && ($bytes < $terabyte)) {
+        return round($bytes / $gigabyte, $precision) . ' GB';
+ 
+    }elseif ($bytes >= $terabyte) {
+        return round($bytes / $terabyte, $precision) . ' TB';
+    }else{
+        return $bytes . ' B';
+    }
+    
+}
+
+function get_m6drive_shared_user_list_by_folder_id($type, $folderidorfid, $uid){
+
+  if($type == 'folder' && is_numeric($folderidorfid)){
+
+     $query = db_select('m6connect_m6drive_shared','srd');
+     $query->fields('srd',array('id','folder_id','share_by_uid','share_to_uid'));
+     $query->condition('srd.share_by_uid', $uid);
+     $query->condition('srd.folder_id', $folderidorfid, '=');
+     $result = $query->execute()->fetchAll();
+     foreach($result  as $key => $values) {
+          $sharetouid =  $values->share_to_uid;
+          if(!empty($values->share_to_uid)){
+          $UserFnameLname =_get_user_data_by_uid($values->share_to_uid);
+          }
+          $output = $UserFnameLname['realname']; 
+     }
+  }
+  return $output;
+}
+
+/**
+ * Helper function for permanent deleting files and folder from drive.
+ */
+function _delete_folder_and_file($folderMul) {
+  global $user, $company;
+  $bucket = 'dev.repo.m6connect.com';
+  if(!class_exists('S3')) include_once DRUPAL_ROOT . '/sites/all/libraries/awssdk1/S3.php';
+  if(!defined('AWSACCESSKEY')) define('AWSACCESSKEY', 'AKIAJZCVB5B62KPYTLFA');
+  if(!defined('AWSSECRETKEY')) define('AWSSECRETKEY', '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');
+  $s3 = new S3(AWSACCESSKEY, AWSSECRETKEY);
+
+  $query = db_select('m6connect_m6drive', 'm6d');
+  $query->fields('m6d',array('foldername'));
+  $query->condition('m6d.user_uid', $user->uid);
+  $query->condition('m6d.company_nid', $company->nid); 
+  $query->condition('m6d.Id', $folderMul);
+  $Currentfolder = $query->execute()->fetchField();
+  //**********************************End*********************//
+  //**************Get parent folder name********************//
+  $output = m6drive_get_parent_folder($folderMul);
+
+  foreach($output as $key=>$values) {
+    $Parentfolder .=  implode("",$values)."/"; 
+  }
+  //**************End Get parent folder name********************//
+  $companyName =  str_replace(' ','_',$company->title);
+  $userName = str_replace(' ','_',$user->name); 
+  if (isset($Currentfolder) && !empty($Currentfolder)) {
+     $folderlocation = ''.$companyName.'/M6Drive/'.$userName.'/'.$Parentfolder.$Currentfolder;
+  }
+  else {
+     $folderlocation = ''.$companyName.'/M6Drive/'.$userName;
+  }
+  $folder = 's3fs-private/'.$folderlocation.'/M6Drive.txt';
+
+  $updatestatus = m6drive_update_status_child_file_folder($folderMul);
+  if (empty($updatestatus)) {
+    // This is the case, when the query was made for a blank folder.
+    db_delete('m6connect_m6drive_shared')->condition('folder_id', $folderMul)->condition('share_by_uid', $user->uid)->execute();
+    //== End Delete Folder also in share drive table
+    //==Praent folder delete 
+    $Praent_folder_delete = db_delete('m6connect_m6drive')->condition('Id', $folderMul)->condition('user_uid', $user->uid)->condition('company_nid', $company->nid)->execute();
+    // dpm($folder, 'folder');
+    if (!empty($folder)) {
+      $s3->deleteObject($bucket, $folder, S3::ACL_PRIVATE);
+    }
+
+  }
+  else {
+    foreach($updatestatus as $value) {
+      if (!isset($value->file)) {
+        // This is the case, when this entry in loop is a folder and not a file.
+        _delete_folder_and_file($value->Id);
+
+        // This is the subfolder, and it is also needed to be deleted.
+        // Hence deleting it.
+        //== Delete Folder also in share drive table
+        db_delete('m6connect_m6drive_shared')->condition('folder_id', $folderMul)->condition('share_by_uid', $user->uid)->execute();
+        //== End Delete Folder also in share drive table
+        //==Praent folder delete 
+        $Praent_folder_delete = db_delete('m6connect_m6drive')->condition('Id', $folderMul)->condition('user_uid', $user->uid)->condition('company_nid', $company->nid)->execute();
+        if (!empty($folder)) {
+          $s3->deleteObject($bucket, $folder, S3::ACL_PRIVATE);
+        }
+      }
+      else {
+        // If it is a file, then deleting it.
+        db_delete('m6connect_m6drive')->condition('Id',$value->folder_id)->condition('user_uid', $user->uid)->condition('company_nid', $company->nid)->execute();
+                     
+        db_delete('m6connect_m6drive_attachment')->condition('folder_id', $value->folder_id)->condition('user_uid', $user->uid)->condition('company_nid', $company->nid)->execute();
+
+        $fid = $value->file;
+        if (!empty($fid)) {
+          db_delete('m6connect_m6drive_shared')->condition('fid', $value->file)->condition('share_by_uid', $user->uid)->execute();
+          $fileObj = file_load($fid);
+          file_delete($fileObj);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Helper function for archiving project drive folders.
+ */
+function _archive_folder_and_file_project($folderMul) {
+  // When this function is called, then we are sure, that we are dealing with
+  // the inner folders and not the root folder. So, technically there is 
+  // no need to check whether a folder is project folder or inner folder, as
+  // we had already dealt with the project folder, when this function was
+  // called.
+  global $user;
+  global $company;
+  $childs = m6drive_update_status_child_file_folder($folderMul);
+  if (!empty($childs)) {
+    // If the folder, we are to archive, has children, then dealing here, that
+    // too recursively.
+    foreach ($childs as $key => $value) {
+      if (!isset($value->file)) {
+        // The current entry is a folder.
+        _archive_folder_and_file_project($value->Id);
+        db_update('m6connect_m6drive')
+          ->fields(array(
+            'archive_status' => 1,
+          ))
+          ->condition('Id', $value->Id)
+          ->execute();
+      }
+      else {
+        // When the current entry is a file.
+        db_update('m6connect_m6drive_attachment')
+          ->fields(array(
+            'archive_status' => 1,
+          ))
+          ->condition('file', $value->file)
+          ->execute();
+      }
+    }
+  }
+  else {
+    // This may be the case, when the folder is a blank folder.
+    // Simply updating its archive status.
+    db_update('m6connect_m6drive')
+      ->fields(array(
+        'archive_status' => 1,
+      ))
+      ->condition('Id', $folderMul)
+      ->execute();
+  }
+}
+
+/**
+ * Helper function for un-archiving project drive folders.
+ */
+function _unarchive_folder_and_file_project($folderMul) {
+  // When this function is called, then we are sure, that we are dealing with
+  // the inner folders and not the root folder. So, technically there is 
+  // no need to check whether a folder is project folder or inner folder, as
+  // we had already dealt with the project folder, when this function was
+  // called.
+  global $user;
+  global $company;
+  $childs = m6drive_update_status_child_file_folder($folderMul);
+  if (!empty($childs)) {
+    // If the folder, we are to un-archive, has children, then dealing here,
+    // that too recursively.
+    foreach ($childs as $key => $value) {
+      if (!isset($value->file)) {
+        // The current entry is a folder.
+        _unarchive_folder_and_file_project($value->Id);
+        db_update('m6connect_m6drive')
+          ->fields(array(
+            'archive_status' => 0,
+          ))
+          ->condition('Id', $value->Id)
+          ->execute();
+      }
+      else {
+        // When the current entry is a file.
+        db_update('m6connect_m6drive_attachment')
+          ->fields(array(
+            'archive_status' => 0,
+          ))
+          ->condition('file', $value->file)
+          ->execute();
+      }
+    }
+  }
+  else {
+    // This may be the case, when the folder is a blank folder.
+    // Simply updating its archive status.
+    db_update('m6connect_m6drive')
+      ->fields(array(
+        'archive_status' => 0,
+      ))
+      ->condition('Id', $folderMul)
+      ->execute();
+  }
+}
+
+/**
+ * Helper function to share files on project drive.
+ */
+function _share_folder_and_files_project($projectIdMul, $share_email, $permdrive = 'r') {
+  global $user, $base_url;
+
+  // $shareid = 2591;
+  $sharedate =  date('Y-m-d H:i:s');
+  $usersfulldetails = _get_user_details_by_og_email($share_email);
+  if (!empty($usersfulldetails->uid)) {
+    $shareto_uid =  $usersfulldetails->uid;
+  }
+  else {
+   $shareto_uid = 0;
+  }
+
+  $childs = m6drive_update_status_child_file_folder($projectIdMul);
+  if (!empty($childs)) {
+    foreach ($childs as $key => $value) {
+      if (!isset($value->file)) {
+        // The current entry is a folder.
+        _share_folder_and_files_project($value->Id, $share_email, $permdrive);
+        
+        db_delete('m6connect_m6drive_shared')
+          ->condition('share_by_uid', $user->uid)
+          ->condition('share_to_uid', $shareto_uid)
+          ->condition('folder_id', $value->Id)
+          ->execute();
+
+        db_insert('m6connect_m6drive_shared')
+          ->fields(array(
+            'share_by_uid' => $user->uid,
+            'folder_id' => $value->Id,
+            'shared_date' => $sharedate,
+            'email_id' => $share_email,
+            'share_to_uid'=> $shareto_uid,
+            'fid' => 0,
+            'root' => 0,
+            'services' => 'm6drive_project',
+            'permissions' => $permdrive,
+          ))
+          ->execute();
+      }
+      else {
+        // When the current entry is a file.
+        db_delete('m6connect_m6drive_shared')
+          ->condition('share_by_uid', $user->uid)
+          ->condition('share_to_uid', $shareto_uid)
+          ->condition('fid', $value->file)
+          ->execute();
+
+        db_insert('m6connect_m6drive_shared')
+          ->fields(array(
+            'share_by_uid' => $user->uid,
+            'shared_date' => $sharedate,
+            'email_id' => $share_email,
+            'share_to_uid'=> $shareto_uid,
+            'fid' => $value->file,
+            'root' => 0,
+            'services' => 'm6drive_project',
+            'permissions' => $permdrive,
+          ))
+          ->execute();
+      }
+    }
+  }
+  else {
+    // Dealing with a blank folder.
+    // There may be a case, when we are in this condition with the folder which
+    // is the folder requested to share, and it does not have any child.
+    // So when such situation occur, then the folder we are dealing with here is
+    // already processed, when this function is called.
+    // So checking once, if it is not the same folder.
+    $query = db_select('m6connect_m6drive', 's')
+      ->fields('s')
+      ->condition('Id', $projectIdMul)
+      ->execute()
+      ->rowCount();
+    
+    if ($query > 0) {
+      $query = db_select('m6connect_m6drive_shared', 's')
+        ->fields('s')
+        ->condition('share_by_uid', $user->uid)
+        ->condition('share_to_uid', $shareto_uid)
+        ->condition('folder_id', $projectIdMul)
+        ->execute()
+        ->rowCount();
+
+      if ($query == 0) {
+        // If no entry is made, only then making an entry.
+        db_insert('m6connect_m6drive_shared')
+          ->fields(array(
+            'share_by_uid' => $user->uid,
+            'folder_id' => $projectIdMul,
+            'shared_date' => $sharedate,
+            'email_id' => $share_email,
+            'share_to_uid'=> $shareto_uid,
+            'fid' => 0,
+            'root' => 0,
+            'services' => 'm6drive_project',
+            'permissions' => $permdrive,
+          ))
+          ->execute();
+      }
+    }
+  }
+}
+
+/**
+ * Helper function to share files on personal drive.
+ */
+function _share_folder_and_files_personal($projectIdMul, $share_email, $permdrive = 'r') {
+  global $user, $base_url;
+
+  $sharedate =  date('Y-m-d H:i:s');
+  $usersfulldetails = _get_user_details_by_og_email($share_email);
+  if (!empty($usersfulldetails->uid)) {
+    $shareto_uid =  $usersfulldetails->uid;
+  }
+  else {
+   $shareto_uid = 0;
+  }
+
+  $childs = m6drive_update_status_child_file_folder($projectIdMul);
+  if (!empty($childs)) {
+    foreach ($childs as $key => $value) {
+      if (!empty($value->Id)) {
+        // The current entry is a folder.
+        _share_folder_and_files_personal($value->Id, $share_email);
+        
+        db_delete('m6connect_m6drive_shared')
+          ->condition('share_by_uid', $user->uid)
+          ->condition('share_to_uid', $shareto_uid)
+          ->condition('folder_id', $value->Id)
+          ->execute();
+
+        db_insert('m6connect_m6drive_shared')
+          ->fields(array(
+            'share_by_uid' => $user->uid,
+            'folder_id' => $value->Id,
+            'shared_date' => $sharedate,
+            'email_id' => $share_email,
+            'share_to_uid'=> $shareto_uid,
+            'fid' => 0,
+            'root' => 0,
+            'services' => 'm6drive',
+            'permissions' => $permdrive,
+          ))
+          ->execute();
+      }
+      elseif (!empty($value->file)) {
+        // When the current entry is a file.
+        db_delete('m6connect_m6drive_shared')
+          ->condition('share_by_uid', $user->uid)
+          ->condition('share_to_uid', $shareto_uid)
+          ->condition('fid', $value->file)
+          ->execute();
+
+        db_insert('m6connect_m6drive_shared')
+          ->fields(array(
+            'share_by_uid' => $user->uid,
+            'shared_date' => $sharedate,
+            'email_id' => $share_email,
+            'share_to_uid'=> $shareto_uid,
+            'fid' => $value->file,
+            'root' => 0,
+            'services' => 'm6drive',
+            'permissions' => $permdrive,
+          ))
+          ->execute();
+      }
+    }
+  }
+  else {
+    // Dealing with a blank folder.
+    // There may be a case, when we are in this condition with the folder which
+    // is the folder requested to share, and it does not have any child.
+    // So when such situation occur, then the folder we are dealing with here is
+    // already processed, when this function is called.
+    // So checking once, if it is not the same folder.
+    $query = db_select('m6connect_m6drive', 's')
+      ->fields('s')
+      ->condition('Id', $projectIdMul)
+      ->execute()
+      ->rowCount();
+    
+    if ($query > 0) {
+      $query = db_select('m6connect_m6drive_shared', 's')
+        ->fields('s')
+        ->condition('share_by_uid', $user->uid)
+        ->condition('share_to_uid', $shareto_uid)
+        ->condition('folder_id', $projectIdMul)
+        ->execute()
+        ->rowCount();
+
+      if ($query == 0) {
+        // If no entry is made, only then making an entry.
+        db_insert('m6connect_m6drive_shared')
+          ->fields(array(
+            'share_by_uid' => $user->uid,
+            'folder_id' => $projectIdMul,
+            'shared_date' => $sharedate,
+            'email_id' => $share_email,
+            'share_to_uid'=> $shareto_uid,
+            'fid' => 0,
+            'root' => 0,
+            'services' => 'm6drive',
+            'permissions' => $permdrive,
+          ))
+          ->execute();
+      }
+    }
+  }
+}
+
+/**
+ * Helper function to delete the shared file and folder in project drive.
+ */
+function _delete_folder_file_from_share_project($folderMul) {
+  global $user, $company;
+  // This function is for removing child folder and files of a folder.
+  // Since a project node folder can't have another project node folder as its
+  // child, so we are sure that we are dealing with the custom uploaded folders
+  // here.
+  $childs = m6drive_update_status_child_file_folder($folderMul);
+  if (!empty($childs)) {
+    // If the folder, we are to un-archive, has children, then dealing here,
+    // that too recursively.
+    foreach ($childs as $key => $value) {
+      if (!isset($value->file)) {
+        // The current entry is a folder.
+        _delete_folder_file_from_share_project($value->Id);
+        db_delete('m6connect_m6drive_shared')
+          ->condition('folder_id', $value->Id)
+          ->condition('share_to_uid', $user->uid)
+          ->execute();
+      }
+      else {
+        // When the current entry is a file.
+        db_delete('m6connect_m6drive_shared')
+          ->condition('fid', $value->file)
+          ->condition('share_to_uid', $user->uid)
+          ->execute();
+      }
+    }
+  }
+  else {
+    db_delete('m6connect_m6drive_shared')
+      ->condition('folder_id', $folderMul)
+      ->condition('share_to_uid', $user->uid)
+      ->execute();
+  }
+}
+
+/**
+ * Helper function to delete the shared file and folder in project drive.
+ */
+function _delete_folder_file_from_share_project_shared($folderMul, $uid) {
+  global $user, $company;
+  // This function is for removing child folder and files of a folder.
+  // Since a project node folder can't have another project node folder as its
+  // child, so we are sure that we are dealing with the custom uploaded folders
+  // here.
+  $childs = m6drive_update_status_child_file_folder($folderMul);
+  if (!empty($childs)) {
+    // If the folder, we are to un-archive, has children, then dealing here,
+    // that too recursively.
+    foreach ($childs as $key => $value) {
+      if (!isset($value->file)) {
+        // The current entry is a folder.
+        _delete_folder_file_from_share_project_shared($value->Id, $uid);
+        db_delete('m6connect_m6drive_shared')
+          ->condition('folder_id', $value->Id)
+          ->condition('share_to_uid', $uid)
+          ->condition('share_by_uid', $user->uid)
+          ->execute();
+      }
+      else {
+        // When the current entry is a file.
+        db_delete('m6connect_m6drive_shared')
+          ->condition('fid', $value->file)
+          ->condition('share_to_uid', $uid)
+          ->condition('share_by_uid', $user->uid)
+          ->execute();
+      }
+    }
+  }
+  else {
+    db_delete('m6connect_m6drive_shared')
+      ->condition('folder_id', $folderMul)
+      ->condition('share_to_uid', $uid)
+      ->condition('share_by_uid', $user->uid)
+      ->execute();
+  }
+}
+
+/**
+ * Helper function to delete the shared file and folder in personal drive.
+ */
+function _delete_folder_file_from_share_personal($folderMul, $uid) {
+  global $user, $company;
+  // This function is for removing child folder and files of a folder.
+  // Since a project node folder can't have another project node folder as its
+  // child, so we are sure that we are dealing with the custom uploaded folders
+  // here.
+  $childs = m6drive_update_status_child_file_folder($folderMul);
+  if (!empty($childs)) {
+    // If the folder, we are to un-archive, has children, then dealing here,
+    // that too recursively.
+    foreach ($childs as $key => $value) {
+      if (!isset($value->file)) {
+        // The current entry is a folder.
+        _delete_folder_file_from_share_personal($value->Id, $uid);
+        db_delete('m6connect_m6drive_shared')
+          ->condition('folder_id', $value->Id)
+          ->condition('share_to_uid', $uid)
+          ->condition('share_by_uid', $user->uid)
+          ->execute();
+      }
+      else {
+        // When the current entry is a file.
+        db_delete('m6connect_m6drive_shared')
+          ->condition('fid', $value->file)
+          ->condition('share_to_uid', $uid)
+          ->condition('share_by_uid', $user->uid)
+          ->execute();
+      }
+    }
+  }
+  else {
+    db_delete('m6connect_m6drive_shared')
+      ->condition('folder_id', $folderMul)
+      ->condition('share_to_uid', $uid)
+      ->condition('share_by_uid', $user->uid)
+      ->execute();
+  }
+}
+
+/**
+ * Helper function to check if a folder is eligible to be shown in company
+ * share drive.
+ */
+function _check_folder_eligibility_share($folder_id) {
+  global $user;
+  $query = db_select('m6connect_m6drive_shared', 'd')
+    ->fields('d')
+    ->condition('folder_id', $folder_id)
+    ->condition('share_to_uid', $user->uid)
+    ->execute()
+    ->rowCount();
+  if ($query > 0) {
+    return TRUE;
+  }
+  else {
+    $query = db_select('m6connect_project_drive_shared', 'p')
+      ->fields('p')
+      ->condition('project_nid', $folder_id)
+      ->condition('share_to_uid', $user->uid)
+      ->execute()
+      ->rowCount();
+    return $query > 0 ? TRUE : FALSE;
+  }
+}
+
+/**
+ * Helper function to check if a folder is eligible to be shown in company
+ * drive.
+ */
+function _check_folder_eligibility_add_to_mydrive($folder_id) {
+  global $user;
+  // First we check if the owner of the folder is the current user himself.
+
+  // Making sure that the request is for folder only and not a node.
+  $query = db_select('m6connect_m6drive', 'm')
+    ->fields('m')
+    ->condition('Id', $folder_id)
+    ->execute();
+  if ($query->rowCount() > 0) {
+    // This is the case, when the request is for a folder.
+    // Checking it's owner.
+    $result = $query->fetchObject();
+    if ($result->user_uid == $user->uid) {
+      // The request was made by the owner.
+      return TRUE;
+    }
+    else {
+      // The request was made by the user, who added this or it's parent folder
+      // in his drive.
+
+      // Checking for the folder itself.
+      $query = db_select('m6connect_m6drive_addto_mydrive', 'ad')
+        ->fields('ad')
+        ->condition('folder_id', $folder_id)
+        ->condition('user_uid', $user->uid)
+        ->execute()
+        ->rowCount();
+      if ($query > 0) {
+        return TRUE;
+      }
+
+      // Checking if any parents are added to the drive by current user.
+      $parents = m6drive_get_parent_folder($folder_id);
+      foreach ($parents as $key => $value) {
+        foreach ($value as $key1 => $value1) {
+          $tocheck = $key1;
+          $query = db_select('m6connect_m6drive_addto_mydrive', 'ad')
+            ->fields('ad')
+            ->condition('folder_id', $tocheck)
+            ->condition('user_uid', $user->uid)
+            ->execute()
+            ->rowCount();
+          if ($query > 0) {
+            // If any of the parent of this folder is found in the add to my drive
+            // table, then returning TRUE.
+            return TRUE;
+          }
+        }
+      }
+    }
+  }
+  else {
+    // This is the case, when the request is for a project.
+
+    // Checking for add to my drive.
+    $query = db_select('m6connect_m6drive_addto_mydrive', 'ad')
+      ->fields('ad')
+      ->condition('folder_id', $folder_id)
+      ->condition('user_uid', $user->uid)
+      ->execute()
+      ->rowCount();
+    if ($query > 0) {
+      return TRUE;
+    }
+
+    // Checking for the owner.
+    $node = node_load($folder_id);
+    if (is_object($node)) {
+      return $node->uid == $user->uid;
+    }
+  }
+  return FALSE;
+}
+
+  function get_folder_share($folder_id, $user_id){
+
+   $query = db_select('m6connect_m6drive_shared', 'd')
+    ->fields('d')
+    ->condition('folder_id', $folder_id)
+    ->condition('share_to_uid', $user_id)
+    ->execute()->fetchAll();
+    return $query;
+}
+
+/**
+ * Helper function to check if a folder is eligible to be shown in company archive
+ * or trash drive.
+ */
+function _check_folder_eligibility_archive_trash($folder_id, $where = 'archive') {
+  global $user;
+  $field = $where == 'archive' ? 'archive_status' : 'trash_status';
+  $pr_table = $where == 'archive' ? 'm6connect_project_drive_archive' : 'm6connect_project_drive_trash';
+
+  $query = db_select('m6connect_m6drive', 'd')
+    ->fields('d')
+    ->condition('Id', $folder_id)
+    ->condition('user_uid', $user->uid)
+    ->condition($field, 1)
+    ->execute()
+    ->rowCount();
+  if ($query > 0) {
+    return TRUE;
+  }
+  else {
+    $query = db_select($pr_table, 'p')
+      ->fields('p')
+      ->condition('project_nid', $folder_id)
+      ->condition('user_uid', $user->uid)
+      ->execute()
+      ->rowCount();
+    return $query > 0 ? TRUE : FALSE;
+  }
+}
+
+/**
+ * Helper function to check if a file is eligible to be shown in company share
+ * drive.
+ */
+function _check_file_eligibility_share($fileId) {
+  global $user;
+  $query = db_select('m6connect_m6drive_shared', 'd')
+    ->fields('d')
+    ->condition('fid', $fileId)
+    ->condition('share_to_uid', $user->uid)
+    ->execute()
+    ->rowCount();
+  if ($query > 0) {
+    return TRUE;
+  }
+  else {
+    $query = db_select('m6connect_project_drive_shared', 'p')
+      ->fields('p')
+      ->condition('fid', $fileId)
+      ->condition('share_to_uid', $user->uid)
+      ->execute()
+      ->rowCount();
+    return $query > 0 ? TRUE : FALSE;
+  }
+}
+
+/**
+ * Helper function to check if a file is eligible to be shown in company archive
+ * or trash drive.
+ */
+function _check_file_eligibility_archive_trash($fileId, $where = 'archive') {
+  global $user;
+  $field = $where == 'archive' ? 'archive_status' : 'trash_status';
+  $pr_table = $where == 'archive' ? 'm6connect_project_drive_archive' : 'm6connect_project_drive_trash';
+  $query = db_select('m6connect_m6drive_attachment', 'd')
+    ->fields('d')
+    ->condition('file', $fileId)
+    ->condition('user_uid', $user->uid)
+    ->condition($field, 1)
+    ->execute()
+    ->rowCount();
+  if ($query > 0) {
+    return TRUE;
+  }
+  else {
+    $query = db_select($pr_table, 'p')
+      ->fields('p')
+      ->condition('fid', $fileId)
+      ->condition('user_uid', $user->uid)
+      ->execute()
+      ->rowCount();
+    return $query > 0 ? TRUE : FALSE;
+  }
+}
+
+/**
+ * Helper function to clear the child folders and files of a folder which
+ * is going to be shared now.
+ */
+function _clear_child_folder_files_share($projectIdMul, $uid) {
+  $childs = m6drive_update_status_child_file_folder($projectIdMul);
+  if (!empty($childs)) {
+    foreach ($childs as $key => $value) {
+      if (!empty($value->Id)) {
+        // Clearing its child, if present.
+        _clear_child_folder_files_share($value->Id, $uid);
+
+        // Clearing itself.
+        db_delete('m6connect_m6drive_shared')
+          ->condition('folder_id', $value->Id)
+          ->condition('share_to_uid', $uid)
+          ->execute();
+      }
+      elseif (!empty($value->file)) {
+        db_delete('m6connect_m6drive_shared')
+          ->condition('fid', $value->file)
+          ->condition('share_to_uid', $uid)
+          ->execute();
+      }
+    }
+  }
+  else {
+    // If there are no children of this folder, then clearing itself.
+    db_delete('m6connect_m6drive_shared')
+      ->condition('folder_id', $projectIdMul)
+      ->condition('share_to_uid', $uid)
+      ->execute();
+  }
+}
+
+function get_folder_ad_to_mydrive_in_shared_table($uid){
+
+  if(isset($uid)){
+    $query = db_select('m6connect_m6drive_shared', 'm6s');
+    $query->leftJoin('m6connect_m6drive', 'm6d', 'm6d.Id = m6s.folder_id');    
+    $query->fields('m6s',array('folder_id','share_to_uid','shared_date','add_to_mydrive'));
+    $query->fields('m6d',array('foldername'));
+    $query->addField('m6s','folder_id','Id');
+    $query->addField('m6s','fid','file');
+    $query->addField('m6s','shared_date','created_date');
+    $query->addField('m6s','share_by_uid','user_uid');
+    $query->condition('m6s.share_to_uid', $uid,'=');
+    $query->condition('m6s.add_to_mydrive', 1,'=');
+    $record = $query->execute()->fetchAll();
+  }
+   return $record;
+}
+
+/**
+ * Helper function to clean folder's child folders in the table.
+ */
+function _clean_add_to_my_drive_folder($folderIdMul, $drive = 'm6drive') {
+  global $user;
+  $childs = m6drive_update_status_child_file_folder($folderIdMul);
+  if (!empty($childs)) {
+    foreach ($childs as $key => $value) {
+      if ($value->Id) {
+        // If the current value is a folder.
+        // Clearing its children if any.
+        _clean_add_to_my_drive_folder($value->Id, $drive);
+
+        // Clearing the current entry.
+        db_delete('m6connect_m6drive_addto_mydrive')
+          ->condition('user_uid', $user->uid)
+          ->condition('folder_id', $value->Id)
+          ->condition('services', $drive)
+          ->execute();
+      }
+      elseif ($value->file) {
+        // Clearing the file
+        db_delete('m6connect_m6drive_addto_mydrive')
+          ->condition('file', $value->file)
+          ->condition('user_uid', $user->uid)
+          ->condition('services', $drive)
+          ->execute();
+      }
+    }
+  }
+  else {
+    // If no child, then clearing itself.
+    db_delete('m6connect_m6drive_addto_mydrive')
+      ->condition('user_uid', $user->uid)
+      ->condition('folder_id', $folderIdMul)
+      ->condition('services', $drive)
+      ->execute();
+  }
+}
+
+/**
+ * Helper function for trash project drive folders.
+ */
+function _trash_folder_and_file_project($folderMul) {
+  // When this function is called, then we are sure, that we are dealing with
+  // the inner folders and not the root folder. So, technically there is 
+  // no need to check whether a folder is project folder or inner folder, as
+  // we had already dealt with the project folder, when this function was
+  // called.
+  global $user;
+  global $company;
+  $childs = m6drive_update_status_child_file_folder($folderMul);
+  if (!empty($childs)) {
+    // If the folder, we are to archive, has children, then dealing here, that
+    // too recursively.
+    foreach ($childs as $key => $value) {
+      if (!isset($value->file)) {
+        // The current entry is a folder.
+        _trash_folder_and_file_project($value->Id);
+        db_update('m6connect_m6drive')
+          ->fields(array(
+            'trash_status' => 1,
+          ))
+          ->condition('Id', $value->Id)
+          ->condition('user_uid', $user->uid)
+          ->execute();
+      }
+      else {
+        // When the current entry is a file.
+        db_update('m6connect_m6drive_attachment')
+          ->fields(array(
+            'trash_status' => 1,
+          ))
+          ->condition('file', $value->file)
+          ->condition('user_uid', $user->uid)
+          ->execute();
+      }
+    }
+  }
+  else {
+    // This may be the case, when the folder is a blank folder.
+    // Simply updating its archive status.
+    db_update('m6connect_m6drive')
+      ->fields(array(
+        'trash_status' => 1,
+      ))
+      ->condition('Id', $folderMul)
+      ->condition('user_uid', $user->uid)
+      ->execute();
+  }
+}
+
+/**
+ * Helper function to get parent of a shared folder.
+ */
+function _get_parent_of_shared_folder($folder_id = '-147') {
+  global $user;
+  $query = db_select('m6connect_m6drive_addto_mydrive', 'm')
+    ->fields('m')
+    ->condition('user_uid', $user->uid)
+    ->condition('folder_id', $folder_id)
+    ->execute();
+
+  if ($query->rowCount() == 0) {
+    return FALSE;
+  }
+  $result = $query->fetchObject();
+  return $result->parent_id;
+}
+
+function _get_file_icon_m6drive($filetype, $vendor_messaging = FALSE){
+  global $base_url;
+  $height = 124;
+  if ($vendor_messaging) {
+    $height = 40;
+  }
+  $imgpath = FALSE;
+  $Imagefolderpath = '/'.drupal_get_path('module', 'm6connect_m6_drive').'/images';
+  if($filetype == 'application/zip' || $filetype == 'application/tar' || $filetype == 'application/rar' || $filetype == 'application/tar.gz '){  
+    $imgpath = '<img src="'.$Imagefolderpath.'/drive-zipicon.jpg" style="width:' . $height . 'px; height: ' . $height . 'px;">'; 
+
+  }elseif($filetype == 'application/pdf'){
+
+    $imgpath = '<img src="'.$Imagefolderpath.'/drive-pdf-icon.png" style="width:' . $height . 'px; height: ' . $height . 'px;">'; 
+
+  }elseif($filetype == 'application/msword' || $filetype == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'){
+
+    $imgpath = '<img src="'.$Imagefolderpath.'/drive-word-icon.jpg" style="width:' . $height . 'px; height: ' . $height . 'px;">'; 
+  } 
+  elseif ($filetype == 'application/vnd.ms-excel' || $filetype == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+    $imgpath = '<img src="'.$Imagefolderpath.'/drive-xlx-icon.png" style="width:' . $height . 'px; height: ' . $height . 'px;">'; 
+  }
+  elseif ($filetype == 'application/vnd.ms-powerpoint' || $filetype == 'application/vnd.openxmlformats-officedocument.presentationml.presentation') {
+
+    $imgpath = '<img src="'.$Imagefolderpath.'/drive-ppt-icon.png" style="width:' . $height . 'px; height: ' . $height . 'px;">'; 
+  }
+  return  $imgpath;
+}
+
+/**
+ * Helper function to return download array for company drive.
+ * @var $parent_id: The current folder ID.
+ * @var $foldername: The foldername of current folder request.
+ * @var $root: Whether the request is for ROOT.
+ * @var $node: Whether the request is for node folder.
+ */
+function _get_download_array_company($parent_id, $foldername, $root = FALSE, $node = FALSE) {
+  global $company, $user;
+  $return = array();
+  if ($root) {
+    if ($parent_id == 'project') {
+      $CuurCompNid = $company->nid;
+      $companyAdminRoleUsers = _get_company_users_by_og_roles($CuurCompNid,'company admin');
+      $isCompanyIndividual = is_company_individual_flag($CuurCompNid);
+      $userid = $user->uid;
+
+      $type = array('project'); 
+      $or = db_or();
+      $and = db_and();
+      $query = db_select('node', 'n')->extend('PagerDefault');
+      $query->fields('n', array('nid'));
+      $query->leftJoin('og_membership', 'ogm', 'ogm.etid=n.nid');
+
+      if (in_array($user->uid, $companyAdminRoleUsers)) {
+        $company_emails_users = db_select('m6connect_og_membership_email', 'om')->fields('om', array('user_uid','company_email'))->condition('om.entity_id', $CuurCompNid, '=')->execute()->fetchAllKeyed(0,1);
+        $company_email = array_map('strtolower',array_values($company_emails_users));
+        $company_user = array_keys($company_emails_users);
+        
+        $query->leftJoin('field_data_field_project_invite_comapnies', 'pic', 'pic.entity_id=n.nid');
+        $query->leftJoin('field_data_field_company_nid_mail', 'pcne', 'pcne.entity_id = pic.field_project_invite_comapnies_value');
+        $query->leftJoin('field_data_field_comapny_manager', 'pcimu', 'pcimu.entity_id = pic.field_project_invite_comapnies_value');
+        //Invited Company Access
+        $query->leftJoin('field_data_field_rfp_invite_comapnies', 'ric', 'ric.entity_id=n.nid');
+        $query->leftJoin('field_data_field_rfp_company_nid_email', 'rcne', 'ric.field_rfp_invite_comapnies_value = rcne.entity_id');
+        $query->leftJoin('field_data_field_co_invite_manager_uid', 'rcimu', 'ric.field_rfp_invite_comapnies_value = rcimu.entity_id');
+        
+        $query->where('((n.uid IN(:UserUid) and ogm.gid=:ogmid) or (n.status=1 AND (rcne.field_rfp_company_nid_email_value IS NOT NULL) AND
+        ((rcne.field_rfp_company_nid_email_value=:companyNid) or(LOWER(rcne.field_rfp_company_nid_email_value) IN(:companyMail)))))', 
+        array(':UserUid' => $company_user, ':ogmid' => $CuurCompNid, ':companyNid' => $CuurCompNid, ':companyMail' => $company_email));
+      }
+      else {
+        $company_email = db_select('m6connect_og_membership_email', 'om')->fields('om', array('company_email'))->condition('om.entity_id', $company->nid, '=')->condition('om.user_uid', $userid, '=')->execute()->fetchColumn(0);
+        $company_email = (!empty($company_email)) ? $company_email : '';
+        $company_email = strtolower($company_email);
+        //$company_users = _get_current_company_users($user->uid);
+        $company_users = _get_company_users_by_group_company($company);
+        $userCmpNid = _get_user_company_nid();
+        $query->leftJoin('field_data_field_project_invite_comapnies', 'pic', 'pic.entity_id=n.nid');
+        $query->leftJoin('field_data_field_company_nid_mail', 'pcne', 'pcne.entity_id = pic.field_project_invite_comapnies_value');
+        $query->leftJoin('field_data_field_comapny_manager', 'pcimu', 'pcimu.entity_id = pic.field_project_invite_comapnies_value');
+        //Invited Company Access
+        $query->leftJoin('field_data_field_rfp_invite_comapnies', 'ric', 'ric.entity_id=n.nid');
+        $query->leftJoin('field_data_field_rfp_company_nid_email', 'rcne', 'ric.field_rfp_invite_comapnies_value = rcne.entity_id');
+        $query->leftJoin('field_data_field_co_invite_manager_uid', 'rcimu', 'ric.field_rfp_invite_comapnies_value = rcimu.entity_id');
+        $query->where('((n.uid=:UserUid AND ogm.gid=:ogmid) OR (n.status=1 AND ((pcne.field_company_nid_mail_value=:companyNid OR pcne.field_company_nid_mail_value=:companyMail) AND 
+         ((pcimu.field_comapny_manager_value IS NULL) OR FIND_IN_SET(:UserUid,pcimu.field_comapny_manager_value)>0))  OR              
+        ((rcne.field_rfp_company_nid_email_value=:companyNid) AND FIND_IN_SET(:UserUid,rcimu.field_co_invite_manager_uid_value)>0) OR
+        ((rcne.field_rfp_company_nid_email_value IS NOT NULL) AND LOWER(rcne.field_rfp_company_nid_email_value)=:companyMail) OR
+        ((pcne.field_company_nid_mail_value=:companyNid) AND FIND_IN_SET(:UserUid,pcimu.field_comapny_manager_value)>0)))', array(':UserUid' => $userid, ':ogmid' => $CuurCompNid, ':companyNid' => $CuurCompNid, ':companyMail' => $company_email));
+      }
+
+      $query->condition('n.status', 1, '=');
+      $query->condition('n.type', $type, 'IN');
+      $query->orderBy('n.created', 'DESC'); 
+      $query->groupBy('n.nid');
+      $query->limit(15);
+      $myproject = $query->execute()->fetchAll();
+
+      if (!empty($company->nid)) {
+        $collaborationproject = get_collaboration_project_for_project_m6drive($user->uid, $company->nid);
+        $result = array_merge($myproject, $collaborationproject);
+      }
+
+      foreach($result as $record) {
+        // In $result we have all the nodes for this root folder.
+        if ($folder_node = node_load($record->nid)) {
+          $node_name = str_replace(' ', '_', $folder_node->title);
+          $new_foldername = $foldername . '/' . $node_name;
+          _get_download_array_company($record->nid, $new_foldername, FALSE, TRUE);
+        }
+      }
+
+      // Getting files for project root.
+      $query = db_select('m6connect_m6drive_attachment', 'f')
+        ->fields('f', array('file'))
+        ->condition('folder_id', 0)
+        ->condition('root', 2)
+        ->execute()
+        ->fetchAll();
+      foreach ($query as $root_file) {
+        if ($root_fileObj = file_load($root_file->file)) {
+          $_SESSION['down_arr'][] = array(
+            'id' => $root_file,
+            'file' => $root_file,
+            'path' => $foldername . '/' . $root_fileObj->filename,
+          );
+        }
+      }
+    }
+    elseif ($parent_id == 'rfp') {
+      $RfpNodeList = m6drive_get_all_rfp_node_list();
+      foreach ($RfpNodeList as $key => $nid) {
+        if ($folder_node = node_load($nid)) {
+          $node_name = str_replace(' ', '_', $folder_node->title);
+          $new_foldername = $foldername . '/' . $node_name;
+          _get_download_array_company($nid, $new_foldername, FALSE, TRUE);
+        }
+      }
+
+      // Getting files for RFP root.
+      $query = db_select('m6connect_m6drive_attachment', 'f')
+        ->fields('f', array('file'))
+        ->condition('folder_id', 0)
+        ->condition('root', 3)
+        ->execute()
+        ->fetchAll();
+      foreach ($query as $root_file) {
+        if ($root_fileObj = file_load($root_file->file)) {
+          $_SESSION['down_arr'][] = array(
+            'id' => $root_file,
+            'file' => $root_file,
+            'path' => $foldername . '/' . $root_fileObj->filename,
+          );
+        }
+      }
+    }
+  }
+  if ($node) {
+    if (!empty($parent_id)) {
+      if ($node_node = node_load($parent_id)) {
+        $fieldrfpdocumentArr = array();
+        if ($node_node->type == 'project') {
+          $fid = @$node_node->field_images['und'][0]['fid'];
+          if (!empty($fid)) {
+            $uri =  $node_node->field_images['und'][0]['uri'];
+            $filename = $node_node->field_images['und'][0]['filename'];
+            $_SESSION['down_arr'][] = array(
+              'id' => $fid,
+              'file' => $fid,
+              'path' => $foldername . '/' . $filename,
+            );
+          }
+
+          $fieldrfpdocumentArr =_get_all_rfp_nid_using_project_nid_project_drive($parent_id, $only_nids = TRUE);
+          $new_files = array();
+          foreach ($fieldrfpdocumentArr as $rfpnids) {
+            // If it is a project node, and there are any rfps associated with it.
+            if ($rfpnode = node_load($rfpnids)) {
+              $rfpnode_name = str_replace(' ', '_', $rfpnode->title);
+              $new_foldername = $foldername . '/' . $rfpnode_name;
+              _get_download_array_company($rfpnids, $new_foldername, FALSE, TRUE);
+            }
+          }
+        }
+        elseif ($node_node->type == 'rfp') {
+          $fid =  @$node_node->field_rfp_logo['und'][0]['fid'];
+          if (!empty($fid)) {
+            $filename = $node_node->field_rfp_logo['und'][0]['filename'];
+            $uri =  $node_node->field_rfp_logo['und'][0]['uri'];
+            $_SESSION['down_arr'][] = array(
+              'id' => $fid,
+              'file' => $fid,
+              'path' => $foldername . '/' . $filename,
+            );
+          }
+
+          $fieldrfpdocumentArr =_get_all_rfp_document_images_project_drive($parent_id);
+          foreach ($fieldrfpdocumentArr as $projectfiles) {
+            if(!empty($projectfiles['fid'])) {
+              $filename = $projectfiles['filename'];
+              $uri = $projectfiles['uri'];
+              $_SESSION['down_arr'][] = array(
+                'id' => $projectfiles['fid'],
+                'file' => $projectfiles['fid'],
+                'path' => $foldername . '/' . $projectfiles['filename'],
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (is_numeric($parent_id) && !empty($parent_id) && !$root) {
+    // If it is a node folder or custom folder, we need to look for custom
+    // uploaded folders in it.
+    $childs = m6drive_update_status_child_file_folder($parent_id);
+    if (!empty($childs)) {
+      foreach ($childs as $value) {
+        if (!isset($value->file)) {
+          // If file is not in the current entry than this a folder.
+          $fname = get_folder_name_by_folderid($value->Id);
+          $new_foldername = $foldername . '/' . $fname->foldername;
+          _get_download_array_company($value->Id, $new_foldername, FALSE, FALSE);
+        }
+        else {
+          if ($fileObj = file_load($value->file)) {
+            $_SESSION['down_arr'][] = array(
+              'id' => $value->file,
+              'file' => $value->file,
+              'path' => $foldername . '/' . $fileObj->filename,
+            );
+          }
+        }
+      }
+    }
+  }
+
+  return isset($_SESSION['down_arr']);
+}
+
+//== Helper function for get project nid shared date using rfp nid==
+
+function _get_share_date_projectnid_using_rfp_nid($rfpnid){
+ global $user;
+ $return = FALSE;
+  if(!empty($rfpnid) && is_numeric($rfpnid)){
+     $node = node_load($rfpnid);
+     if (!empty($node->field_project['und'] ['0']['target_id'])) {
+        $projectnid =  $node->field_project['und'] ['0']['target_id'];
+        $query = db_select('m6connect_project_drive_shared', 'pds');
+        $query->fields('pds',array('id','share_by_uid','share_to_uid','project_nid','shared_date', 'permissions'));
+        $query->condition('pds.share_to_uid', $user->uid,'=');
+        $query->condition('pds.project_nid',  $projectnid, '=');
+        $return = $query->execute()->fetchObject();
+     }
+   }
+ return $return;
+}
+
+/**
+ * Implements hook_js_alter()
+ */
+function m6connect_m6_drive_js_alter(&$javascript) {
+  if (arg(0) == 'program' && arg(1) == 'm6-drive') {
+    unset($javascript['sites/all/libraries/colorbox/jquery.colorbox-min.js']);
+    unset($javascript['sites/all/modules/colorbox/js/colorbox.js']);
+    // unset($javascript['sites/all/themes/m6connect/js/jquery.infinitescroll.min.js']);
+    unset($javascript['sites/all/modules/colorbox/styles/default/colorbox_style.js']);
+    unset($javascript['sites/all/modules/colorbox/js/colorbox_load.js']);
+    unset($javascript['sites/all/modules/fancybox/fancybox.js']);
+    unset($javascript['sites/all/libraries/fancybox/source/jquery.fancybox.pack.js']);
+    unset($javascript['sites/all/modules/lightbox2/js/lightbox.js']);
+    unset($javascript['sites/all/modules/custom/m6connect_company/m6connect_coj.js']);
+    unset($javascript['sites/all/modules/custom/m6connect_misc/m6connect.js']);
+    unset($javascript['sites/all/modules/custom/m6connect_onboarding/m6connect_onboarding.js']);
+    unset($javascript['sites/all/modules/custom/m6connect_projects/m6connect_proj.js']);
+    unset($javascript['sites/all/modules/custom/m6connect_rfp/m6connect_rfp.js']);
+    unset($javascript['sites/all/modules/custom/m6connect_rfp/m6connect_rfp.js']);
+    unset($javascript['sites/all/modules/custom/m6connect_company/m6connect_bookmark.js']);
+    unset($javascript['sites/all/modules/custom/m6connect_common/js/m6connect_common.js']);
+    unset($javascript['sites/all/modules/project_issue/js/project-issue.js']);
+    unset($javascript['sites/all/modules/ubercart/uc_file/uc_file.js']);
+    unset($javascript['sites/all/modules/user_relationships/user_relationships_ui/user_relationships_ui.js']);
+    unset($javascript['sites/all/modules/custom/m6connect_onboarding/js/m6connect_onboarding_message_modal.js']);
+    unset($javascript['sites/all/modules/custom/m6connect_dashboard/m6connect_dash.js']);
+    unset($javascript['sites/all/modules/stanford_date_timepicker/js/stanford_date_timepicker.js']);
+  }
+}
+
+function m6connect_m6_drive_form_alter($form,$form_state,$form_id) {
+  if($form_id == 'm6drive-upload-new-file-form') {
+    echo "<pre>";
+	print_r($form);
+	die;
+  }
+}

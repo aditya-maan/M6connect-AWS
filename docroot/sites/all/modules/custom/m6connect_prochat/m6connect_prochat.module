@@ -1,0 +1,552 @@
+<?php
+use Aws\Common\Aws;
+use Aws\S3\S3Client;
+use Aws\Common\Credentials\Credentials;
+global $bucket, $awsAccessKey, $awsSecretKey;
+$bucket = 'dev.repo.m6connect.com';
+$awsAccessKey = 'AKIAJZCVB5B62KPYTLFA';
+$awsSecretKey = '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';
+/**
+ * @file
+ * Implements custom functionality, REST API etc.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function m6connect_prochat_menu() {
+  $items = array();
+  $items['chat/message'] = array(
+    'type' => MENU_CALLBACK,
+    'access callback' => TRUE,
+    'page callback' => 'send_message_chat',
+    'file' => 'm6connect_prochat.message.inc',
+  );
+  $items['chat/history'] = array(
+    'type' => MENU_CALLBACK,
+    'access callback' => TRUE,
+    'page callback' => 'get_chat_history',
+    'file' => 'm6connect_prochat.message.inc',
+  );
+  $items['chat/refresh'] = array(
+    'type' => MENU_CALLBACK,
+    'access callback' => TRUE,
+    'page callback' => 'refresh_chat',
+    'file' => 'm6connect_prochat.message.inc',
+  );
+  $items['add/prochatgroup/%ctools_js'] = array(
+    'page callback' => 'prochat_create_group',
+    'page arguments' => array( 2 ),
+    'type' => MENU_CALLBACK,
+    'access callback' => '_is_m6_user_logged_in',
+    'file' => 'm6connect_prochat.message.inc',
+  );
+  $items['show-group-user-list/%/%/%ctools_js'] = array(
+    'page callback' => 'prochat_show_group_user_list',
+    'page arguments' => array(1, 2, 3),
+    'type' => MENU_CALLBACK,
+    'access callback' => '_is_m6_user_logged_in',
+    'file' => 'm6connect_prochat.message.inc',
+  );
+  $items['editprochatgroup/%/%ctools_js'] = array(
+    'page callback' => 'edit_prochat_group',
+    'page arguments' => array(1, 2),
+    'type' => MENU_CALLBACK,
+    'access callback' => '_is_m6_user_logged_in',
+    'file' => 'm6connect_prochat.message.inc',
+  );
+  $items['prochat-user-from-username'] = array(
+    'page callback' => 'get_user_id_realname_from_username',
+    'access callback' => '_is_m6_user_logged_in',
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['cmpungroup'] = array(
+    'page callback' => 'ungroup_company_prochat',
+    'access callback' => TRUE,
+    'access arguments' => array('access content'),
+    'type'=> MENU_CALLBACK,
+  );
+
+  /****** Status APIs for APP ******/
+  $items['app'] = array(
+    'type' => MENU_CALLBACK,
+    'access callback' => TRUE,
+    'page callback' => 'app_rest_api_callbacks',
+    'file' => 'm6connect_prochat.rest.inc',
+  );
+
+  return $items;
+}
+
+function ungroup_company_prochat(){
+ 
+  og_ungroup('node', 87, 'user', 897);
+}
+
+
+function m6connect_prochat_init(){
+  global $user, $base_url, $base_path, $company;
+  // set username for initialize socket object 
+  $account = user_load($user->uid);
+  if (!empty($_SESSION['login-mail'])) {
+    $userdata = get_scm_user_database_by_email($_SESSION['login-mail']);
+    $uid = $userdata->UUID;
+    $account = user_load($uid);
+  }
+
+  $user_data = _get_user_mail_realname_by_uid($account->uid);
+  if (empty($user_data['realname'])) {
+    $user_data['realname'] = $user_data['name'];
+  }
+  $realName = str_replace(" ", "@", ucwords($user_data['realname']));
+  $userName = $realName . '@' . $account->uid;
+  drupal_add_js(array('m6connect_prochat' => array('username'=>array($userName))),'setting');
+  drupal_add_js(array('m6connect_prochat' => array('prochatCompanyId'=>array($company->nid))),'setting');
+  drupal_add_js(array('m6connect_prochat' => array('base_url'=>array($base_url))),'setting');
+}
+
+function m6connect_prochat_block_info() {
+  $blocks = array();
+  $blocks['m6connect-pro-chat-block'] = array(
+    'info' => t('M6connect pro chat block'),
+  );    
+  return $blocks;
+}
+function m6connect_prochat_block_view($delta = '') {
+  global $user;
+  $block = array();
+  $content = '';
+  switch ($delta) {
+    case 'm6connect-pro-chat-block':
+      $block['subject'] = t('');
+      $block['content'] = m6connect_pro_chat_block();
+    break;  
+  }
+  return $block;
+}
+function m6connect_pro_chat_block(){
+	global $user;
+	drupal_add_js(drupal_get_path('module',  'm6connect_prochat') . '/m6connect_prochat.js');
+	$output = '<div class="go-pro-chat" style="cursor:pointer;">Pro Chat</div>';
+	$output .= '<div class="border-box margin-top-10" style="display:none;"><div class="side-bar"><div class="margin-bottom-10">';
+	$output .=  l('<i class="fa fa-plus"></i> Create New Channel', '/add/prochatgroup/nojs', array('html' => TRUE, 'attributes' => array('class' => 'use-ajax ctools-modal-assign-dashboard-popup-style')));
+	$output .= '</div><div id="prochatgrouplisting">';
+	/*$groupOption = array("Program" => "Program", "Project" => "Project", "Proposal" => "Proposal");
+	foreach ($groupOption as $option) {
+  	$getGroupData = getOptionWiseGroupData(0, $option);
+    if(!empty($getGroupData)){
+      $output .= '<h3 class="dashboard-block-account margin-top-10 text-center">'.$option.' Type Group List <span class="pull-right typetoggle-'.$option.'" style="cursor:pointer;" onclick="typetoggle(\''.$option.'\')"><i class="fa fa-plus"></i></span></h3>';
+      $output .= '<ul class="list-group list-group-'.$option.'" style="display:none;">';
+      foreach ($getGroupData as $key => $value) {      
+        $output .= '<li class="list-group-item">';
+        $output .= l($value, '/show-group-user-list/'.$key.'/'.$value.'/nojs', array('attributes' => array('class' => array('use-ajax'))));
+        $output .= l('<i class="fa fa-pencil pull-right"></i>', '/editprochatgroup/'.$key.'/nojs', array('html' => TRUE, 'attributes' => array('class' => 'use-ajax ctools-modal-assign-dashboard-popup-style', 'id' => 'edit-prochat-group-icon-'.$key)));
+        $output .= getChildGroup($key, $option);
+        $output .= '</li>';
+      }
+      $output .= '</ul>';
+    }
+	}*/
+	$output .= '</div><div id="prochat-group-user-list"></div>';
+	$output .= '</div></div>';
+	return $output;
+}
+//l(ucwords($estimateNode->title), 'show-group-user-list/'.$key.'/nojs', array('attributes' => array('class' => array('use-ajax'),'id'=>'estimate-td-'.$estimateNode->nid)))
+
+/*
+ * get option wise group data
+ */
+function getOptionWiseGroupData($key = 0, $option = ''){
+  global $user;global $company;
+  if(!empty($option)){
+    $getGroupData = db_select('m6connect_prochat_group_data', 'mpgd')
+                  ->fields('mpgd', array('id', 'title'))
+                  ->condition('service_type', $option, '=')
+                  ->condition('author_id', $user->uid, '=')
+                  ->condition('cid', $company->nid, '=')
+                  ->condition('parent', $key, '=')
+                  ->execute()->fetchAllKeyed(0,1);
+    return $getGroupData;
+  }  
+}
+/*
+ * get child group data recursively
+ */
+function getChildGroup($key = '', $option = ''){
+  global $user;global $company;$data = '';  
+  if(!empty($key) && !empty($option)){    
+    $getGroupData = getOptionWiseGroupData($key, $option);
+    if(!empty($getGroupData)){
+      $data .= '<ul class="list-group margin-0 margin-top-10">';
+      foreach ($getGroupData as $index => $value) {        
+        $data .= '<li class="list-group-item list-group-item-info">';
+        $data .= l($value, '/show-group-user-list/'.$index.'/'.$value.'/nojs', array('attributes' => array('class' => array('use-ajax'))));
+        $data .= l('<i class="fa fa-pencil pull-right"></i>', '/editprochatgroup/'.$index.'/nojs', array('html' => TRUE, 'attributes' => array('class' => 'use-ajax ctools-modal-assign-dashboard-popup-style', 'id' => 'edit-prochat-group-icon-'.$key)));
+        $data .= getChildGroup($index, $option);
+        $data .= '</li>';
+      }
+      $data .= '</ul>';
+    }
+    return $data;
+  }
+}
+/*
+ * get user id and realname from name
+ */
+function get_user_id_realname_from_username(){
+  if(isset($_REQUEST['username']) && !empty($_REQUEST['username'])){
+    $getUserData = db_select('users', 'u');
+    $getUserData->leftJoin('realname', 'r', 'r.uid = u.uid');
+    $getUserData->fields('u', array('uid', 'name'));
+    $getUserData->fields('r', array('realname'));
+    $getUserData->condition('u.name', $_REQUEST['username'], '=');
+    $result = $getUserData->execute()->fetchAssoc();
+    print_r(json_encode($result));
+  }
+}
+
+/*************** Helper function ******************/
+function getArrayValues($data = array()){
+  if(is_array($data) && !empty($data)){
+    $mainValues = array();$i=0;
+    foreach ($data as $key => $value) {
+      $mainValues[$i]['id'] = $key;
+      $mainValues[$i]['value'] = $value;
+      $i++;
+    }
+    return $mainValues;
+  }
+  else{
+    return array();
+  }
+}
+/*
+ * get node title and nid from type
+ */
+function getNodeTitleNidFromType($type = ''){
+  if(!empty($type)){
+    $getData = db_select('node', 'n')
+            ->fields('n', array('nid', 'title'))
+            ->condition('type', $type, '=')
+            ->condition('status', '1')
+            ->execute()->fetchAllKeyed(0,1);
+    return $getData;
+  }
+}
+/*
+ * get node title and nid from nids
+ */
+function getNodeTitleFromNids($nid = ''){
+  if(!empty($nid)){
+    $getData = db_select('node', 'n')
+            ->fields('n', array('nid', 'title'))
+            ->condition('nid', $nid, 'IN')
+            ->execute()->fetchAllKeyed(0,1);
+    return $getData;
+  }
+}
+/*
+ * get first level taxonomy data
+ */
+function get_first_level_taxonomy_data($taxonomy = ''){
+  if(!empty($taxonomy)){
+    $facilities_construction = taxonomy_vocabulary_machine_name_load($taxonomy);
+    $constructionList = taxonomy_get_tree($facilities_construction->vid, 0, 1, 1);
+    $constructionData = array();
+    if(!empty($constructionList)){
+      $j = 0;
+      foreach ($constructionList as $constructionListData) {
+        $constructionData[$j]['id'] = $constructionListData->tid;
+        $constructionData[$j]['value'] = $constructionListData->name;
+        $j++;
+      }
+      return $constructionData;
+    }
+    else{
+      return 'Wrong taxonomy name';
+    }
+  }
+  else{
+    return 'Please give taxonomy name';
+  }
+}
+/*
+ * get level wise region data
+ */
+function get_texonomy_data_level(){
+  if(isset($_REQUEST['taxonomyid']) && !empty($_REQUEST['taxonomyid'])){
+    if(isset($_REQUEST['taxonomyname']) && !empty($_REQUEST['taxonomyname'])){
+      $taxonomyId = $_REQUEST['taxonomyid'];
+      $taxonomyName = $_REQUEST['taxonomyname'];
+      $region = taxonomy_vocabulary_machine_name_load($taxonomyName);
+      $regionTerm = taxonomy_get_tree($region->vid, $taxonomyId, 1, 1);
+      $regionTermData = array();
+      if(!empty($regionTerm)){
+        $j = 0;
+        foreach ($regionTerm as $regionData) {
+          $regionTermData[$j]['id'] = $regionData->tid;
+          $regionTermData[$j]['value'] = $regionData->name;
+          $j++;
+        }
+        $output['success'] = TRUE;
+        $output['region'] = $regionTermData;
+      }
+      else{
+        $output['success'] = FALSE;
+        $output['data'] = "Data not found";
+      }
+    }
+    else{
+      $output['success'] = FALSE;
+      $output['data'] = "Taxonomy name should not be null";
+    }
+  }
+  else{
+    $output['success'] = FALSE;
+    $output['data'] = "Taxonomy id should not be null";
+  }
+  drupal_json_output($output);
+  drupal_exit();
+}
+function getCompanyEmployeeList($nid = ''){
+  if(!empty($nid)){
+    $getList = db_select('users', 'u');
+    $getList->leftjoin('realname', 'realname', 'realname.uid = u.uid');
+    $getList->leftjoin('field_data_field_user_profile_photo', 'fdfupp', 'fdfupp.entity_id = u.uid');
+    $getList->leftjoin ('file_managed', 'fm', 'fm.fid = fdfupp.field_user_profile_photo_fid');
+    $getList->leftjoin('og_membership', 'om', 'om.etid = u.uid');    
+    $getList->fields('u', array('uid'));
+    $getList->fields('realname', array('realname'));
+    $getList->fields("fm", array('uri'));
+    $getList->condition('om.gid', $nid, '=');
+    $getList->orderBy('u.created', 'DESC');
+    $empList = $getList->execute()->fetchAll();
+    return $empList;
+  }
+  else{
+    return 'Nid should not be empity';
+  }
+}
+function getCompanyProjectList($nid = ''){
+  if(!empty($nid)){
+    $starts = 0;
+    if(isset($_REQUEST['start_range']) && !empty($_REQUEST['start_range'])){
+      $starts = $_REQUEST['start_range'];
+    }
+    $getCmpList = db_select('node', 'n');    
+    $getCmpList->leftjoin('field_data_field_project_address_new', 'fpan', 'fpan.entity_id = n.nid');
+    $getCmpList->leftjoin('field_data_field_projects_keywords', 'fdfpk', 'fdfpk.entity_id = n.nid');
+    $getCmpList->leftjoin('field_data_field_images', 'fdfi', 'fdfi.entity_id = n.nid');
+    $getCmpList->leftjoin ('file_managed', 'fm', 'fm.fid = fdfi.field_images_fid');
+    $getCmpList->leftjoin('users', 'u', 'u.uid = n.uid');
+    $getCmpList->leftjoin('og_membership', 'om', 'om.etid = u.uid');    
+    $getCmpList->fields('n', array('nid', 'title'));
+    $getCmpList->fields('u', array('uid', 'name'));
+    $getCmpList->fields("fm", array('uri'));
+    $getCmpList->fields("fdfpk", array('field_projects_keywords_value'));
+    $getCmpList->fields('fpan', array('field_project_address_new_thoroughfare', 'field_project_address_new_locality', 'field_project_address_new_administrative_area', '
+        field_project_address_new_postal_code'));
+    $getCmpList->condition('om.gid', $nid, '=');
+    $getCmpList->condition('n.type', 'project', '=');    
+    $getCmpList->orderBy('n.created', 'DESC');
+    $getCmpList->orderBy('n.status', 1);
+    //$getCmpList->range($starts, 10);
+    $cmpList = $getCmpList->execute()->fetchAll();
+    return $cmpList;
+  }
+  else{
+    return 'Nid should not be empity';
+  }
+}
+/*
+ * function for check user access on services
+ */
+function user_services_access_data($uid = '', $companyId = '', $app = 1){
+  // if function call internally then $app = 0
+  if(empty($uid)){
+    $uid = $_REQUEST['user_id'];  
+  }
+  if(empty($companyId)){
+    $companyId = $_REQUEST['companyNid'];  
+  }  
+  if(!empty($uid) && !empty($companyId)){
+    global $base_url;
+    $currentUserOgRoles = og_get_user_roles('node',$companyId,$uid);
+    $mainData = $mainData['myservices'] = $mainData['availableservices'] = array();$i = $j = 0;
+    $currentUserObj = user_load($uid);
+    if(!empty($currentUserObj)){
+      $currentUserComapny = node_load($companyId);
+      if(!empty($currentUserComapny)){
+        // company logo
+        $cmpLogoUri = $currentUserComapny->field_logo['und'][0]['uri'];
+        $cmpLogo = '';
+        if(!empty($cmpLogoUri)){
+          global $bucket, $awsAccessKey, $awsSecretKey;
+          $credentials = new Credentials($awsAccessKey, $awsSecretKey);
+          $s3Client = S3Client::factory(array(
+            'credentials' => $credentials
+          ));
+          $thumbUrl = str_replace("private:/", "s3fs-private", $cmpLogoUri);
+          $cmpLogo = $s3Client->getObjectUrl($bucket, $thumbUrl, '+1day');
+        }
+        $mainData['nid'] = $companyId;
+        $mainData['companyLogo'] = $cmpLogo;
+        $currentUserComapnyType = $currentUserComapny->field_type_of_company['und'][0]['value'];
+        // set project posting, rfps, eproposal, hcfm
+        $mainData['myservices'][$i] = array("id" => "project_posting", "value" => "Project Postings", "image" => $base_url.'/'.path_to_theme().'/images/icon-notes.png', "showsubmenu" => 1);
+        ++$i;
+        $mainData['myservices'][$i] = array("id" => "rfps", "value" => "RFPs", "image" => $base_url.'/'.path_to_theme().'/images/icon-rfp2.png', "showsubmenu" => 1);
+        ++$i;
+        $mainData['myservices'][$i] = array("id" => "facility_manager", "value" => "icon-rfp2", "image" => "", "showsubmenu" => 1);
+        ++$i;
+        $mainData['myservices'][$i] = array("id" => "eproposals", "value" => "eProposals", "image" => $base_url.'/'.path_to_theme().'/images/icon-dossier.png', "showsubmenu" => 1);
+        ++$i;
+        // check routing slip access
+        $userRoutingAccess = (isset($currentUserObj->field_allow_routing_slip_access['und']) && $currentUserObj->field_allow_routing_slip_access['und'][0]['value']==1)?1:0;
+        $companyRoutingAccess = (isset($currentUserComapny->field_allow_routing_slip_access['und']) && $currentUserComapny->field_allow_routing_slip_access['und'][0]['value']==1)?1:0;
+        if(($currentUserComapnyType == 'individual' && $userRoutingAccess) || ($currentUserComapnyType == 'company' && $companyRoutingAccess)){
+          $mainData['myservices'][$i] = array("id" => "routing_slip", "value" => "Routing Slip", "image" => $base_url.'/'.path_to_theme().'/images/icon-plane.png', "showsubmenu" => 1);
+          ++$i;
+        }else{
+          $mainData['availableservices'][$j] = array("id" => "routing_slip", "value" => "Routing Slip", "image" => $base_url.'/'.path_to_theme().'/images/icon-plane.png', "showsubmenu" => 0);
+          ++$j;
+        }
+        // check insurance certificate access
+        $CompanyInsuranceAccess = (isset($currentUserComapny->field_allow_ins_certi_access['und']) && $currentUserComapny->field_allow_ins_certi_access['und'][0]['value']==1)?1:0;
+        if($currentUserComapnyType == 'company' && $CompanyInsuranceAccess){
+          $mainData['myservices'][$i] = array("id" => "insurance_certificates", "value" => "Insurance Certificates", "image" => $base_url.'/'.path_to_theme().'/images/icon-newspaper.png', "showsubmenu" => 1);
+          ++$i;
+        }
+        else{
+          $mainData['availableservices'][$j] = array("id" => "insurance_certificates", "value" => "Insurance Certificates", "image" => $base_url.'/'.path_to_theme().'/images/icon-newspaper.png', "showsubmenu" => 0);
+          ++$j;
+        }
+        // check onboarding (M6id) access
+        $userOnboardingAccess = (isset($currentUserObj->field_allow_onboarding_access['und']) && $currentUserObj->field_allow_onboarding_access['und'][0]['value']==1)?1:0;
+        $CompanyOnboardingAccess = (isset($currentUserComapny->field_allow_onboarding_access['und']) && $currentUserComapny->field_allow_onboarding_access['und'][0]['value']==1)?1:0;
+        if(($currentUserComapnyType == 'individual' && $userOnboardingAccess) || ($currentUserComapnyType == 'company' && $CompanyOnboardingAccess)){
+          $isUserHasOnboardingRole = array_intersect($currentUserOgRoles,array('administrator member','company admin','M6ID Manager','Site Manager','member'));
+          if(!empty($isUserHasOnboardingRole)){
+            $mainData['myservices'][$i] = array("id" => "m6id", "value" => "M6ID", "image" => $base_url.'/'.path_to_theme().'/images/icon-id-card.png', "showsubmenu" => 1);
+            ++$i;
+          }
+          else{
+            $mainData['availableservices'][$j] = array("id" => "m6id", "value" => "M6ID", "image" => $base_url.'/'.path_to_theme().'/images/icon-id-card.png', "showsubmenu" => 0);
+            ++$j;
+          }
+        }
+        else{
+          $mainData['availableservices'][$j] = array("id" => "m6id", "value" => "M6ID", "image" => $base_url.'/'.path_to_theme().'/images/icon-id-card.png', "showsubmenu" => 0);
+          ++$j;
+        }
+        // alert service access
+        $userAlertAccess = (isset($currentUserObj->field_allow_m6alert['und']) && $currentUserObj->field_allow_m6alert['und'][0]['value']==1)?1:0;
+        $companyAlertAccess = (isset($currentUserComapny->field_allow_m6alert['und']) && $currentUserComapny->field_allow_m6alert['und'][0]['value']==1)?1:0;
+        if(($currentUserComapnyType == 'individual' && $userAlertAccess) || ($currentUserComapnyType == 'company' && $companyAlertAccess)){
+          $isUserHasAlertRole = array_intersect($currentUserOgRoles,array('administrator member','company admin','Alert Manager'));
+          if(!empty($isUserHasAlertRole)){
+            $mainData['myservices'][$i] = array("id" => "alerts", "value" => "Alerts", "image" => $base_url.'/'.path_to_theme().'/images/icon-megaphone.png', "showsubmenu" => 1);
+            ++$i;
+          }
+          else{
+            $mainData['myservices'][$i] = array("id" => "alerts", "value" => "Alerts", "image" => $base_url.'/'.path_to_theme().'/images/icon-megaphone.png', "showsubmenu" => 0);
+            ++$i;
+          }
+        }
+        else{
+          $mainData['availableservices'][$j] = array("id" => "alerts", "value" => "Alerts", "image" => $base_url.'/'.path_to_theme().'/images/icon-megaphone.png', "showsubmenu" => 0);
+          ++$j;
+        }
+        // capital project manager service access
+        $companyCapitalManagerAccess = (isset($currentUserComapny->field_allow_capital_projects_man['und']) && $currentUserComapny->field_allow_capital_projects_man['und'][0]['value'] == 1) ? 1 : 0;
+        $isUserHasCpmRole = array_intersect($currentUserOgRoles,array('administrator member','company admin','project manager','Program manager'));
+        $managerIcon = ($currentUserObj->field_gender['und'][0]['value'] == 'male')?'icon-detective.png':'icon-manager.png';
+        if ($companyCapitalManagerAccess) {
+          if (!empty($isUserHasCpmRole)) {            
+            $mainData['myservices'][$i] = array("id" => "cpm", "value" => "Capital Projects Manager", "image" => $base_url.'/'.path_to_theme().'/images/'.$managerIcon, "showsubmenu" => 1);
+            ++$i;
+          }
+          else{
+            $mainData['myservices'][$i] = array("id" => "cpm", "value" => "Capital Projects Manager", "image" => $base_url.'/'.path_to_theme().'/images/'.$managerIcon, "showsubmenu" => 0);
+            ++$i;
+          }
+        }
+        else{
+          $mainData['availableservices'][$j] = array("id" => "cpm", "value" => "Capital Projects Manager", "image" => $base_url.'/'.path_to_theme().'/images/'.$managerIcon, "showsubmenu" => 0);
+          ++$j;
+        }
+        // cost manager service access
+        $companycostManagerAccess = (isset($currentUserComapny->field_allow_cost_manager['und']) && $currentUserComapny->field_allow_cost_manager['und'][0]['value']==1)?1:0;
+        $isUserHasCmRole = array_intersect($currentUserOgRoles,array('administrator member','company admin','project manager','Program manager'));
+        $managerIcon = ($currentUserObj->field_gender['und'][0]['value'] == 'male')?'icon-detective.png':'icon-manager.png';
+        if($companycostManagerAccess){
+          if(!empty($isUserHasCmRole)){
+            $mainData['myservices'][$i] = array("id" => "cm", "value" => "Cost Manager", "image" => $base_url.'/'.path_to_theme().'/images/'.$managerIcon, "showsubmenu" => 1);
+            ++$i;
+          }
+          else{
+            $mainData['myservices'][$i] = array("id" => "cm", "value" => "Cost Manager", "image" => $base_url.'/'.path_to_theme().'/images/'.$managerIcon, "showsubmenu" => 0);
+            ++$i;
+          }
+        }
+        else{
+          $mainData['availableservices'][$j] = array("id" => "cm", "value" => "Cost Manager", "image" => $base_url.'/'.path_to_theme().'/images/'.$managerIcon, "showsubmenu" => 0);
+          ++$j;
+        }
+        // cunstruction manager service access
+        $companyconstructionManagerAccess = (isset($currentUserComapny->field_allow_construction_manager['und']) && $currentUserComapny->field_allow_construction_manager['und'][0]['value'] == 1) ? 1 : 0;
+        $isUserHasCrRole = array_intersect($currentUserOgRoles,array('administrator member','company admin','project manager','Program manager'));
+        $managerIcon = ($currentUserObj->field_gender['und'][0]['value'] == 'male')?'icon-detective.png':'icon-manager.png';
+        if($companyconstructionManagerAccess) {
+          if(!empty($isUserHasCrRole)){
+            $mainData['myservices'][$i] = array("id" => "cr", "value" => "Construction Manager", "image" => $base_url.'/'.path_to_theme().'/images/'.$managerIcon, "showsubmenu" => 1);
+            ++$i;
+          }
+          else{
+            $mainData['myservices'][$i] = array("id" => "cr", "value" => "Construction Manager", "image" => $base_url.'/'.path_to_theme().'/images/'.$managerIcon, "showsubmenu" => 0);
+            ++$i;
+          }          
+        }
+        else{
+          $mainData['availableservices'][$j] = array("id" => "cr", "value" => "Construction Manager", "image" => $base_url.'/'.path_to_theme().'/images/'.$managerIcon, "showsubmenu" => 0);
+          ++$j;
+        }
+
+        $output = array("success" => TRUE, "message" => "Record found", "data" => $mainData);
+      }
+      else{
+        $output = array("success" => FALSE, "message" => "No company found");  
+      }      
+    }
+    else{
+      $output = array("success" => FALSE, "message" => "No user found");
+    }    
+  }
+  else{
+    $output = array("success" => FALSE, "message" => "Either user id or company id is null");
+  }
+  if(!empty($app)){
+    drupal_json_output($output);
+    drupal_exit();
+  }
+  else{
+    return $mainData;
+  }
+}
+/**
+ * get private key for app developer
+ */
+function getAppDevPrivateKey(){
+  $aa = db_select('node', 'n');
+  $aa->leftJoin('field_data_body', 'fdb', 'fdb.entity_id = n.nid');
+  $aa->fields('n', array("nid", "title"));
+  $aa->fields('fdb', array("body_value"));
+  $aa->condition('type', 'app_developer_private_key', '=');
+  $result = $aa->execute()->fetchAll();
+  $keys = array();
+  foreach ($result as $key => $value) {
+    $keys[$key] = $value->body_value;
+  }
+  return $keys;
+}

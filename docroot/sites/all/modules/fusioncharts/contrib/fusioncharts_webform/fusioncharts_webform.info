@@ -1,0 +1,12 @@
+name = Fusion Charts for Webforms
+core = 6.x
+description = Integration of Fusion Charts with Webforms.
+package = Fusion Charts
+dependencies[] = fusioncharts
+dependencies[] = webform
+; Information added by Drupal.org packaging script on 2013-12-18
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "fusioncharts"
+datestamp = "1387391704"
+

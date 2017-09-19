@@ -1,0 +1,1342 @@
+<?php
+/*
+* Hook implementation for m6connect_misc
+*/
+
+ 
+/*
+* Implemenatation of hook_menu
+*/
+
+function m6connect_misc_menu() {
+  $items['m6connect/%ctools_js/add/company'] = array(
+    'page callback' => 'm6connect_node_add_modal_callback',
+    'page arguments' => array(1),
+    'access arguments' => array('access content'),
+  );
+	
+	
+	$items['admin/regions'] = array(
+    'title' => t('Import regions'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('import_regions_form'),
+    'access callback' => TRUE, 
+    'file' => 'includes/m6connect_misc.inc',
+  );
+	
+	
+	$items['admin/UNSPSC'] = array(
+    'title' => t('Import UNSPSC'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('import_unspsc_form'),
+    'access callback' => TRUE,
+    'file' => 'includes/m6connect_misc.inc',
+  );
+  
+	
+		$items['admin/naics'] = array(
+    'title' => t('Import naics'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('import_naics_form'),
+    'access callback' => TRUE,
+    'file' => 'includes/m6connect_misc.inc',
+  );
+  
+  $items['custom_invite/%ctools_js/user/%'] = array(
+    'title' => t(''),
+    'page callback' => 'custom_invite_user',
+    'page arguments' => array(1,3),
+    //'access arguments' => array('see full bio of user'),
+	'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+ /*
+  $items['create-select-company'] = array(
+    'title' => 'Create or Select Company',
+    'page callback' => 'create_select_companies_form',
+    'access callback' => TRUE,
+  );
+  
+  $items['select-co-company'] = array(
+    'title' => 'Select Company',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('select_companies_form'),
+    'access callback' => TRUE,
+  ); */
+  
+  return $items;
+}
+
+
+/**
+ * mymodule node add modal callback
+ */
+function m6connect_node_add_modal_callback($js = FALSE) {
+  global $user;
+  // If people aren't using javascript, then I just boot em. sorry. its 2011.
+  if (!$js) return "Javascript required";
+  
+  // Include your ctools crap here
+  //ctools_include('node.pages', 'node', '');
+  // Include your ctools crap here
+ // ctools_include('invite.controller', 'invite');
+  ctools_include('modal');
+  ctools_include('ajax');
+
+  // Create a blank node object here. You can also set values for your custom fields here as well.
+
+  $form_state = array(
+    'title' => t('Companies'),
+    'ajax' => TRUE,
+  );
+  
+  // change this to your type node form
+  $output = ctools_modal_form_wrapper('invite_form', $form_state);
+
+  // This means the form has been exectued
+  if (!empty($form_state['executed'])) {
+    $output = array();
+    // Close the modal
+    $output[] = ctools_modal_command_dismiss();
+		$output[] = ctools_ajax_command_redirect('user/register');
+    // I use this method a lot on pages that have views, so what I do is get the latest view content
+    // with the latest node and replace the current view. magic!
+  }
+	
+  
+  print ajax_render($output);  
+  exit;
+}
+
+
+/*
+* Implemenatation of hook_form_alter
+*/
+
+function m6connect_misc_form_alter(&$form, &$form_state, $form_id) {
+	global $user;
+    //print $form_id;
+	//drupal_set_message($form_id);
+	switch($form_id) {
+		case "user_register_form":
+		   
+		 // drupal_set_message('<pre>'.print_r($form,1).'</pre>');
+		  // Load the modal library and add the modal javascript.
+			//ctools_include('modal');
+			//ctools_modal_add_js();
+		//	 $form['#attached']['js'] = array(
+			//  drupal_get_path('module', 'm6connect_misc') . '/m6connect.js',
+			//);
+		 
+			//$add_new_company = '<div class="add-new-link">' . l(t("Quick add your company"), 'm6connect/nojs/add/company', array('attributes' => array('class' =>  'ctools-use-modal'))) . '</div>';
+			//$add_new_company = '<div class="add-new-link">Quick add your company</div>';
+			//$form['og_user_node']['#suffix'] = $add_new_company;
+			 //$form['add_company'] = array(
+			//	'#type' => 'textfield',
+			//	'#title' => 'Company name',
+			//);
+            
+			//$form['#submit'][] = 'user_register_custom_submit'; 
+			//pre($form,1);
+			/*$form['#attached']['js'] = array(
+             drupal_get_path('module', 'm6connect_misc') . '/m6connect.js',
+            ); */
+			//$form['og_group_ref']['#access'] = FALSE;
+			$form['og_group_ref']['und'][0]['default']['#multiple'] = 0;
+			$form['og_group_ref']['und'][0]['default']['#title'] = 'Company';
+			
+		 break;
+    case "user_profile_form":
+	        //kpr($form);
+			unset($form['account']['current_pass']['#description']);
+			unset($form['account']['mail']['#description']);
+			unset($form['account']['pass']['#description']);
+			//pre($form);
+			drupal_set_title('My Account');
+         break; 
+    
+    case "organization_node_form": 
+	     
+	     //kpr($form);
+		 $form['field_org_address']['und'][0]['street_block']['thoroughfare']['#required'] = TRUE;
+         //$form['field_legal_name']['#attributes']['title'] = $form['field_legal_name'][LANGUAGE_NONE][0]['#description'];
+         /* $form['field_8_a_certificate']['#attributes']['title'] = $form['field_8_a_certificate'][LANGUAGE_NONE]['#description'];
+         $form['field_8_a_certificate'][LANGUAGE_NONE]['#description'] = '';
+         $form['field_8_a_certificate'][LANGUAGE_NONE]['#options']['_none'] = t('Not Required');
+         
+         $form['field_small_disadvan_certificate']['#attributes']['title'] = $form['field_small_disadvan_certificate'][LANGUAGE_NONE]['#description'];
+         $form['field_small_disadvan_certificate'][LANGUAGE_NONE]['#description'] = '';
+         $form['field_small_disadvan_certificate'][LANGUAGE_NONE]['#options']['_none'] = t('Not Required');
+         
+         $form['field_hubzone_certificate']['#attributes']['title'] = $form['field_hubzone_certificate'][LANGUAGE_NONE]['#description'];
+         $form['field_hubzone_certificate'][LANGUAGE_NONE]['#description'] = '';
+         $form['field_hubzone_certificate'][LANGUAGE_NONE]['#options']['_none'] = t('Not Required');
+         
+         $form['field_8_a_certificate_file']['#states']['visible'][':input[name=field_8_a_certificate]'] = array('value' => 1); */
+		 
+		 //pre($form,1); 
+		 global $company_active_tab;
+	     $company_active_tab = $form_state['storage']['step'];
+	     if(isset($form_state['input']) && is_array($form_state['input']) && (isset($form_state['input']['next'])|| isset($form_state['input']['previous']))){
+           $company_active_tab = $form_state['storage']['step'];  
+         }else if(isset($_REQUEST['costep']) && !empty($_REQUEST['costep'])){
+           $form_state['storage']['step'] = $company_active_tab = $_REQUEST['costep'];
+         }
+		 drupal_add_css('#edit-skip {display:none;}',$option['type'] = 'inline');
+		 
+		 /*$form['#attached']['js'] = array(
+           drupal_get_path('module', 'm6connect_misc') . '/m6connect.js',
+         ); */
+		
+		 $form['field_incorporated_country']['und']['#default_value'] = array('United States');
+		 
+		 $doptions = $form['field_diversity_credentials']['und']['#options'];
+		 foreach( $doptions as $k => $v) {
+		   $relatedcredNid = '';	 
+		   if(arg(0) == 'node' && is_numeric(arg(1)) && arg(2) == 'edit') {	
+		     
+		     $dnid = arg(1); //pre($dnid);
+		     $dCredValueNidfield = 'field_data_'.'field_dcrednid_'.$k; //pre($dCredValueNidfield);
+			 $fieldexists = db_table_exists($dCredValueNidfield);
+			 if($fieldexists) {
+		       $dCredValueNid = db_select($dCredValueNidfield, 'd')
+			   //->fields('d', array('entity_id'))
+			    ->fields('d')
+			    ->condition('d.entity_id', $dnid, '=')
+			    ->execute()->fetchAll();
+			   if($dCredValueNid) {
+			     foreach($dCredValueNid as $q => $qval) { //pre($qval);
+				   $fn = 'field_dcrednid_'.$k.'_target_id';  
+			       $relatedcredNid = $qval->$fn;   
+			     }
+			   }//pre($relatedcredNid);pre('gg',1);
+			 }
+		   } 
+		   $node = node_load($k);
+		   $wtitle = $node->title;
+		   $form['custwrap'.$k] = array(
+		     '#type' => 'fieldset',
+			 '#title' => $wtitle,
+		     '#prefix' => '<div id="customwrap'.$k.'" class="custwrapcrd org-diversity-wrapper customwrapcrd_'.$k.'">',
+		     '#suffix' => '</div>',
+			 '#weight' => 100, 
+		   );
+		   //$form['#group_children']['custwrap'.$k] = 'group_supplier_diversity';
+		   $form['#step_children']['custwrap'.$k] = 'step_co_supplier_diversity';
+		  
+           $fields = field_get_items('node', $node, 'field_form_fields'); //pre($fields);
+		   foreach($fields as $var => $val) {
+			 $fieldname = $val['value'];   
+		     $finfo1 = field_info_field($fieldname); //pre($finfo1);
+             $finfo2 = field_info_instance('node', $fieldname, 'credentials'); //pre($finfo2);
+			 $label = $finfo2['label'];
+			 if($finfo1['type'] == 'list_text') {
+			   $defValue = '';	 
+			   if($relatedcredNid && is_numeric($relatedcredNid)) { //pre($fieldname);pre($dnid);
+			     $defValue = get_field_value('list_text', $fieldname, $relatedcredNid); //pre($defValue);pre('ggg',1); 	 
+			   } 
+			   $options= $finfo1['settings']['allowed_values'];	 
+		       $form['custwrap'.$k][$fieldname.$k] = array(
+		         '#type' => 'select',
+		         '#title' => $label,
+		         '#options' => $options,
+				 '#default_value' => $defValue,
+				 '#prefix' => '<div class="form-wrapper2">',
+		         //'#suffix' => '</div>', //for grouping 3 box
+		       );
+			 }
+			 if($finfo1['type'] == 'datetime' || $finfo1['type'] == 'date' || $finfo1['type'] == 'datestamp') {
+			 //if($finfo1['type'] == 'date') {	 
+			   $defValue = '';	 
+			   if($relatedcredNid && is_numeric($relatedcredNid)) { 
+			     $defValue = get_field_value('date', $fieldname, $relatedcredNid); 	 
+			   }//pre($defValue);
+			   //$dtstmp = !empty($defValue)? strtotime($defValue): strtotime('now'); 
+			   $dtstmp = !empty($defValue)? strtotime($defValue): '';
+			   //$dtstmp = strtotime($defValue);
+			   if($fieldname == 'field_cred_start_date') {
+			     $form['custwrap'.$k][$fieldname.$k] = array(
+			       '#type' => 'date_popup',
+				   '#title' => $label,
+				   '#date_format' => 'm/d/Y',
+				   //'#default_value' => date('m/d/Y'),
+				   '#default_value' => date('Y-m-d H:i:s', $dtstmp),
+				   //'#prefix' => '<div class="form-wrapper2 form-wrapper3">', //for grouping 3 box
+		           //'#suffix' => '</div>', //for grouping 3 box
+			     );
+			   } else if($fieldname == 'field_credential_end_date'){
+			     $form['custwrap'.$k][$fieldname.$k] = array(
+			       '#type' => 'date_popup',
+				   '#title' => $label,
+				   '#date_format' => 'm/d/Y',
+				   //'#default_value' => date('m/d/Y'),
+				   '#default_value' => date('Y-m-d H:i:s', $dtstmp),
+				   //'#prefix' => '<div class="form-wrapper2 form-wrapper3">', //for grouping 3 box
+		           '#suffix' => '</div>',
+			     );	     
+			   }
+			 }
+			 
+			 if($finfo1['type'] == 'text_long') {
+			   $defValue = '';	 
+			   if($relatedcredNid && is_numeric($relatedcredNid)) { 
+			     $defValue = get_field_value('text_long', $fieldname, $relatedcredNid); 	 
+			   } //pre($defValue); 
+			   $form['custwrap'.$k][$fieldname.$k] = array(
+			     '#type' => 'textarea',
+				 '#title' => $label,
+				 '#default_value' => $defValue,
+				 '#prefix' => '<div class="form-wrapper2 form-wrapper-comment">',
+		         '#suffix' => '</div>',
+			   );	 
+			 }
+			 if($finfo1['type'] == 'file') {
+			   //<img src="/modules/file/icons/text-plain.png" title="text/plain" alt="" class="file-icon">
+			   $defValue = $defval = '';
+			   if($relatedcredNid && is_numeric($relatedcredNid)) { 
+			     $defValue = get_field_value('file', $fieldname, $relatedcredNid); 	 
+			   } //pre($defValue); pre('fd',1);
+			   
+			   $form['custwrap'.$k]['markup2'.$k]= array('#markup'=>'<div class="form-wrapper2 cust-file-mfiled">');
+			   
+			   if(!empty($defValue)){
+				  $file = file_load($defValue); //pre($file); pre('fgfdg',1);
+				  $filename = $file->filename;
+				  $defval = '<img src="/modules/file/icons/text-plain.png" title="text/plain" alt="" class="file-icon">'. $filename; 
+				  $form['custwrap'.$k]['markup'.$k]= array('#markup'=>$defval); 
+			   }
+			   
+			   $fileext = $finfo2['settings']['file_extensions']; 
+			   $form['custwrap'.$k][$fieldname.$k] = array(
+			     '#type' => 'managed_file',
+				 '#title' => $label,
+				 //'#description' => t('Allowed extensions: txt, doc, pdf, docx, jpg, jpeg, gif, png, bmp, xls, xlsx'),
+				 '#upload_validators' => array(
+                   'file_validate_extensions' => array($fileext),
+                   // Pass the maximum file size in bytes
+                   //'file_validate_size' => array(MAX_FILE_SIZE*1024*1024),
+                 ),
+				 //'#prefix' => '<div class="form-wrapper2"><div class="cust-fdef">'.$defval.'</div>',
+				 //'#prefix' => '<div class="form-wrapper2">',
+				 //'#suffix' => '</div>',
+			   );
+			   $form['custwrap'.$k]['markup3'.$k]= array('#markup'=>'</div>');
+			   	 
+			 }
+		   }
+		 }
+		 //pre('checked',1);
+		 /*$gnode = node_load(87);
+		 $glist = og_get_group_members_properties($gnode, array(), 'members__' . OG_STATE_ACTIVE, 'node');
+		 //$glist = og_get_group_members_properties(87, array(), 'members__1', 'node');
+		 //http://drupal.stackexchange.com/questions/20165/how-to-programmatically-list-member-entities-of-an-organic-group
+		 print_r($glist);*/
+		 
+		 $form['actions']['submit']['#value'] = t('Save');
+		 unset($form['actions']['draft']);
+		 
+		 $form['#submit'][] = 'custom_company_form_submit';
+		 //$form['actions']['submit']['#submit'][] ='custom_company_form_submit';
+		 
+		 
+         break;
+	case "project_node_form":
+	     //$form['og_group_ref']['#prefix'] = '<div class="cust-invite-link">'.custom_user_invite_link(1).'</div>'; 
+		 //$form['og_group_ref']['#prefix'] = '<div class="cust-invite-link"><a href="http://dev-m6connect.pantheon.io/sendinvite" rel="lightframe"><i class="glyphicon glyphicon-plus"></i> Invite Companies</a>';
+		 //$form['og_group_ref']['#suffix'] = '<div class="cust-invite-link">Invite after</div>';
+		 //$form_state['storage']['step'] = 'step_pro_supplier_diversity';
+		 
+		 //global $project_active_tab;
+		 //$project_active_tab = $form_state['storage']['step'];
+	    break;	 
+	case "rfp_node_form":
+		//global $rfp_active_tab;
+		//$rfp_active_tab = $form_state['storage']['step'];
+		$form['#attached']['js'] = array(
+           drupal_get_path('module', 'm6connect_misc') . '/m6connect.js',
+        );
+	    break;	
+	case "privatemsg_new":
+	    $form['#prefix']= '<div id ="private-message-wraper"><div class="row"><div class="connect-pvt-msg-left col-md-6 col-sm-6 col-xs-12">';
+		$form['#suffix']='</div><div class="connect-pvt-msg-right col-md-6 col-sm-6 col-xs-12">'.message_right_view().'</div></div></div>';
+	    break;	 
+	}
+
+} 
+
+/*
+function m6connect_misc_preprocess_link(&$vars) {
+  //print_r($vars);
+    
+ // if ($vars['path'] == 'user') {
+  if ((arg(0) == 'user' && !arg(1)) || (arg(0) == 'user' && is_numeric(arg(1)))){      
+    //$num_comments = MYMODULE_num_comments();
+    $vars['text'] = m6connect_misc_user_menu_title();
+  } 
+}
+
+function m6connect_misc_menu_alter(&$items) {
+  //drupal_Set_message(print_r(arg(), 1)) ;
+  
+   // die();
+  global $user;
+  //drupal_Set_message(print_r($user, 1));
+  if (user_is_logged_in()) {  
+    //$items['user']['title callback'] = $items['user/%user']['title callback'] = 'm6connect_misc_user_menu_title';
+  }
+}*/
+
+
+
+function m6connect_misc_user_menu_title() {
+ 
+  $account = user_load(arg(1));
+  $output = '';
+  if($account) {
+  	
+	
+	if($account->field_first_name) {
+		$output .= $account->field_first_name[LANGUAGE_NONE][0]['value'];
+	}
+	if($account->field_middle_name) {
+		$output .= ' ' . $account->field_middle_name[LANGUAGE_NONE][0]['value'];
+	}
+	if($account->field_last_name) {
+		$output .= ' ' . $account->field_last_name[LANGUAGE_NONE][0]['value'];
+	}
+  }  
+	if($output == '') {
+		//$output = user_menu_title($account);		
+	}
+  
+  return $output;
+} 
+
+function m6connect_misc_user_insert(&$edit, $account, $category) {
+    
+}
+
+function user_register_custom_submit($form, &$form_state) {
+   
+  if ($form_state['values']['add_company'] && $form_state['values']['add_company'] != '') {
+    $node = new stdClass();
+    $node->type = 'organization';
+    $node->title = $form_state['values']['add_company'];
+    $node->uid = $form_state['values']['uid'];
+    $node->name = $form_state['complete form']['#user']->name;
+    $node->comment = 0;
+    $node->promote = 0;
+ 
+  //Organic groups fields
+    $node->og_description = 'A group managed by ' . $form_state['complete form']['#user']->name;
+    $node->og_register = 1;
+    $node->og_directory = 0;
+    $node->og_private = 0;
+    $node->og_selective = 3;
+    $node->language = LANGUAGE_NONE;
+ 
+  //create the node
+    $node = node_submit($node);
+    node_save($node);
+    
+    $account = user_load($form_state['values']['uid']);
+     // Add the user to the group
+    og_group('node', $node->nid, array(
+      "entity type"       => "user",
+      "entity"        => $account,
+      "membership type"   => OG_MEMBERSHIP_TYPE_DEFAULT,
+    ));
+    // Changes the users role in the group (1 = non-member, 2 = member, 3 = administrator member)
+    og_role_grant('node', $node->nid, $account->uid, 3);
+
+  
+  }
+  
+}
+
+/**
+* Implements hook_block_info().
+*/
+function m6connect_misc_block_info() {
+  $blocks = array();
+
+  $blocks['user_info_link_block'] = array(
+    'info' => t('User Info Block'),
+  );
+
+  return $blocks;
+}
+
+/**
+* Implements hook_block_view().
+*/
+function m6connect_misc_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'user_info_link_block':
+      $block['subject'] = '';
+      $block['content'] = _user_info_link_block_content();
+      break;
+  }
+
+  return $block;
+}
+
+function _user_info_link_block_content() {
+  $output = '';
+  global $user, $base_url;
+  
+  $user_info = user_load($user->uid);
+  //print_r($user_info);
+  if ($user_info->og_group_ref && isset($user_info->og_group_ref['und'])) {
+    $user_gid = $user_info->og_group_ref['und'][0]['target_id'];
+    $user_roles = og_get_user_roles('node', $user_gid, $user->uid);
+  }else {
+    $user_roles = array();
+  }
+  
+  
+  //pre($user_roles,1);
+  if(array_key_exists(5, $user_roles)) {
+    $group_edit_url = $base_url.'/node/'.$user_gid;
+    //$alias = drupal_get_path_alias('node/'.$user_gid);
+    $alias = $base_url . '/node/'.$user_gid . '/edit';
+  }
+  else {
+    $group_edit_url = '';
+    $alias = '';
+  }
+  $upgradelink = $base_url.'/node/36';
+  $taskslinks =  $base_url.'/node/37'; 	
+  $msglink = $base_url.'/messages';
+  //$output .= l('<i class="fa fa-fw fa-flag"></i>', '', array('html' => TRUE,'attributes' => array('class' => 'app-dashboard')));
+  //$output .= l('<i class="fa fa-fw fa-tag"></i>', '', array('html' => TRUE,'attributes' => array('class' => 'app-contracts')));
+  $output .= l('<i class="fa fa-fw fa-upload"></i>', $upgradelink, array('html' => TRUE,'attributes' => array('class' => 'app-upgrade', 'title'=>'Upgrade Your M6Connect Membership Today!')));
+  $output .= l('<i class="fa fa-envelope-o"></i>', $msglink, array('html' => TRUE,'attributes' => array('class' => 'app-messages', 'title'=>'Access your Private Messages')));
+  $output .= l('<i class="fa fa-fw fa-tasks"></i>', $taskslinks, array('html' => TRUE,'attributes' => array('class' => 'app-tasks', 'title'=>'View your Task Dashboard')));
+  $output .= l('<i class="fa fa-fw fa-building"></i>', $alias, array('html' => TRUE,'attributes' => array('class' => 'app-companies', 'title'=>'View or Edit your Company Profile')));
+	
+	$account = user_load($user->uid);
+	//print_r($account); die;
+	if($account->field_user_profile_photo) {
+		$config = array(
+			"style_name" => "user_pic_32x32",
+			"path" =>$account->field_user_profile_photo[LANGUAGE_NONE][0]['uri'],
+			"height" => NULL,
+			"width" => NULL,
+		 );
+		$user_picture = theme_image_style($config);
+	}
+	else {
+		
+        $variables = array(
+         'path' => $base_url . '/sites/default/files/default_profile.jpg', 
+         'alt' => '',
+         'width' => '32',
+         'height' => '32',      
+        );
+        $user_picture= theme('image', $variables);
+	}
+	
+  $output .= l($user_picture, $base_url .'/user/' .$user->uid .'/edit', array('html' => TRUE,'attributes' => array('class' => 'app-user-edit', 'title'=>'View or Edit your Personal Profile')));
+  $output .= l('<i class="fa fa-fw fa-sign-out"></i>', 'user/logout', array('html' => TRUE,'attributes' => array('class' => 'app-user-logout', 'title'=>'Securely Log Out of M5Connect')));
+  
+  return $output;
+}
+
+function m6connect_misc_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  global $user;
+  if (!array_key_exists(3, $user->roles) && $user->uid != 0 && (arg(0) == 'node' && is_numeric(arg(1)))) {
+		$node = menu_get_object();
+		if($node->type == 'organization') {
+			//$data['tabs'][0]['output'][0]['#link']['title'] = t('Overview');
+			$data['tabs'][0]['output'][1]['#link']['title'] = t('Company Details');			
+		}
+  }  
+}  
+
+function m6connect_misc_init() {
+global $user;
+drupal_add_js(drupal_get_path('module', 'm6connect_misc').'/m6connect.js');
+//db_query('DELETE FROM {registry} WHERE filename LIKE "%mailsystem%"');
+//db_query('DELETE FROM {registry_files} WHERE filename LIKE "%mailsystem%"');
+//registry_rebuild();
+
+//mailsystem_set(array(mailsystem_default_id() => mailsystem_default_value())); 
+
+//variable_set('mail_system', '');	
+	
+  //UPDATE `system` SET `status`= 0 WHERE `name` = 'flag' // flag_actions //flag_bookmark	
+  /*$flag_updated = db_update('system')
+    ->fields(array(
+      'status' => 0,
+    ))
+    ->condition('name', 'flag_bookmark', '=')
+    ->execute(); 
+    */
+  
+  /*drupal_set_message(current_path());
+  $shsjs =  0;
+	
+	if(isset($_REQUEST['destination']) && $_REQUEST['destination'] == 'js/shs/json'){
+	  //echo '<pre>';
+	  //print_r(cu)
+	  drupal_set_message('In   fdbvgh');
+	  $shsjs =1;
+	}*/
+  if(arg(0) == 'user') {
+	//pre($user);  
+  }
+  /*if((arg(0) == 'node' && is_numeric(arg(1)) && arg(2) == 'edit') && !user_is_logged_in()){ //pre('dsfds',1); 
+	drupal_access_denied();	
+	exit();
+  } */
+  $user_gid = 0;
+  if(array_key_exists(2, $user->roles) && !array_key_exists(3, $user->roles) && user_is_logged_in()){
+    //$pathNotIn = array('node/add/organization','user/logout','file/ajax','js/shs/json','user/'.$user->uid.'/edit','user/'.$user->uid,'node/38','create-select-company','select-co-company');
+	$pathNotIn = array('node/add/organization','user/logout','file/ajax','js/shs/json','user/'.$user->uid.'/edit','user/'.$user->uid,'node/38');
+	$pathNotIn2 = array('user/logout','file/ajax','js/shs/json','user/'.$user->uid.'/edit','user/'.$user->uid,'node/38');
+	
+    $cmpNid = _get_user_company_nid();
+	$selected_existing_co = _get_users_existing_co($user); 
+	
+	if(!($cmpNid && is_numeric($cmpNid)) && $selected_existing_co && !in_array(current_path(),$pathNotIn2)){ 
+	  drupal_goto('');    
+    }
+	
+   if(!in_array(current_path(),$pathNotIn) && !in_array("ajax", arg()) && !($cmpNid && is_numeric($cmpNid)) && !$selected_existing_co){ 
+	 drupal_goto('node/add/organization'); 
+   }else if((($cmpNid && is_numeric($cmpNid)) || $selected_existing_co) && current_path()== 'node/add/organization'){ 
+     drupal_goto(''); 
+   }
+   
+    /*$user_info = user_load($user->uid);
+    cache_clear_all();
+  
+    if ($user_info->og_group_ref && isset($user_info->og_group_ref['und'])) {
+      $user_gid = $user_info->og_group_ref['und'][0]['target_id'];      
+    }*/
+    if ($user_gid) {/*
+		
+      if ((arg(0) == 'node' && arg(1) == "add" && arg(2) == "organization")) {        
+        drupal_goto('node/'.$user_gid . '/edit');
+      }
+			elseif (arg(0) == "user" && arg(1) == "logout") {
+      }
+			else if(((arg(0) == 'user' && is_numeric(arg(1)) && arg(2) == 'edit' ) || (arg(0) == 'file' && arg(1) == 'ajax' ) || (arg(0) == 'js' && arg(1) == 'shs'  && arg(2) == 'json') || in_array("ajax", arg()))) {
+				
+			}
+			else if(arg(0) == "node" && is_numeric(arg(1))) {
+				$node = menu_get_object();
+				if($node->type == 'project' ) {
+					
+				}
+				else if(arg(0) == "node" && is_numeric(arg(1)) && arg(2) == 'edit') {
+					
+				}
+				else {
+					drupal_goto('node/'.$user_gid . '/edit');
+				}
+			}
+			else {
+				drupal_goto('node/'.$user_gid . '/edit');
+			}
+    
+	*/}
+	else {/*
+			if(arg(0) == "node" && is_numeric(arg(1))) {
+				$node = menu_get_object();
+				if($node->type == 'project' ) {					
+				}
+				else if((arg(0) == 'node' && arg(1) == "add" && arg(2) == "organization")) {
+					
+				}
+				else {
+					drupal_goto('node/add/organization');
+				}
+			}
+			else if(((arg(0) == 'node' && arg(1) == "add" && arg(2) == "organization") || (arg(0) == "user" && arg(1) == "logout") || (arg(0) == 'file' && arg(1) == 'ajax' )  || (arg(0) == 'js' && arg(1) == 'shs'  && arg(2) == 'json') || in_array("ajax", arg()))) {
+				
+			}
+			else {
+				drupal_goto('node/add/organization');
+			}
+		*/}
+  }
+}
+
+function pre($output, $stop = false) {
+  print '<pre>';
+  print_r($output);
+  if($stop)
+  die();
+  print '</pre>';	
+}
+	
+function m6connect_misc_node_insert($node) {
+  global $user;	
+  if($node->type == 'organization') {
+	//if(!in_array(''$user->roles)) {
+	if(!(array_key_exists(3, $user->roles) && array_key_exists(6, $user->roles))) {	  
+	  $nuid = $node->uid;  
+      //$role = user_role_load_by_name("business administrator");
+      //user_multiple_role_edit(array($nuid), 'add_role', $role->rid); 
+	  $rid = 4; // free company admin
+	  user_multiple_role_edit(array($nuid), 'add_role', $rid); 	
+	}
+  }
+}
+
+function m6connect_misc_node_update($node) { //pre($node,1);
+  if($node->type == 'organization') { //pre($node,1);
+	  
+  	  	
+  }
+}
+
+function custom_divercity_afterbuild($form, $form_state){
+  $form['field_diversity_credentials']['#ajax'] = array(
+           'callback' => 'subform_example_simple_form_select_callback',
+		   //'event' => 'check',
+           'wrapper' => 'customwrap',
+         );	
+  return $form;		 
+}
+/*
+function subform_example_simple_form_select_callback($form, $form_state){
+  $commands[] = ajax_command_html('#customwrap' , 'hello test');
+  return array('#type' => 'ajax', '#commands' => $commands);
+}
+*/
+/*function subform_example_simple_form_select_callback($form, &$form_state){
+  $commands = array();
+  $val = $form_state['values'];	
+  //$commands[] = ajax_command_html('#customwrap22' , 'hello');
+  //$commands[] = ajax_command_replace('#customwrap22',render($form['field_diversity_credentials']));
+  $commands[] = ajax_command_replace('#customwrap22',$form_state['values']['custom_diversity']);
+  //$new_form_array = drupal_rebuild_form('my_ajax_form_id', $new_state);
+  //$new_form = drupal_render($new_form_array);
+  
+  return array('#type' => 'ajax', '#commands' => $commands);
+} */
+
+function subform_example_simple_form_select_callback(&$form, $form_state) {
+  $values = $form_state['values'];
+  //$cust_uname = $values['custom_diversity'];
+  $fieldname = $form_state['triggering_element']['#name'];//pre($fieldname);
+  $did = $form_state['triggering_element']['#value'];
+  //pre($did);
+  $node = node_load($did);
+  $fields = field_get_items('node', $node, 'field_form_fields'); //pre($fields);
+  //$info2 = field_info_instance('node', 'field_accredited_by', 'credentials'); pre($info2);
+  $farr =array();
+  foreach($fields as $fvar => $fval) { 
+    $farr[] = $fval['value'];
+  }
+  $output = '';
+  //$output .= 'Name: <input type="textbox" name="textbx'.$did.'">';
+  $output .='<div class="org-diversity-wrapper">';
+  
+  foreach($fields as $var => $vl) {
+	$val = $vl['value'];  
+	if($val != 'field_cred_start_date' && $val != 'field_credential_end_date') {  
+	  $output .='<div class="form-wrapper">';  
+	  $output .= '<div class="form-item">';  
+	}
+	$finfo = field_info_field($val); 
+	$finfo2 = field_info_instance('node', $val, 'credentials'); 
+	$label = $finfo2['label']; 
+	
+    if($finfo['type'] == 'list_text') {
+	  $output .= '<label>'.$label.':</label>';	
+      $output .= '<select name="'.$val.$did.'">';
+      foreach($finfo['settings']['allowed_values'] as $k => $v){
+	    $output .= '<option value="'.$k.'">'.$v.'</option>';  
+      }
+	  $output .='</select>';
+    }
+	if($finfo['type'] == 'datetime' || $finfo['type'] == 'date' || $finfo['type'] == 'datestamp') {
+	  if($val == 'field_cred_start_date') {	
+	  $output .='<div class="form-wrapper">';  
+	  $output .= '<div class="form-item">';	
+	  $output .= '<label>'.$label.':</label>';	
+	  $output .='<script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+                   <script>   
+                    jQuery(function() {
+                      jQuery( "#calendar" ).datepicker();   
+                    }); 
+                 </script>';	
+	  $output .= '<input type="date" id="calendar" name="'.$val.$did.'">';
+	  if(in_array('field_credential_end_date',$farr)) {
+		$output .= '<div><label>To:</label></div>';  
+	    $output .= '<input type="date" id="calendar" name="field_credential_end_date'.$did.'">';  	  
+	  }
+	  $output .= '</div>'; //form-item
+	  $output .= '</div>'; //form-wrapper
+	  }
+	}
+	if($finfo['type'] == 'text_long') {
+	  $output .= '<label>'.$label.':</label>';
+	  $output .= '<textarea name="'.$val.$did.'"></textarea>'; 	
+	}
+	if($finfo['type'] == 'file') {
+	  $output .= '<label>'.$label.':</label>';
+	  $output .= '<input type="file" name="'.$val.$did.'" accept=".txt,.doc,.pdf,.docx">'; 	
+	}
+	if($finfo['type'] == 'text') {
+	  $output .= '<label>'.$label.':</label>';
+	  $output .= '<input type="text" name="'.$val.$did.'">'; 	
+	}
+	if($val != 'field_cred_start_date' && $val != 'field_credential_end_date') { 
+	  $output .= '</div>'; //form-item
+	  $output .= '</div>'; //form-wrapper
+	}
+  }
+  
+  $output .= '</div>'; //org-diversity-wrapper 
+  
+  $commands = array();
+  $commands[] = ajax_command_html('#customwrap'.$did, $output);
+  /*$tmpform = array();
+  $tmpform['testt'.$did] = array(
+    '#type' => 'textfield',
+	'#title' => 'TestT'
+  );
+  
+  $tmpform['ndocs'.$did] = array(
+        '#type' => 'file',
+        '#name' => 'files[]',
+        '#title' => t('Add files'),
+        '#description' => t('Use CTRL + Click to choose multiple images! '),
+        //'#attributes' => array('multiple' => 'multiple'),
+    );
+  $tmpform['npdf'.$did] = array(
+        '#type' => 'managed_file',
+        '#title' => t('Add File'),
+		'#descripion' => t("Only pdf format Files are allowed."),
+	    //'#upload_location'    => "public://pdf/",
+  	    "#upload_validators"  => array("file_validate_extensions" => array("pdf, txt, doc, docx")),
+    ); */
+  
+  //$commands[] = ajax_command_replace('#customwrap'.$did,render($tmpform));
+  //$commands[] = ajax_command_html('#customwrap'.$did,render($tmpform));
+  
+  return array(
+    '#type' => 'ajax',
+    '#commands' => $commands,
+  );
+  
+  return $tmpform;
+  
+}
+function m6connect_misc_node_presave($node) { //pre($node,1);
+  global $user;
+  if($node->type == 'organization') { //pre($node->field_dcrednid_22);
+  //pre($node->field_dcrednid_23);//pre('jj',1);
+	//pre($_SESSION['cnode_update']); //pre($node,1);
+  	if(isset($_SESSION['cnode_update'])) {
+	  $diverarray =	$_SESSION['cnode_update'];//pre($diverarray);
+	  foreach($diverarray as $k => $v) {
+		$fname = 'field_dcrednid_'.$k;//pre($fname);pre($node->$fname);
+		//if(isset($node->$fname['und'])){pre('ghjgj');
+		  //if(!isset($node->$fname['und'][0])){//pre('2jhk');
+		  if(empty($node->$fname['und'])){
+		    //$node->$fname['und'][0]['target_id'] = $v;
+			//$node->$fname['und'] = $v;
+			//$node->$fname['und'][0]['target_id'] = $v;
+			//$node->field_dcrednid_22['und'][0]['target_id'] = $v;
+			 
+	      }
+		  /*foreach($node->$fname['und'] as $var => $val) {
+		    if(empty($val))
+		  }*/
+		//}
+	  } 
+	  //pre('ddf',1);
+	  unset($_SESSION['cnode_update']);
+	  //pre('dfd',1);
+	}
+  }
+  if($node->type == 'rfp') {
+	$fnid = 0;  
+	$grp = og_get_entity_groups('user',$user);
+	foreach($grp['node'] as $k => $nid){
+	  $fnid = $nid;	
+	}
+	if($fnid) {
+	  $node->og_group_ref['und'][0]['target_id'] = $fnid;
+	}
+  }
+}
+
+function custom_company_form_submit($form, &$form_state){  //pre($form_state['input'],1);
+  global $user;
+  //$_SESSION['div22'] = 22;
+  //pre($form); 
+  //pre($form_state);pre('fff',1);
+  $dtids = array();
+  //if(isset($form_state['build_info']['args'][0]->field_diversity_credentials['und']) && !empty($form_state['build_info']['args'][0]->field_diversity_credentials['und'])){ //add cond*
+  $credentarr = $form_state['input']['field_diversity_credentials']['und']; //pre($credentarr);
+  $credentarr = array_filter($credentarr); //pre($credentarr);
+  if(!empty($credentarr)){//print 'kkk';
+    $sessionarr = array();  
+	//foreach($form_state['build_info']['args'][0]->field_diversity_credentials['und'] as $k => $v) { //add cond*
+	foreach($credentarr as $k => $v) {	//pre($v);
+	  //$dcredids[] = $dcredid = $v['target_id']; //add cond*
+	  $dcredids[] = $dcredid = $v;
+	  if(isset($form_state['input']['field_dcrednid_'.$dcredid]['und']) && !empty($form_state['input']['field_dcrednid_'.$dcredid]['und']) && $form_state['input']['field_dcrednid_'.$dcredid]['und'] != '_none')
+	  { 
+	   //******************pre('gdf',1); 
+	   if(isset($form_state['build_info']['args'][0]->nid)) { 
+		$editnid = $form_state['input']['field_dcrednid_'.$dcredid]['und'];   //pre($editnid);pre('dfsdd',1);
+		
+		$cnode = node_load($editnid);
+		
+	    $node = node_load($dcredid);
+		$fields = field_get_items('node', $node, 'field_form_fields');
+		foreach($fields as $var => $val) {
+		  $fieldname = $val['value'];
+		  if($fieldname == 'field_accredited_by') {
+		    if(isset($form_state['input'][$fieldname.$dcredid]) && !empty($form_state['input'][$fieldname.$dcredid])){
+			  $cnode->field_accredited_by['und'][0]['value'] = $form_state['input'][$fieldname.$dcredid]; 	
+			}
+		  }
+		  if($fieldname == 'field_cred_start_date') {
+		    if(isset($form_state['input'][$fieldname.$dcredid]['date']) && !empty($form_state['input'][$fieldname.$dcredid]['date'])){
+			  $date = $form_state['input'][$fieldname.$dcredid]['date'];//pre($date,1);
+			  //$dtstamp = strtotime($date);	pre($dtstamp,1);
+			  //$cnode->field_cred_start_date['und'][0]['value'] = $form_state['input'][$fieldname.$dcredid]['date'];
+			  $cnode->field_cred_start_date[LANGUAGE_NONE][0] = array(
+                'value' => date('Y-m-d H:i:s', strtotime($date)),
+                'timezone' => 'UTC',
+                'timezone_db' => 'UTC',
+              );
+			  //$cnode->field_cred_start_date['und'][0]['value'] = "2011-05-25T10:35:58";
+			}
+			
+		  }
+		  if($fieldname == 'field_credential_end_date') {
+		    if(isset($form_state['input'][$fieldname.$dcredid]['date']) && !empty($form_state['input'][$fieldname.$dcredid]['date'])){
+			  $date = $form_state['input'][$fieldname.$dcredid]['date'];	
+			  //$cnode->field_credential_end_date['und'][0]['value'] = $form_state['input'][$fieldname.$dcredid]['date']; 
+			  $cnode->field_credential_end_date[LANGUAGE_NONE][0] = array(
+                'value' => date('Y-m-d H:i:s', strtotime($date)),
+                'timezone' => 'UTC',
+                'timezone_db' => 'UTC',
+              );	
+			}
+		  }
+		  if($fieldname == 'field_credential_comments') {
+		    if(isset($form_state['input'][$fieldname.$dcredid]) && !empty($form_state['input'][$fieldname.$dcredid])){
+			  $cnode->field_credential_comments['und'][0]['value'] = $form_state['input'][$fieldname.$dcredid]; 	
+			}
+		  }
+		  if($fieldname == 'field_credential_doc') {
+		    if(isset($form_state['input'][$fieldname.$dcredid]['fid']) && !empty($form_state['input'][$fieldname.$dcredid]['fid'])){
+			  $newFile = file_load($form_state['input'][$fieldname.$dcredid]['fid']);
+              if ($newFile) {
+				if ($newFile = file_move($newFile, 'public://')) {
+                  $newFile->status = FILE_STATUS_PERMANENT;
+                  $newFile->display = 1;
+                  $fileupdate = file_save($newFile);
+	            }  	
+			    $cnode->field_credential_doc['und'][0] = (array)$newFile; 
+			  }
+			}
+		  }
+			
+		}
+		node_save($cnode);
+	   }
+	   //******************
+		  
+	  } else { //pre('else');
+		$cnode = new stdClass(); 
+		$cnode->type = 'credentials';
+        $cnode->language = LANGUAGE_NONE; 
+		$tstamp = date('now');
+		  
+	    $node = node_load($dcredid);
+		$fields = field_get_items('node', $node, 'field_form_fields');
+		foreach($fields as $var => $val) {
+		  $fieldname = $val['value'];
+		  if($fieldname == 'field_accredited_by') {
+		    if(isset($form_state['input'][$fieldname.$dcredid]) && !empty($form_state['input'][$fieldname.$dcredid])){
+			  $cnode->field_accredited_by['und'][0]['value'] = $form_state['input'][$fieldname.$dcredid]; 	
+			}
+		  }
+		  if($fieldname == 'field_cred_start_date') {
+		    if(isset($form_state['input'][$fieldname.$dcredid]['date']) && !empty($form_state['input'][$fieldname.$dcredid]['date'])){
+			  $date = $form_state['input'][$fieldname.$dcredid]['date'];//pre($date,1);
+			  //$dtstamp = strtotime($date);	pre($dtstamp,1);
+			  //$cnode->field_cred_start_date['und'][0]['value'] = $form_state['input'][$fieldname.$dcredid]['date'];
+			  $cnode->field_cred_start_date[LANGUAGE_NONE][0] = array(
+                'value' => date('Y-m-d H:i:s', strtotime($date)),
+                'timezone' => 'UTC',
+                'timezone_db' => 'UTC',
+              );
+			  //$cnode->field_cred_start_date['und'][0]['value'] = "2011-05-25T10:35:58";
+			}
+			
+		  }
+		  if($fieldname == 'field_credential_end_date') {
+		    if(isset($form_state['input'][$fieldname.$dcredid]['date']) && !empty($form_state['input'][$fieldname.$dcredid]['date'])){
+			  $date = $form_state['input'][$fieldname.$dcredid]['date'];	
+			  //$cnode->field_credential_end_date['und'][0]['value'] = $form_state['input'][$fieldname.$dcredid]['date']; 
+			  $cnode->field_credential_end_date[LANGUAGE_NONE][0] = array(
+                'value' => date('Y-m-d H:i:s', strtotime($date)),
+                'timezone' => 'UTC',
+                'timezone_db' => 'UTC',
+              );	
+			}
+		  }
+		  if($fieldname == 'field_credential_comments') {
+		    if(isset($form_state['input'][$fieldname.$dcredid]) && !empty($form_state['input'][$fieldname.$dcredid])){
+			  $cnode->field_credential_comments['und'][0]['value'] = $form_state['input'][$fieldname.$dcredid]; 	
+			}
+		  }
+		  if($fieldname == 'field_credential_doc') {
+		    if(isset($form_state['input'][$fieldname.$dcredid]['fid']) && !empty($form_state['input'][$fieldname.$dcredid]['fid'])){
+			  $newFile = file_load($form_state['input'][$fieldname.$dcredid]['fid']);
+              if ($newFile) {
+				if ($newFile = file_move($newFile, 'public://')) {
+                  $newFile->status = FILE_STATUS_PERMANENT;
+                  $newFile->display = 1;
+                  $fileupdate = file_save($newFile);
+	            }  	
+			    $cnode->field_credential_doc['und'][0] = (array)$newFile; 
+			  }
+			}
+		  }
+			
+		}
+		
+		$cnode->title =  'Credential'.$tstamp;
+		$cnode->uid = $user->uid;
+		$cnode->field_cred_for_diversity['und'][0]['target_id'] = $dcredid;
+        
+        node_save($cnode);
+		$nid = $cnode->nid; 
+		$sessionarr[$dcredid] = $nid;
+      
+	    $form_state['values']['field_dcrednid_'.$dcredid]['und'][0]['target_id'] = $nid;
+	  }
+	  	   
+	}
+	if(!empty($sessionarr)){
+	  $_SESSION['cnode_update'] = $sessionarr;
+	}
+/*	
+$values = array(
+  'type' => 'credentials',
+  'uid' => $user->uid,
+  'status' => 1,
+  'comment' => 0,
+  'promote' => 0,
+);
+
+$entity = entity_create('node', $values);
+$wrapper = entity_metadata_wrapper('node', $entity);
+$wrapper->title->set('title2');
+
+$wrapper->field_credential_comments['und'][0]['value'] = 'this is test';
+
+$wrapper->save(true);
+//entity_save('node', $entity); 
+$nd = $wrapper->value();
+pre($nd); pre('fddd',1);	
+*/	
+/* // final*******
+    $node = new stdClass();  
+    $node->type = 'credentials';
+    $node->language = LANGUAGE_NONE; 
+	$node->title = 'dsrtest';
+	$node->field_credential_comments['und'][0]['value'] = 'this is test comment';
+	node_save($node);
+	$nid = $node->nid;
+	print_r($nid);pre('ggg',1);
+*/	  
+    //$_SESSION['cnode_update'] = $dcredids;	
+  } 
+  //pre('ddsd',1);
+  /*
+  $diversities = $form_state['input']['custom_diversity']; //pre($diversities);
+  $diversities = array_filter($diversities); //pre($diversities,1);
+  $nid = $form_state['values']['nid'];
+  
+  foreach($diversities as $k=> $v){
+	  
+	$node = node_load($v);
+    $fields = field_get_items('node', $node, 'field_form_fields');  
+	
+	$acredby = $form_state['input']['field_accredited_by'.$k];  
+    $node = new stdClass();  
+    $node->type = 'credentials';
+    $node->language = LANGUAGE_NONE;        
+    //$node->status = $form_state['values']['published'];
+	$tstamp = strtotime(date());
+    $node->title =  'Company diversity credential'.$tstamp;
+    $node->field_accredited_by['und'][0]['value'] = $acredby;
+    $node->field_cred_for_company['und'][0]['target_id'] = $nid;
+    $node->field_cred_for_diversity['und'][0]['target_id'] = $k;
+  
+    node_save($node); 
+  }
+ */   	
+}
+
+function custom_user_invite_link($uid){
+ ctools_include('ajax');
+  ctools_include('modal');
+  ctools_modal_add_js();
+  $sample_style = array(
+    'ctools-sample-style' => array(
+      'modalSize' => array(
+        'type' => 'fixed',
+        'width' => 400,
+        'height' => 400,
+        'addWidth' => 20,
+        'addHeight' => 15,
+      ),
+      'modalOptions' => array(
+        'opacity' => .5,
+        'background-color' => '#000',
+      ),
+      'animation' => 'fadeIn',
+      'modalTheme' => 'CToolsSampleModal',
+      'throbber' => theme('image', array('path' => ctools_image_path('ajax-loader.gif', 'ctools_ajax_sample'), 'alt' => t('Loading...'), 'title' => t('Loading'))),
+    ),
+  );
+  drupal_add_js($sample_style, 'setting');
+  ctools_add_js('ctools-ajax-sample', 'ctools_ajax_sample');
+  ctools_add_css('ctools-ajax-sample', 'ctools_ajax_sample');
+ //if(user_access('see full bio of user')){ 
+    return ctools_modal_text_button('Invite by Email', 'custom_invite/nojs/user/'.$uid, t(''),  'ctools-modal-ctools-sample-style');
+ //}
+
+}
+
+function custom_invite_user($js = NULL, $uid){
+ ctools_include('modal');
+ ctools_include('ajax');
+  //$uid = node_load($nid)->uid;
+  //$name = get_full_user_name($uid);
+  $form_state = array(
+  	'title' => t('Invite'),
+    'ajax' => TRUE,
+  	'build_info'=> array(
+                    'args'=>array(
+                                    '0'=> $uid,
+         ))
+  );
+  $output= ctools_modal_form_wrapper('invite_form', $form_state,$uid);
+  
+  if (!empty($form_state['executed'])) {
+   ctools_add_js('ajax-responder');
+   //$output[] = ajax_command_before('#content', '<div class="messages status">Invitation was sent to '.$name.'</div>');
+   $output[] = ctools_modal_command_dismiss();
+  }
+  print ajax_render($output);
+  exit;
+}
+
+function custom_invite_user_form($form, $form_state,$uid){
+    
+  $form['mailto'] = array(
+    '#type' => 'textfield',
+	'#title' => 'To',
+  );
+  
+  $form['descp'] = array(
+    '#type' => 'textarea',
+	'#title' => 'Description',
+  );
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+	'#value' => 'Submit',
+  );
+  
+  return $form;
+}
+
+function get_field_value($fieltype, $fieldname, $nid){
+  $fdata = '';
+  $fieldnames = 'field_data_'.$fieldname;	//pre($fieldnames,1);
+  $query2 = db_select($fieldnames, 'f');
+  if($fieltype == 'list_text' || $fieltype == 'date' || $fieltype == 'text_long') { 
+    $field = $fieldname.'_value'; //pre($field);
+	$query2->fields('f', array($field));
+  } else if($fieltype == 'file') {
+    $field = $fieldname.'_fid';
+	$query2->fields('f', array($field));
+  } else {
+	$query2->fields('f');  
+  }
+  
+  $query2->condition('f.entity_id', $nid, '=');
+  $result = $query2->execute()->fetchAll();
+  if($result) {
+	foreach ($result as $qry2) { //pre($qry2);
+	  if($fieltype == 'list_text' || $fieltype == 'date' || $fieltype == 'text_long') {
+	    $fn = $fieldname.'_value';
+		$fdata = $qry2->$fn;
+	  } else if($fieltype == 'file') {
+	    $fn = $fieldname.'_fid';
+		$fdata = $qry2->$fn;
+	  }
+	
+	}
+  } 
+  
+  return $fdata;
+  //$dCredValueField	
+}
+
+
+function TTTm6connect_misc_views_query_alter(&$view, &$query) { //pre($query,1);
+
+  $nids = array(90);
+  $query->where[1]['conditions'][] =array(
+										'field' => 'node.nid',
+										'value' => $nids,
+										'operator' => 'IN',
+										);
+}
+
+function m6connect_misc_date_popup_process_alter(&$element, &$form_state, $context) { //pre($element);pre($context);
+  $subject = trim($element['#name']);//pre($subject);
+  if (preg_match("/field_credential_end_date/i", $subject)) {	  
+    //unset($element['date']['#description']);
+    //unset($element['time']['#description']);
+	$element['date']['#description'] = 'If applicable';
+  }
+} 
+
+function message_right_view(){
+  global $base_url,$user;
+  $output ='<div class="select-reci-user-section">
+              <label>Select Message Recipent(s)</label>
+              <div class="col-md-9 col-sm-12 col-xs-12 reci-user-container">
+                <div id="reci-user-uid" class="reci-user-list">';
+  $query = db_select('users', 'u');
+  $query
+    ->condition('uid', 1, '!=')
+	->condition('uid', 0, '!=')
+    ->fields('u', array('name','uid'));
+    //->range(0,10);
+  $result = $query->execute();
+  foreach($result as $row) {
+   $cuid = $row->uid;
+   $username = _get_user_full_name($cuid);
+   $output .=	  '<div class="row">
+                    <div class="col-md-2 col-sm-2 col-xs-12 reci-user-pic"><img src="'.$base_url.'/sites/default/files/rockstar_games_logo.png" height="70px" width="190px"></div>
+                    <div class="col-md-7 col-sm-7 col-xs-12 reci-user-summary">
+                      <div class="reci-user-name">'.$username.'</div>
+                      <div class="reci-user-company">'.$cuid.'Users company name</div>
+                    </div>
+                    <div class="col-md-3 col-sm-3 col-xs-12 reci-user-action">
+                      <input type="checkbox" name="" value="" class="reci-user-checkbox" style="display:block;"/>
+                    </div>
+                  </div>';
+    $output .= '<div class="clearfix"><hr /></div>';				  
+  }
+  $output .=    '</div>   
+              </div>
+            </div>';
+  return $output;
+}
+
+function _get_users_existing_co($cuser) {
+  $account= user_load($cuser->uid);  //pre($account);
+  if(isset($account->field_user_company) && isset($account->field_user_company['und']) && !empty($account->field_user_company['und'][0]['target_id'])) {
+	$existingnid = $account->field_user_company['und'][0]['target_id'];
+	return $existingnid;  
+  } else {
+	return 0;  
+  }
+}
+
+function m6connect_misc_node_access($node, $op, $account){ //pre($op);
+  global $user, $base_url;
+  /*if (is_object($node) && ($node->type=='rfp' || $node->type=='project') && in_array($op,array('view'))) {
+	if(!user_is_logged_in()){
+	  //drupal_goto($base_url, array('query'=>drupal_get_destination()));
+	}
+  }*/
+  if (is_object($node) && in_array($op,array('update'))) {
+	if(!user_is_logged_in()){
+	  return NODE_ACCESS_DENY;
+	}
+  }
+}
+
+
+function create_select_companies_form() {
+  $output = '';
+  $output .= '<div class="cust-create-select-co">';
+  $output .= '<div class="cust-create-co">'.l(t('Create Company'),'node/add/organization').'</div>';
+  $output .= '<div class="cust-select-co">'.l(t('Select company'),'node/add/organization').'</div>';
+  $output .= '</div>';	
+  return $output;
+}
+
+function select_companies_form($form, &$form_state) {
+  $colists = array();	
+  $query = db_select('node', 'n');	
+  $query->fields('n',array('nid', 'title')); 
+  $query->condition('type', 'organization','=');
+  $query->condition('status', '1');		
+  $result = $query->execute()->fetchAll();
+  $colists['_none'] = 'Select';
+  foreach($result as $row) {
+	$nid = $row->nid;
+	$colists[$nid] = $row->title;	
+  } 
+	
+  $form['user_company'] = array(
+    '#type' => 'select',
+	'#title' => 'Select Company',
+	'#options' => $colists,
+  );
+  
+  $form['submit'] = array (
+    '#type' => 'submit',
+	'#value' => 'Submit',
+	'#attributes' => array('class' => array('btn', 'btn-primary','send-invitations-submit')),
+  );
+  return $form;	
+}
+
+function select_companies_form_validate(&$form, &$form_state) { //pre($form_state,1);
+  $cnid = $form_state['values']['user_company'];
+  if (empty($cnid) || $cnid == '_none') {
+    form_set_error('', t('No Companies are selected.'));
+  }
+}
+
+function select_companies_form_submit(&$form, &$form_state) { //pre($form_state,1);
+  global $user;	
+  $cnid = $form_state['values']['user_company']; 
+  $account= user_load($user->uid);  //pre($account);
+  if(isset($account->field_user_company)) {
+	$account->field_user_company['und'][0]['target_id'] = $cnid;
+	user_save($account);  
+  }
+}
+
+
+function m6connect_misc_file_download($uri) { 
+  //$info = image_get_info($uri);pre($info,1);
+  //return array('Content-Type' => $info ['mime_type']);
+  global $user;
+  $result = db_query('SELECT id FROM `file_managed` m, file_usage u WHERE m.fid = u.fid AND u.`type` = :type AND uri = :uri', array(':type' => "node", ':uri' => $uri)) ->fetchField();
+  if($result){
+    $node = node_load($result);
+    // doing some logic ....
+	if($node->status == 0 && $node->uid == $user->uid) {
+      return array('Content-Type' => file_get_mimetype($uri));
+	}
+  }
+}

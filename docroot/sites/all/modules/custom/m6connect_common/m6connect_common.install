@@ -1,0 +1,150 @@
+<?php
+
+function m6connect_common_schema() {
+  $schema = array();
+  $schema['m6connect_notification'] = array(
+	'description' => 'M6Connect Notification Schema',
+	'fields' => array(
+	  'id' => array(
+		'description' => 'Auto incremented Notification Id',
+		'type' => 'serial',
+		'not null' => TRUE,
+	  ),
+	  'type' => array(
+		'description' => 'Notification type',
+		'type' => 'varchar',
+		'length' => '50',
+		'not null' => TRUE,
+	  ),
+	  'event' => array(
+		'description' => 'Notification Event type',
+		'type' => 'varchar',
+		'length' => '50',
+		'not null' => TRUE,
+	  ),
+	  'entity_id' => array(
+		'description' => 'Notification Entity id',
+		'type' => 'int',
+		'not null' => FALSE,
+	  ),
+	  'company_nid' => array(
+		'description' => 'Notification Company id',
+		'type' => 'int',
+		'not null' => FALSE,
+	  ),
+	  'message' => array(
+		'description' => 'Notification message',
+		'type' => 'text',
+		'not null' => FALSE,
+	  ),
+	  'request_from' => array(
+		'description' => 'Notification Request From Uid',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'request_to' => array(
+		'description' => 'Notification Request To Uid',
+		'type' => 'varchar',
+        'length' => '50',
+        'not null' => TRUE,
+	  ),
+	  'status' => array(
+		'description' => 'Notification Status',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'timestamp' => array(
+        'description' => 'Notification Timestamp',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+	),
+	'primary key' => array('id'),
+	'indexes' => array(
+	  'notification_user_to_from' => array('request_from','request_to'),
+	),
+  );
+  
+  $schema['m6connect_company_join_request'] = array(
+	'description' => 'TODO: please describe this table!',
+	'fields' => array(
+	  'id' => array(
+		'description' => 'TODO: please describe this field!',
+		'type' => 'serial',
+		'not null' => TRUE,
+	  ),
+	  'entity_id' => array(
+		'description' => 'TODO: please describe this field!',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'user_uid' => array(
+		'description' => 'TODO: please describe this field!',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'join_email' => array(
+		'description' => 'TODO: please describe this field!',
+		'type' => 'varchar',
+		'length' => '75',
+		'not null' => TRUE,
+	  ),
+	  'timestamp' => array(
+		'description' => 'TODO: please describe this field!',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'status' => array(
+		'description' => 'TODO: please describe this field!',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	),
+	'primary key' => array('id'),
+  );
+	
+	$schema['m6connect_connection_category_request'] = array(
+	'description' => 'TODO: please describe this table!',
+	'fields' => array(
+		'id' => array(
+		'description' => 'TODO: please describe this field!',
+		'type' => 'serial',
+		'not null' => TRUE,
+		),
+		'rid' => array(
+		'description' => 'TODO: please describe this field!',
+		'type' => 'int',
+		'null' => TRUE,
+		),
+		'category_id' => array(
+		'description' => 'TODO: please describe this field!',
+		'type' => 'int',
+		'not null' => FALSE,
+		),
+		'requester' => array(
+		'description' => 'TODO: please describe this field!',
+		'type' => 'varchar',
+		'length' => '45',
+		'not null' => FALSE,
+		),
+		'requestee' => array(
+		'description' => 'TODO: please describe this field!',
+		'type' => 'varchar',
+		'length' => '45',
+		'not null' => FALSE,
+		),
+		'status' => array(
+		'description' => 'TODO: please describe this field!',
+		'type' => 'varchar',
+		'length' => '45',
+		'not null' => FALSE,
+		),
+	),
+	'primary key' => array('id'),
+	);
+	
+  
+  return $schema; 
+}
+
+?>

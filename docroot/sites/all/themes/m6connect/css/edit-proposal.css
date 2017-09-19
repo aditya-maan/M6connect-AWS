@@ -1,0 +1,261 @@
+/******************************create_proposal .node-type-my-proposal.section-node-edit  Aug_17********************/
+.node-type-my-proposal.section-node-edit #page-title{display:none;}
+
+.node-type-my-proposal.section-node-edit .ds-2col-stacked .group-left{width:100%; margin-top:20px;}
+.node-type-my-proposal.section-node-edit .ds-2col-stacked .group-footer{
+    float: left;
+    width: 100%;
+}
+.node-type-my-proposal.section-node-edit .group-left h3 span {border-bottom: 1px solid #337ab7;  color: rgb(51, 122, 183);display: block; font-weight: bold; padding-bottom: 15px;}
+.node-type-my-proposal.section-node-edit .form-item.form-type-radios.form-item-field-choose-from-the-options-li-und > label {  font-size: 16px;margin-bottom: 9px;}
+.node-type-my-proposal.section-node-edit .form-item.form-type-radio.form-item-field-choose-from-the-options-li-und {font-size: 12px; line-height: 23px;  padding-bottom: 10px;}
+.node-type-my-proposal.section-node-edit .required-fields.group-basic-prp-inner.field-group-div span{display:none;}
+.node-type-my-proposal.section-node-edit .required-fields.group-proposal-information.field-group-div{float:left; width:100%;}
+.node-type-my-proposal.section-node-edit .required-fields.group-basic-prp-inner.field-group-div{width:50%; float:left; margin-right:30px;}
+.node-type-my-proposal.section-node-edit #edit-field-proposoal-bid-types-und > div{float:left; width:50%; margin-bottom:20px;}
+.node-type-my-proposal.section-node-edit .required-fields.group-document-for-proposal.field-group-div span{}
+.node-type-my-proposal.section-node-edit #edit-field-proposal-job-location-und-0 > legend{display:none;}
+.node-type-my-proposal.section-node-edit #field-proposal-job-location-add-more-wrapper > div{width:50%; float:left;}
+.node-type-my-proposal.section-node-edit .vertical-tabs.clearfix{display:none;}
+.node-type-my-proposal.section-node-edit .description{display:none;}
+.node-type-my-proposal.section-node-edit .box.box-with-image {
+    background: rgba(0, 0, 0, 0) linear-gradient(to bottom, #f2f2f2 0%, #e0e0e0 100%) repeat scroll 0 0;
+    border-top: 1px solid #ccc;
+    float: left;
+    height: 24px;
+    width: 100%;
+}
+.node-type-my-proposal.section-node-edit #edit-actions { position: absolute; right: 100px; top: 58px;}
+.node-type-my-proposal.section-node-edit .addressfield-container-inline.locality-block.country-US{width:100%; float:left;}
+.node-type-my-proposal.section-node-edit div.addressfield-container-inline > div.form-item {
+    float: left;
+    margin-right: 15px;
+    width: 30%;
+}
+.node-type-my-proposal.section-node-edit.logged-in .cancel {
+    background: none repeat scroll 0 0 #fff !important;
+    border: 1px solid #337ab7;
+    padding: 4px 0;
+    position: absolute;
+    right: 28px;
+    text-align: center;
+    top: 57px !important;
+    width: 72px;
+}
+
+.node-type-my-proposal.section-node-edit #edit-field-submit-proposal-in-respons{display:none;}
+.node-type-my-proposal.section-node-edit .node-form.node-my_proposal-form.ds-2col-stacked{position:relative;}
+.node-type-my-proposal.section-node-edit .tabledrag-toggle-weight-wrapper{display:none;}
+.node-type-my-proposal.section-node-edit .required-fields.group-document-for-proposal.field-group-div > h3{display:none;}
+.node-type-my-proposal.section-node-edit.form-field-type-addressfield.form-field-name-field-proposal-job-location.field-widget-addressfield-standard.form-wrapper{width:50%; float:left;}
+.head_creat_prop .left_cre_prop h1{float:left;}
+
+/******************************create_proposal end********************/
+
+/********************August_21*************************/
+.node-type-my-proposal.section-node-edit .form-field-type-entityreference.form-field-name-field-submit-proposal-in-respons.field-widget-entityreference-view-widget.form-wrapper{position:relative;}
+/*.node-type-my-proposal.section-node-edit .views-exposed-form .views-exposed-widget .form-submit { float: right; height: 32px; position:relative; right:-61px;}*/
+/*.node-type-my-proposal.section-node-edit .views-exposed-widget.views-submit-button {float: left;  margin: 0; padding: 0;}*/
+/*.node-type-my-proposal.section-node-edit .views-table{margin:0px !important;}*/
+
+/*.node-type-my-proposal.section-node-edit .views-exposed-widget.views-widget-filter-combine{ float: left; padding-right: 0; width:60%; }
+.node-type-my-proposal.section-node-edit #edit-combine-wrapper > label{ color: #000; float: left; font-family: arial; font-size: 20px;  font-weight: normal;padding-right:10px; width:40%; }
+.node-type-my-proposal.section-node-edit .views-exposed-widget.views-widget-filter-keys{ float: left; padding-right: 0; width: 50%;}*/
+/*.node-type-my-proposal.section-node-edit #edit-keys-wrapper > label{ color: #000; float: left; font-family: arial; font-size: 20px;  font-weight: normal;padding-right:10px; width:40%;}
+.node-type-my-proposal.section-node-edit .views-widget{width:60%; float:left;}*/
+
+/*.node-type-my-proposal.section-node-edit .views-exposed-widget.views-submit-button {
+    float: left;
+    margin: 0 !important;
+    padding: 3px !important;
+}*/
+.node-type-my-proposal.section-node-edit .logged-in .box{overflow:visible !important; margin-bottom:0px !important;}
+.node-type-my-proposal.section-node-edit .head_creat_prop .left_cre_prop h1{margin:0px !important;}
+
+/*.node-type-my-proposal.section-node-edit div.ctools-modal-content .modal-content{border:1px solid #ccc !important; padding-top:10px;}
+.node-type-my-proposal.section-node-edit div.ctools-modal-content{border:0px !important;}*/
+/*.node-type-my-proposal.section-node-edit .ds-2col-stacked > .group-header{margin-top:20px !important;}*/
+/**********************************************alert table******************************************************/
+/*#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table { margin:30px 0px;}
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table  table { width: 100%; border-collapse: collapse; border:1px solid #bcbcbc; }
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table  tr:nth-of-type(odd) { }
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table  th { background:linear-gradient(to bottom, #f2f2f2 0%, #e0e0e0 100%) repeat scroll 0 0 rgba(0, 0, 0, 0);border-top:1px solid #bcbcbc; border-bottom:1px solid #d5d5d5; color: #5f6062; font-weight: bold; font-size:14px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; padding:7px !important; line-height:13px;}
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table  td{ border-bottom:1px solid #d5d5d5;  font-size:12px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f83be; line-height:14px;}	 
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table  td, th { padding: 10px; text-align: left; }
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table { float: left !important; width:100% !important;}
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table  table, thead, tbody, th, td, {padding:10px 0px;  }*/
+/*******************************************alert table ends*****************************************************/
+
+
+
+/**********************************************alert table******************************************************/
+/*#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table { margin:30px 0px;}
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table  table { width: 100%; border-collapse: collapse; border:1px solid #bcbcbc; }
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table  tr:nth-of-type(odd) { }
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table  th { background:linear-gradient(to bottom, #f2f2f2 0%, #e0e0e0 100%) repeat scroll 0 0 rgba(0, 0, 0, 0);border-top:1px solid #bcbcbc; border-bottom:1px solid #d5d5d5; color: #5f6062; font-weight: bold; font-size:14px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; padding:7px !important; line-height:13px;}
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table  td{ border-bottom:1px solid #d5d5d5;  font-size:12px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f83be; line-height:14px;}	 
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table  td, th { padding: 10px; text-align: left; }
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table { float: left !important; width:100% !important;}
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table  table, thead, tbody, th, td, {padding:10px 0px;  }*/
+/*******************************************alert table ends*****************************************************/
+
+/**********************************************alert table******************************************************/
+/*#views-form-m6individual-member-entityreference-view-widget-1 .views-table { margin:30px 0px;}
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table  table { width: 100%; border-collapse: collapse; }
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table  tr:nth-of-type(odd) { }
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table  th { background:linear-gradient(to bottom, #f2f2f2 0%, #e0e0e0 100%) repeat scroll 0 0 rgba(0, 0, 0, 0);border-top:1px solid #bcbcbc; border-bottom:1px solid #d5d5d5; color: #5f6062; font-weight: bold; font-size:14px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; padding:7px !important; line-height:13px;}
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table  td{ border-bottom:1px solid #d5d5d5;  font-size:12px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f83be; line-height:14px;}	 
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table  td, th { padding: 10px; text-align: left; }
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table { float: left !important; width:100% !important;}
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table  table, thead, tbody, th, td, {padding:10px 0px;  }*/
+/*******************************************alert table ends*****************************************************/
+/**********************************************alert table******************************************************/
+/*#views-form-m6companies-entityreference-view-widget-1 .views-table { margin:30px 0px;}
+#views-form-m6companies-entityreference-view-widget-1 .views-table  table { width: 100%; border-collapse: collapse; border:1px solid #bcbcbc; }*/
+/*#views-form-m6companies-entityreference-view-widget-1 .views-table  tr:nth-of-type(odd) { }*/
+/*#views-form-m6companies-entityreference-view-widget-1 .views-table  th { background:linear-gradient(to bottom, #f2f2f2 0%, #e0e0e0 100%) repeat scroll 0 0 rgba(0, 0, 0, 0);border-top:1px solid #bcbcbc; border-bottom:1px solid #d5d5d5; color: #5f6062; font-weight: bold; font-size:14px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; padding:7px !important; line-height:13px;}*/
+/*#views-form-m6companies-entityreference-view-widget-1 .views-table  td{ border-bottom:1px solid #d5d5d5;  font-size:12px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f83be; line-height:14px;}	*/ 
+/*#views-form-m6companies-entityreference-view-widget-1 .views-table  td, th { padding: 10px; text-align: left; }
+#views-form-m6companies-entityreference-view-widget-1 .views-table { float: left !important; width:100% !important;}
+#views-form-m6companies-entityreference-view-widget-1 .views-table  table, thead, tbody, th, td, {padding:10px 0px;  }*/
+/*******************************************alert table ends*****************************************************/
+
+/*#modalContent div.ctools-modal-content {
+    background: none repeat scroll 0 0 #fff;
+    border: 1px solid #000;
+    box-sizing: content-box !important;
+    color: #000;
+    left: 0 !important;
+    margin: 0 auto;
+    max-width: 730px;
+    padding: 0;
+    position: relative !important;
+    text-align: left;
+    transform-style: preserve-3d;
+}
+.node-type-my-proposal.section-node-edit .required-fields.group-submit-rfp.field-group-div {
+    float: left;
+    margin-top: 21px !important;
+    width: 100%;
+}*/
+
+#ajax_msg #browser_load .blockUI.blockMsg.blockPage{width:60% !important; left:20% !important;}
+/**************add item***************/
+/*.node-type-my-proposal.section-node-edit .views-exposed-widget .form-submit{margin-top:4px !important;}*/
+
+#field-mymap-add-more-wrapper #mymap iframe{width:100% !important;}
+
+/*.node-type-my-proposal.section-node-edit #edit-ervw-submit{margin:20px 0px; float:left;}
+.node-type-my-proposal.section-node-edit #edit-actions-ervw > a { float: left;  margin: 25px 0; padding-left: 10px; padding-top:4px;}
+.node-type-my-proposal.section-node-edit #edit-reset { margin-left: 10px;  margin-top: 0px !important;}*/
+
+#modalBackdrop{background:rgba(0,0,0,0.9)!important;}
+/*.node-type-my-proposal.section-node-edit tr.even{background-color:#fff !important; border-bottom:0px !important;}
+.node-type-my-proposal.section-node-edit tr.odd{background-color:#fff !important; border-bottom:0px !important;}
+.node-type-my-proposal tr.even, .node-type-my-proposal tr.odd{border-bottom:0px !important;}
+.node-type-my-proposal tr.even, .node-type-my-proposal tr.odd{background-color:#fff !important;}*/
+/*.node-type-my-proposal.section-node-edit .views-exposed-widgets.clearfix {
+    margin-bottom: 30px;
+}*/
+/*.node-type-my-proposal.section-node-edit .pager-item, .pager-first, .pager-previous, .pager-next, .pager-last, .pager-ellipsis, .pager-current{padding:0px !important;}*/
+
+.pager-current{margin:5px 12px;}
+
+/*.node-type-my-proposal.section-node-edit .pager{border:1px solid #ddd; float:left; position:relative; top:-50px; padding:0px !important; margin:0px !important;}
+.node-type-my-proposal.section-node-edit .pager li > a, .pager li > span{border-radius:0px !important; border-left:1px solid #ddd !important; border:0px;}*/
+
+/*.node-type-my-proposal.section-node-edit #edit-actions-ervw {float: right; margin-top: 30px; margin-bottom:20px;}*/
+/*.node-type-my-proposal.section-node-edit .modal-header{  padding: 20px 20px 0px !important; border-bottom:0px !important; background-color:#fff !important;}*/
+/*.node-type-my-proposal.section-node-edit div.ctools-modal-content .modal-title{color:#000; font-size:26px; font-weight:normal !important;}*/
+
+.node-type-my-proposal.section-node-edit .head_creat_prop{padding:0px !important;}
+.node-type-my-proposal.section-node-edit .head_creat_prop .left_cre_prop{padding:0px 2%;}
+/*.node-type-my-proposal.section-node-edit #modal-content{border:0px !important;}*/
+
+/*.node-type-my-proposal.section-node-edit div.ctools-modal-content .modal-content{height:auto !important; padding:0px 20px !important; margin-top:10px;}*/
+
+.close{opacity:1 !important;}
+.node-type-my-proposal.section-node-edit div.ctools-modal-content a.close img {position: relative;right: -10px; top: -15px;}
+.indi_red {
+    color: #f00;
+    float: right;
+    font-size: 14px;
+    margin-top: -47px;
+}
+/*#edit-field-proposal-document-picture-und--2-table th {
+    background: #f4f4f4 none repeat scroll 0 0;
+}*/
+/*.node-type-my-proposal.section-node-edit #modalContent{position:absolute !important;}*/
+
+.node-type-my-proposal.section-node-edit .ervw-add-items.form-submit.ajax-processed.node-edit-protection-processed {
+    background: none repeat scroll 0 0 rgba(0, 0, 0, 0);
+    color: #1f83be;
+    font-size: 12px;
+	text-decoration:underline;
+	padding:0;
+	margin:0 0 0 20px;
+ }
+/* #edit-field-footer-buttton > div {
+    float: right;
+    margin-right: 25px;
+    margin-top: 20px;
+}*/
+/*#edit-field-footer-buttton > div p {
+    float: left;
+}*/
+/*#edit-field-footer-buttton > div p input {
+    float: left;
+    margin-right: 10px;
+}
+.cancel_bottom a {
+    border: 1px solid #337ab7;
+    float: left;
+    padding: 3px 10px;
+    text-decoration: none;
+}*/
+/*#field-submit-proposal-member-values tbody{border:0px !important;}
+#field-submit-proposal-member-values thead tr th.field-label{border:0px !important;}
+#field-submit-proposal-member-values tbody .odd td{color:#f00 !important;}
+#field-submit-proposal-member-values tbody .odd { border: 0 none;}
+
+#field-submit-proposal-in-respons-values tbody{border:0px !important;}
+#field-submit-proposal-in-respons-values thead tr th.field-label{border:0px !important;}
+#field-submit-proposal-in-respons-values tbody .odd td{color:#f00 !important;}
+#field-submit-proposal-in-respons-values tbody .odd { border: 0 none;}
+
+#field-field-sub-proposal-pjt-values tbody{border:0px !important;}
+#field-field-sub-proposal-pjt-values thead tr th.field-label{border:0px !important;}
+#field-field-sub-proposal-pjt-values tbody .odd td{color:#f00 !important;}
+#field-field-sub-proposal-pjt-values tbody .odd { border: 0 none;}
+
+#field-submit-proposal-to-company-values tbody{border:0px !important;}
+#field-submit-proposal-to-company-values thead tr th.field-label{border:0px !important;}
+#field-submit-proposal-to-company-values tbody .odd td{color:#f00 !important;}
+#field-submit-proposal-to-company-values tbody .odd { border: 0 none;}
+.form-item.form-type-textfield.form-item-field-proposal-job-location-und-0-postal-code:last-child{margin-right:0px !important;}
+*/
+/*.form-field-type-markup.form-field-name-field-footer-buttton.field-widget-markup.form-wrapper {
+    border-top: 1px solid #ccc;
+    float: left;
+    margin-top: 30px;
+    width: 100%;
+}*/
+.node-type-my-proposal #addressfield-wrapper{width:100% !important;}
+/*.foot-list {float: right; margin-right: 35px;}*/
+/*.foot-list .form-submit.node-edit-protection-processed { float: left; margin-right: 10px;}*/
+/*.foot-list .cancel-edit-proposal {border: 1px solid #337ab7;float: left;padding: 4px 0;  text-align: center;
+ width: 72px;}*/
+ #download-btn-msg { background: none repeat scroll 0 0 #337ab7; border: 0 none; color: #fff;}
+ #download-btn-msg:hover{text-decoration:underline;} 
+.view-id-proposals input.form-text, .view-id-proposals select{height:42px;}
+.view-id-proposals input[type="submit"]{height:42px !important;}
+.view-id-proposals .form-item.form-type-select.form-item-sort-by > label{display:none;}
+#page-wrap2_prop_comm .view_new_message{outline:none; width:100%; float:left;}
+
+
+.node-type-my-proposal #field-footer-buttton-add-more-wrapper .cancel_bottom{float:left;}
+.node-type-my-proposal .chosen-container-single .chosen-drop{margin-top:0px !important; width:100%;}
+.node-type-my-proposal.chosen-container-active .chosen-single { border: 1px solid #ccc !important; box-shadow: 0 0 0 #fff !important;}
+.node-type-my-proposal .chosen-container-single .chosen-single{background:none repeat scroll 0 0 rgba(0, 0, 0, 0) !important;
+border-radius:0px !important;box-shadow:0 0 0 white inset, 0 1px 1px rgba(0, 0, 0, 0.1) !important;width:100%;height:32px !important;}
+.node-type-my-proposal .chosen-container{width:100% !important; display:block !important;}

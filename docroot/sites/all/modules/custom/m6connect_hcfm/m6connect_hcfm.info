@@ -1,0 +1,5 @@
+name: M6connect HCFM
+description: M6connect Health Care Facility Management
+package = CUSTOM
+core = 7.x
+files[] = m6connect_hcfm.module

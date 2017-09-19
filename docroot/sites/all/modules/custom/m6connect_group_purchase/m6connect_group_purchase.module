@@ -1,0 +1,741 @@
+<?php
+/**
+ * Implements hook_menu().
+ */
+function m6connect_group_purchase_menu() {  
+  $items['purchse/rebates'] = array(
+    'title' => 'Rebates',
+    'page callback' => 'purchse_rebates_content',
+    'access callback' => '_is_m6_user_logged_in',
+  );
+  $items['purchse/admin/fees'] = array(
+    'title' => 'Admin Fees',
+    'page callback' => 'purchse_admin_fees_content',
+    'access callback' => '_is_m6_user_logged_in',
+  );
+  $items['purchse/reports/individual'] = array(
+    'title' => 'Individual Reports',
+    'page callback' => 'purchse_reports_individual_content',
+    'access callback' => '_is_m6_user_logged_in',
+  );
+  $items['purchse/reports/all'] = array(
+    'title' => 'All Reports',
+    'page callback' => 'purchse_reports_all_content',
+    'access callback' => '_is_m6_user_logged_in',
+  );
+  $items['purchse/settings'] = array(
+    'title' => 'Settings for group purchasing',
+    'page callback' => 'purchse_settings_content',
+    'access callback' => '_is_m6_user_logged_in',
+  );
+  
+  return $items;
+}
+
+// ============================
+// Start Project Slide Section 
+// ===========================
+
+/*
+ *  Start work for the first slide for REBATE menu
+ */
+function purchse_rebates_content(){
+  $elements = array();   
+  $elements['purchase-rebates']= array(
+    '#markup' => drupal_render(drupal_get_form('purchse_rebates_form')),
+    '#prefix' => '<div class="clearfix margin-bottom-10">',
+    '#suffix' => '</div>',
+  );
+  /*$elements['purchase-rebates-listing'] = array(
+    '#markup' => purchse_rebates_summary_table_data(),
+    '#prefix' => '<div class="clearfix margin-bottom-10"><div class="purchase-rebates-listing" id="purchase-rebates-listing-summary-listing">',
+    '#suffix' => '</div></div></div>',
+   );*/  
+  return $elements;
+}
+
+function purchse_rebates_form($form, &$form_state) {
+  global $user;   
+  global $company; 
+  $getRebateList = array();
+  //$getRebateList = _get_the_rebate(); 
+  //drupal_add_js(drupal_get_path('module', 'm6connect_group_purchase') . '/js/m6connect_group_purchase.js');    
+  $form['group-purchase-menu-items'] = array(
+    '#markup' => m6connect_group_purchase_menu_links_content(),
+    '#prefix' => '<div class="clearfix">',
+    '#suffix' => '</div>',
+  );
+  $form['select-rebate'] = array(
+    '#type'=>'select',
+    //'#title'=> 'Select Rebate:',
+    '#options' => array('Select Rebate'),
+    '#attributes' => array('class'=> array('form-control group_purchasing_form_main_pro')),
+    '#ajax' => array(
+      'callback'=> 'change_purchse_rebate_callback',
+      'wrapper' => 'purchse_rebate_main_container',
+      'effect' => 'fade',
+    ),
+    '#prefix' => '<div class="clearfix"><div class="pull-left form-inline">',
+    '#suffix' => '</div></div>',
+  );
+  $form['main-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('row')),
+    '#prefix' => '<div class="clearfix margin-top-20 no-bg well well-lg"><div id="project_program_main_container" class="project-detail">',  
+    '#suffix' => '</div></div>',
+    '#process' => array('purchse_rebates_main_container_process'),
+  );    
+  $form['actions']['reset'] = array(
+    '#type' => 'markup',
+    '#markup' => '<input type="button" value="Cancel" class="form-submit custom-reset-button">',
+    '#prefix' => '<div class="clearfix margin-top-10"><div class="pull-left custom-submit-reset margin-bottom-10">',
+  );
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#name' => 'main_call',
+    '#submit'=> array('purchse_rebates_submit'),
+    '#attributes' => array('class'=>array('main-estimate-submit-call')), 
+    '#value' => 'Save',
+    '#prefix' => '<div class="pull-left project_estimate_submit_container margin-bottom-10">',
+    '#suffix' => '</div></div></div>', 
+  );  
+  
+  return $form;
+}
+
+function purchse_rebates_main_container_process($element, &$form_state) {
+  global $user, $company;  
+  $entity_option = _getting_table_data_call('scm_setting_location_entity');
+  $element['left-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('col-md-4','col-sm-4','col-xs-12','project-details-left'),),
+  );
+  $element['center-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('col-md-4','col-sm-4','col-xs-12','project-details-center'),),
+  );  
+  $element['right-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('col-md-4','col-sm-4','col-xs-12','project-details-right', 'dates-desc-sp')),
+  ); 
+  $element['full-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('col-md-12','col-sm-12','col-xs-12','project-details-full')),
+  );    
+  $element['left-container']['purchse-rebates-facility'] = array(
+    '#type' => 'select',
+    '#title' => 'Facility',
+    '#options' => $entity_option, 
+    '#empty_option' => 'Choose Faciltiy',
+    '#attributes' => array('class'=> array('form-control purchse-rebates-facility')),
+    '#prefix' => '<div class="project-details-border"><div class="clearfix form-item">',
+    '#suffix' => '</div>',    
+  );
+  $element['left-container']['purchse-rebates-gross'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Gross Sales',
+    '#attributes' => array('class'=> array('form-control purchse-rebates-gross')),
+    '#prefix' => '<div class="clearfix form-item">',
+    '#suffix' => '</div>',
+  );
+  $element['left-container']['purchse-rebates-contract-number']= array(
+    '#type' => 'textfield',
+    '#title' => 'Contract Number',    
+    '#attributes'=> array('class'=> array('form-control purchse-rebates-contract-number','workflow-auto'),'placeholder'=>'Contract Number'),
+    '#autocomplete_path' => 'contract-number/autocomplete',
+    '#ajax' => array(
+      'callback' => 'contract_number_callback',
+      'event' => 'blur',
+      'wrapper' => 'workflow-container-section',
+      'method' => 'replace',
+      'effect' => 'fade',
+    ), 
+    '#prefix' => '<div class="clearfix form-item">',
+    '#suffix' => '</div></div>',
+  );
+
+  /*$element['center-container']['purchase-rebate-vendor'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Vendor',    
+    '#attributes'=> array('class'=> array('form-control purchase-rebate-vendor','workflow-auto'),'placeholder'=>'vendor'),
+    '#autocomplete_path' => 'commitment-company/autocomplete',
+    '#ajax' => array(
+      'callback' => 'commitment_autocomplete_callback',
+      'event' => 'blur',
+      'wrapper' => 'workflow-container-section',
+      'method' => 'replace',
+      'effect' => 'fade',
+    ), 
+    '#prefix' => '<div class="project-details-border"><div class="clearfix form-item">',
+    '#suffix' => '</div>', 
+  );
+  $element['center-container']['rebate-amount'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Rebate Amount',
+    '#attributes' => array('class'=> array('form-control rebate-amount')),
+    '#prefix' => '<div class="clearfix form-item">',
+    '#suffix' => '</div>',
+  );
+  $element['center-container']['rebate-attachment']= array(
+    
+    '#type'                    => 'dragndrop_upload',
+    '#title'                   => t('Drag & Drop files here'),
+    '#file_upload_max_size'    => file_upload_max_size(),
+    '#upload_location'         => 'public://',
+    //'#upload_event'            => 'auto',
+    '#multiupload'             => TRUE,
+    '#attributes' => array('multiple' => 'multiple'),
+    '#cardinality'             => FIELD_CARDINALITY_UNLIMITED,
+    //'#extended'                => TRUE,
+    // '#upload_validators'       => array(
+    //   'file_validate_extensions' => array(
+    //     'gif png jpg psd tiff tif eps svg jpeg txt rtf flv f4v swf pdf doc docx odp ppt pptx csv xls xlsx'
+    //   ),
+    // // Pass the maximum file size in bytes
+    //   'file_validate_size'       => array(
+    //     file_upload_max_size()
+    //   )
+    // ),
+    //'#prefix'                  => '<div class="clearfix form-item">',
+    //'#suffix'                  => '</div></div>',
+  );*/
+  $element['right-container']['rebate-paid-date-one'] = array(
+    '#title' => 'Date Paid',
+    '#type' => 'date_popup',
+    '#date_format' => 'm/d/Y',
+    '#date_year_range' => '-3:+3',  
+    '#attributes' => array('class'=> array('form-control rebate-paid-date-one'),'autocomplete' => 'off','placeholder' => 'mm/dd/yyyy'),
+    '#pre_render' => array('m6connect_programe_date_prerender'),
+    '#prefix' => '<div class="project-details-border"><div class="clearfix form-item">',
+    '#suffix' => '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span></div>',
+  );
+  $element['right-container']['rebate-paid-date-two'] = array(
+    '#title' => 'Date Paid',
+    '#type' => 'date_popup',
+    '#date_format' => 'm/d/Y',
+    '#date_year_range' => '-3:+3',  
+    '#attributes' => array('class'=> array('form-control rebate-paid-date'),'autocomplete' => 'off','placeholder' => 'mm/dd/yyyy'),
+    '#pre_render' => array('m6connect_programe_date_prerender'),
+    '#prefix' => '<div class="clearfix form-item">',
+    '#suffix' => '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span></div></div>',
+  );
+  $element['full-container']['contract-description'] = array(
+    '#title' => 'Contract Description',
+    '#type' => 'textarea',
+    '#attributes'=> array('class'=> array('form-control contract-description')),
+  );  
+  //dpm($element,'$form');
+  //dpm($form_state,'$form state');
+  return $element;  
+}
+
+/*
+*submit form purchse_rebates_submit
+*/
+function purchse_rebates_submit($form, &$form_state) {dpm($form_state,'form_state submit ');
+}
+/*
+ *  Start work for the second slide for Admin Fees menu
+ */
+function purchse_admin_fees_content(){
+  $elements = array();   
+  $elements['purchase-rebates']= array(
+    '#markup' => drupal_render(drupal_get_form('purchse_admin_fees_form')),
+    '#prefix' => '<div class="clearfix margin-bottom-10">',
+    '#suffix' => '</div>',
+  );
+  /*$elements['purchase-rebates-listing'] = array(
+    '#markup' => purchse_rebates_summary_table_data(),
+    '#prefix' => '<div class="clearfix margin-bottom-10"><div class="purchase-rebates-listing" id="purchase-rebates-listing-summary-listing">',
+    '#suffix' => '</div></div></div>',
+   );*/  
+  return $elements;
+}
+
+function purchse_admin_fees_form($form, &$form_state, $top_arg) {
+  global $user;   
+  global $company; 
+  $getRebateList = array();
+  //$getRebateList = _get_the_rebate(); 
+  drupal_add_js(drupal_get_path('module', 'm6connect_group_purchase') . '/js/m6connect_group_purchase.js');    
+  $form['group-purchase-menu-items'] = array(
+    '#markup' => m6connect_group_purchase_menu_links_content(),
+    '#prefix' => '<div class="clearfix">',
+    '#suffix' => '</div>',
+  );
+  $form['select-rebate'] = array(
+    '#type'=>'select',
+    //'#title'=> 'Select Rebate:',
+    '#options' => array('Select Admin Fees'),
+    '#attributes' => array('class'=> array('form-control group_purchasing_form_main_pro')),
+    '#ajax' => array(
+      'callback'=> 'change_admin_fees_callback',
+      'wrapper' => 'admin_fees_main_container',
+      'effect' => 'fade',
+    ),
+    '#prefix' => '<div class="clearfix"><div class="pull-left form-inline">',
+    '#suffix' => '</div></div>',
+  );
+  $form['main-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('row')),
+    '#prefix' => '<div class="clearfix"><div id="project_program_main_container" class="project-details-border">',  
+    '#process' => array('admin_fees_main_container_process'),
+  );    
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Save',
+    '#submit'=> array('admin_fees_submit'),
+    '#prefix' => '<div class="clearfix purchse-rebates-project-button">', 
+    '#suffix' => '</div></div></div>', 
+  );  
+  return $form;
+}
+
+function admin_fees_main_container_process($element, &$form_state) {
+  global $user, $company;  
+  $entity_option = _getting_table_data_call('scm_setting_location_entity');
+  $element['left-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('col-md-4','col-sm-4','col-xs-12','project-details-left'),),
+  );
+  $element['center-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('col-md-4','col-sm-4','col-xs-12','project-details-center'),),
+  );  
+  $element['right-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('col-md-4','col-sm-4','col-xs-12','project-details-right','dates-desc-sp','purchase-dates-calendar')),
+  );
+  $element['full-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('col-md-12','col-sm-12','col-xs-12','project-details-full')),
+  );    
+  $element['left-container']['purchse-rebates-facility'] = array(
+    '#type' => 'select',
+    '#title' => 'Facility',
+    '#options' => array(),
+    '#empty_option' => 'Choose Faciltiy',
+    '#attributes' => array('class'=> array('form-control purchse-rebates-facility')),
+    '#prefix' => '<div class="project-details-border"><div class="clearfix form-item">',
+    '#suffix' => '</div>',    
+  );
+  $element['left-container']['admin-fees-percentage'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Admin Fees Percentage',
+    '#attributes' => array('class'=> array('form-control admin-fees-percentage')),
+    '#prefix' => '<div class="clearfix form-item">',
+    '#suffix' => '</div>',
+  );
+  $element['left-container']['admin-fees-contract-number']= array(
+    '#type' => 'textfield',
+    '#title' => 'Contract Number',    
+    '#attributes'=> array('class'=> array('form-control admin-fees-contract-number','workflow-auto'),'placeholder'=>'Number'),
+    /*'#autocomplete_path' => 'contract-number/autocomplete',
+    '#ajax' => array(
+      'callback' => 'contract_number_callback',
+      'event' => 'blur',
+      'wrapper' => 'workflow-container-section',
+      'method' => 'replace',
+      'effect' => 'fade',
+    ),*/ 
+    '#prefix' => '<div class="clearfix form-item">',
+    '#suffix' => '</div></div>',
+  );     
+  $element['center-container']['admin-fees-vendor']= array(
+    '#type' => 'textfield',
+    '#title' => 'Vendor',    
+    '#attributes'=> array('class'=> array('form-control admin-fees-vendor','workflow-auto'),'placeholder'=>'vendor'),
+    '#autocomplete_path' => 'commitment-company/autocomplete',
+    '#ajax' => array(
+      'callback' => 'commitment_autocomplete_callback',
+      'event' => 'blur',
+      'wrapper' => 'workflow-container-section',
+      'method' => 'replace',
+      'effect' => 'fade',
+    ), 
+    '#prefix' => '<div class="project-details-border"><div class="clearfix form-item">',
+    '#suffix' => '</div>',    
+  );    
+  $element['center-container']['gross-sales'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Gross Sales',
+    '#attributes' => array('class'=> array('form-control gross-sales')),
+    '#prefix' => '<div class="clearfix form-item">',
+    '#suffix' => '</div>',
+  );
+  $element['center-container']['admin-fees-attachment']= array(
+    '#type' => 'file',
+    '#title' => 'Attachment',
+    '#upload_location' => 'public://',
+    '#field_prefix' => '<div class="image-preview-est-attach"></div>',
+    '#weight' => 6,
+	'#prefix' => '<div class="clearfix form-item">',
+    '#suffix' => '</div></div>',
+  );
+  $element['right-container']['admin-fees-paid-date-one'] = array(
+    '#title' => 'Date Paid',
+    '#type' => 'date_popup',
+    '#date_format' => 'm/d/Y',
+    '#date_year_range' => '-3:+3',  
+    '#attributes' => array('class'=> array('form-control admin-fees-paid-date-one'),'autocomplete' => 'off','placeholder' => 'mm/dd/yyyy'),
+    '#pre_render' => array('m6connect_programe_date_prerender'),    	
+	'#prefix' => '<div class="project-details-border"><div class="clearfix form-item">',
+    '#suffix' => '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span></div>',
+  );
+  $element['right-container']['admin-fee'] = array(
+    '#title' => 'Admin Fee',
+    '#type' => 'textfield',
+    '#attributes' => array('class'=> array('form-control admin-fee'),'autocomplete' => 'off'),
+    '#prefix' => '<div class="clearfix form-item">',
+    '#suffix' => '</div></div>',
+  );
+  $element['full-container']['contract-description'] = array(
+    '#title' => 'Contract Description',
+    '#type' => 'textarea',
+    '#attributes'=> array('class'=> array('form-control contract-description')),
+  );  
+  return $element;
+}
+
+/*
+ * Reporting section Start work for individualt Rating
+ */
+function purchse_reports_individual_content(){
+  $elements = array();   
+  $elements['purchase-rebates']= array(
+    '#markup' => drupal_render(drupal_get_form('purchse_reports_individual_form')),
+    '#prefix' => '<div class="clearfix margin-bottom-10">',
+    '#suffix' => '</div>',
+  );
+  /*$elements['purchase-rebates-listing'] = array(
+    '#markup' => purchse_rebates_summary_table_data(),
+    '#prefix' => '<div class="clearfix margin-bottom-10"><div class="purchase-rebates-listing" id="purchase-rebates-listing-summary-listing">',
+    '#suffix' => '</div></div></div>',
+   );*/  
+  return $elements;
+}
+
+function purchse_reports_individual_form($form, &$form_state) {
+  global $user;   
+  global $company; 
+  $getRebateList = array();
+  //$getRebateList = _get_the_rebate(); 
+  drupal_add_js(drupal_get_path('module', 'm6connect_group_purchase') . '/js/m6connect_group_purchase.js');    
+  $form['group-purchase-menu-items'] = array(
+    '#markup' => m6connect_group_purchase_menu_links_content(),
+    '#prefix' => '<div class="clearfix">',
+    '#suffix' => '</div>',
+  );
+  /*
+   * This container is for rendring report form for individual
+   */
+  
+  $form['main-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('row')),
+    '#prefix' => '<div class="clearfix"><div id="project_program_main_container" class="project-detail">',  
+    '#process' => array('purchse_reports_individual_main_container_process'),
+  );    
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Save',
+    '#submit'=> array('purchse_reports_individual_submit'),
+    '#prefix' => '<div class="clearfix purchse-rebates-project-button">', 
+    '#suffix' => '</div></div></div>', 
+  );  
+  return $form;
+}
+
+function purchse_reports_individual_main_container_process($element, &$form_state) {
+  global $user, $company;  
+  $entity_option = _getting_table_data_call('scm_setting_location_entity');
+  $element['first-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('col-md-3','col-sm-3','col-xs-12','project-details-left'),),
+  );
+  $element['second-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('col-md-3','col-sm-3','col-xs-12','project-details-center'),),
+  );  
+  $element['third-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('col-md-3','col-sm-3','col-xs-12','project-details-right')),
+  );
+  $element['fourth-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('col-md-3','col-sm-3','col-xs-12','project-details-right')),
+  );    
+  $element['first-container']['select-report'] = array(
+    '#type' => 'select',
+    '#title' => 'Select Report',
+    '#options' => array(),
+    '#empty_option' => 'Select',
+    '#attributes' => array('class'=> array('form-control select-report')),
+    '#prefix' => '<div class="project-details-border"><div class="clearfix form-item">',
+    '#suffix' => '</div></div>',    
+  );       
+  $element['second-container']['report-individual-vendor']= array(
+    '#type' => 'textfield',
+    '#title' => 'Vendor',    
+    '#attributes'=> array('class'=> array('form-control report-individual-vendor','workflow-auto'),'placeholder'=>'vendor'),
+    '#autocomplete_path' => 'commitment-company/autocomplete',
+    '#ajax' => array(
+      'callback' => 'commitment_autocomplete_callback',
+      'event' => 'blur',
+      'wrapper' => 'workflow-container-section',
+      'method' => 'replace',
+      'effect' => 'fade',
+    ), 
+    '#prefix' => '<div class="project-details-border"><div class="clearfix form-item">',
+    '#suffix' => '</div></div>',    
+  );    
+  $element['third-container']['report-individual-period-start'] = array(
+    '#title' => 'Report Period Start',
+    '#type' => 'date_popup',
+    '#date_format' => 'm/d/Y',
+    '#date_year_range' => '-3:+3',  
+    '#attributes' => array('class'=> array('form-control rebate-paid-date-one'),'autocomplete' => 'off','placeholder' => 'mm/dd/yyyy'),
+    '#pre_render' => array('m6connect_programe_date_prerender'),
+    '#prefix' => '<div class="project-details-border"><div class="clearfix form-item">',
+    '#suffix' => '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span></div></div>',    
+  );
+  $element['fourth-container']['report-individual-period-end'] = array(
+    '#title' => 'Report Period End',
+    '#type' => 'date_popup',
+    '#date_format' => 'm/d/Y',
+    '#date_year_range' => '-3:+3',  
+    '#attributes' => array('class'=> array('form-control rebate-paid-date'),'autocomplete' => 'off','placeholder' => 'mm/dd/yyyy'),
+    '#pre_render' => array('m6connect_programe_date_prerender'),
+    '#prefix' => '<div class="project-details-border"><div class="clearfix form-item">',
+    '#suffix' => '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span></div></div>',    
+  );  
+  return $element;
+}
+
+/*
+ * Reporting section Start work for All Vendor
+ */
+function purchse_reports_all_content(){
+  $elements = array();   
+  $elements['purchase-rebates']= array(
+    '#markup' => drupal_render(drupal_get_form('purchse_reports_all_form')),
+    '#prefix' => '<div class="clearfix margin-bottom-10">',
+    '#suffix' => '</div>',
+  );
+  return $elements;
+}
+
+function purchse_reports_all_form($form, &$form_state) {
+  global $user;   
+  global $company; 
+  $getRebateList = array();
+  //$getRebateList = _get_the_rebate(); 
+  drupal_add_js(drupal_get_path('module', 'm6connect_group_purchase') . '/js/m6connect_group_purchase.js');    
+  $form['group-purchase-menu-items'] = array(
+    '#markup' => m6connect_group_purchase_menu_links_content(),
+    '#prefix' => '<div class="clearfix">',
+    '#suffix' => '</div>',
+  );
+  /*
+   * This container is for rendring report form for All Vendors
+   */
+  
+  $form['main-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('row')),
+    '#prefix' => '<div class="clearfix"><div id="project_program_main_container" class="project-detail">',  
+    '#process' => array('purchse_reports_all_main_container_process'),
+  );    
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Generate',
+    '#submit'=> array('purchse_reports_all_submit'),
+    '#prefix' => '<div class="clearfix purchse-rebates-project-button">', 
+    '#suffix' => '</div></div></div>', 
+  );  
+  return $form;
+}
+
+function purchse_reports_all_main_container_process($element, &$form_state) {
+  global $user, $company;  
+  $entity_option = _getting_table_data_call('scm_setting_location_entity');
+  $element['first-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('col-md-4','col-sm-4','col-xs-12','project-details-left'),),
+  );
+  $element['second-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('col-md-4','col-sm-4','col-xs-12','project-details-center'),),
+  );  
+  $element['third-container']= array(
+    '#type' => 'container',
+    '#attributes' => array('class'=>array('col-md-4','col-sm-4','col-xs-12','project-details-right')),
+  );
+  $element['first-container']['select-report'] = array(
+    '#type' => 'select',
+    '#title' => 'Select Report',
+    '#options' => array(),
+    '#empty_option' => 'Select',
+    '#attributes' => array('class'=> array('form-control select-report')),
+    '#prefix' => '<div class="project-details-border"><div class="clearfix form-item">',
+    '#suffix' => '</div>',    
+  );       
+  $element['first-container']['report-all-period-start'] = array(
+    '#title' => 'Report Period Start',
+    '#type' => 'date_popup',
+    '#date_format' => 'm/d/Y',
+    '#date_year_range' => '-3:+3',  
+    '#attributes' => array('class'=> array('form-control rebate-paid-date-one'),'autocomplete' => 'off','placeholder' => 'mm/dd/yyyy'),
+    '#pre_render' => array('m6connect_programe_date_prerender'),
+    '#prefix' => '<div class="clearfix form-item">',
+    '#suffix' => '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span></div>',    
+  );
+  $element['first-container']['report-all-period-end'] = array(
+    '#title' => 'Report Period End',
+    '#type' => 'date_popup',
+    '#date_format' => 'm/d/Y',
+    '#date_year_range' => '-3:+3',  
+    '#attributes' => array('class'=> array('form-control rebate-paid-date'),'autocomplete' => 'off','placeholder' => 'mm/dd/yyyy'),
+    '#pre_render' => array('m6connect_programe_date_prerender'),
+    '#prefix' => '<div class="clearfix form-item">',
+    '#suffix' => '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span></div></div>',    
+  );  
+  $element['second-container']['report-all-vendor']= array(
+    '#type' => 'textfield',
+    '#title' => 'Vendor(s)',    
+    '#attributes'=> array('class'=> array('form-control report-individual-vendor','workflow-auto'),'placeholder'=>'vendor'),
+    '#autocomplete_path' => 'commitment-company/autocomplete',
+    '#ajax' => array(
+      'callback' => 'commitment_autocomplete_callback',
+      'event' => 'blur',
+      'wrapper' => 'workflow-container-section',
+      'method' => 'replace',
+      'effect' => 'fade',
+    ), 
+    '#prefix' => '<div class="project-details-border"><div class="clearfix form-item">',
+    '#suffix' => '</div></div>',    
+  );    
+  $element['third-container']['all-facility'] = array(
+    '#type' => 'select',
+    '#title' => 'Facility(s)',
+    '#options' => array(),
+    '#empty_option' => 'All',
+    '#attributes' => array('class'=> array('form-control select-report')),
+    '#prefix' => '<div class="project-details-border"><div class="clearfix form-item">',
+    '#suffix' => '</div></div>',    
+  );    
+  
+  return $element;
+}
+
+function _generating_pdf_group_purchasing() {
+  return 'hiiii'; 
+}
+
+// ======================================================         ========================================================== //
+// 										 Required Helper function For Group Purchasing
+// ======================================================         ========================================================== //
+/*
+ *  Implement hook_preprocess_page
+ *  Used For: Disable page title form all the pages of Group purchising
+ *  If we need to remove the page title simple we have to put that new 
+ *  menu item link here to disable its title
+ */
+function m6connect_group_purchase_preprocess_page(&$variables) {
+  if (in_array(current_path(),array('purchse/rebates','purchse/admin/fees','purchse/reports/individual','purchse/reports/all','purchse/settings'))) {
+    $variables['title'] = '';
+  }  
+}
+
+/**
+* Implements hook_block_info().
+* Here we need to create two block 
+* 1. For rendring the menu link for group purchasing
+* 2. To render header Banner with page title
+*/
+function m6connect_group_purchase_block_info() {
+  $blocks = array();
+  $blocks['group_purchase_navigation'] = array(
+    'info' => t('Group Purchase Navigation'),
+    'cache' => DRUPAL_CACHE_GLOBAL,
+  );
+  $blocks['group_purchasing_project'] = array(
+    'info' => t('New group programe manager'),
+    'cache' => DRUPAL_CACHE_GLOBAL,
+  );  
+  return $blocks;
+}
+/**
+* Implements hook_block_view().
+*/
+function m6connect_group_purchase_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'group_purchase_navigation':
+      $block['subject'] = '';
+      $block['content'] = m6connect_group_purchase_menu_links_content();
+      break;
+    case 'group_purchasing_project':
+      $block['subject'] = t('');
+      $block['content'] = group_purchasing_project();
+      break;  
+  }
+  return $block;
+}
+/*
+ * Group purchasing menu link with active link feature
+ */
+function m6connect_group_purchase_menu_links_content($top_arg = ''){
+  $currentPath = current_path();
+  $programList = array(
+    'purchse/rebates' => 'REBATES',
+	'purchse/admin/fees' => 'ADMIN FEES',
+	'purchse/reports/individual' => 'REPORTS INDIVIDUAL',
+	'purchse/reports/all' => 'REPORTS ALL',
+	'purchse/settings' => 'GROUP PURCHASING SETTINGS',
+  );
+  $output = '<ul class="list-unstyled list-inline custom-list program-project-menu-links clearfix">';
+  foreach($programList as $menuPath => $label){
+    $class = ($currentPath == $menuPath)?' active':'';
+    if(in_array($currentPath,$menuPath)){    
+      $output .= '<li class="menu-item active">'.l($label,$menuPath).'</li>'; 
+    }
+	else {
+      $output .= '<li class="menu-item'.$class.'">'.l($label,$menuPath).'</li>';
+    }
+  }    
+  $output .= '</ul>';
+  return $output; 
+}
+
+/*
+ * Group purchaisng top Banner with 
+ * the title aof each included pages
+ */
+function group_purchasing_project() {   
+  global $user;
+  $programeProjectLink = '';
+  if(in_array(current_path(),array('purchse/rebates','purchse/admin/fees','purchse/reports/individual','purchse/reports/all'))){
+    if(current_path() == 'purchse/rebates') { $bannerTitle = 'Group Purchasing - Rebates'; $slogan = 'Add or edit rebate fees'; }  
+    if(current_path() == 'purchse/admin/fees') { $bannerTitle = 'Group Purchasing - Admin Fees'; $slogan = 'Add or edit Admin fees'; }  
+    if(current_path() == 'purchse/reports/individual') { $bannerTitle = 'Reports Individual'; $slogan = 'Generate individual vendor reports'; }  
+    if(current_path() == 'purchse/reports/all') { $bannerTitle = 'Group Purchasing - Reports All'; $slogan = 'Generate all vendor reports'; }  
+    if(current_path() == 'purchse/settings') { $bannerTitle = 'Group Purchasing - Settings'; }  
+    $programeProjectLink = '';    
+	//$programeProjectLink = l('<i class="glyphicon glyphicon-plus"></i> Add New Project',url('/program/projects'),array('html' => TRUE,'attributes' => array('class' => 'add-project')));    
+        
+  }
+  $img = '<img src="/sites/all/themes/m6connect/images/u2603.png" />';
+  $output = '<div class="main_content">
+         <div class="box box-with-image">
+         <div class="box-header-main box-header">
+         <div class="box-image-wrapper"> <a href="#"> '.$img.'<!--<i class="fa fa-user-secret" aria-hidden="true"></i> --></a> </div>
+           <div class="box-right-entity">              
+           <div class="row"><div class="col-md-8 col-sm-6 col-xs-12"><h1>'.$bannerTitle.'</h1>
+         <p>'.$slogan.'</p>
+           </div>
+             <div class="col-md-4 col-sm-6 col-xs-12 box-actions text-right">'.$programeProjectLink.'</div></div>
+       </div></div></div></div>';
+  return $output; 
+}

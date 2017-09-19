@@ -1,0 +1,52 @@
+2-4-2016
+modules/field_collection/field_collection.module
+line number 828
+function field_collection_item_delete($id) {
+   $fci = field_collection_item_load($id);
+-  $fci->delete();
++  if ($fci) {
++    $fci->delete();
++  }
+ }
+--------------------------------------------------------
+22-06-2016
+modules/url/url.module
+line number 366
+function url_validate_url(&$element, &$form_state) {
+  $value = trim($element['#value']);
+  form_set_value($element, $value, $form_state);
+  +$value1 = $value;
+  +$pasrsedUrl = parse_url($value);
+  +if(!isset($pasrsedUrl['scheme'])){
+  +  $value1 = 'http://'.$value; 
+  +}
+  -if ($value !== '' && !valid_url($value, TRUE)) {
+  +if ($value !== '' && !valid_url($value1, TRUE)) {
+    form_error($element, t('The URL %url is not valid.', array('%url' => $value)));
+  }
+}
+----------------------------------------------------------
+15-07-2016
+modulesfbsmp\plugins\photo.inc
+line number 575
+function fbsmp_photo_widget_upload_validators($settings) {
+  $max_filesize = parse_size(file_upload_max_size());
+  if (!empty($settings['max_filesize']) && parse_size($settings['max_filesize']) < $max_filesize) {
+    $max_filesize = parse_size($settings['max_filesize']);
+  }
+
+  $validators = array(
+    '_fbsmp_file_validate_size' => array($max_filesize),
+    '_fbsmp_file_validate_extensions' => array($settings['file_extensions']),
+    '_fbsmp_file_validate_is_image' => array(),
+   +'_exif_orientation_validate_image_callback' => array(),
+  );
+  //Add validators for resolutions.
+  if (!empty($settings['max_resolution']) || !empty($settings['min_resolution'])) {
+    $validators['_fbsmp_file_validate_image_resolution'] = array(
+      $settings['max_resolution'],
+      $settings['min_resolution'],
+    );
+  }
+  return $validators;
+}

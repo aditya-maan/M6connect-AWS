@@ -1,0 +1,33 @@
+.cropit-preview {
+  /*width: 229px;
+  height: 194px;*/
+  background-color: #f8f8f8;
+  background-size: cover;
+  border: 2px solid #888;
+  border-radius: 3px;
+  /*margin-top: 7px;*/
+  margin-left: 20px;
+  margin-bottom: 20px;
+}
+.cropit-preview img {
+  max-width:none;
+}
+.cropit-preview-background-container {
+  opacity:0.2;
+  cursor:auto;
+}
+.cropit-preview-image-container {
+  cursor: move;
+}
+.banner_small_log_ele .cropit-image-loaded .cropit-preview-background-container{
+  overflow: visible !important;
+  overflow-y: hidden !important;
+  width: 615px;
+}
+.banner_small_log_ele .cropit-preview{
+  border:none;
+}
+.banner_small_log_ele .cropit-image-loaded .cropit-preview-image-container{
+  left: 60% !important;
+  /*border: 2px solid #888;*/
+}

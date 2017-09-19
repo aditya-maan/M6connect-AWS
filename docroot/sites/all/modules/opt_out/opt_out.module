@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * @file
+ * Main module file for the opt out module.
+ */
+
+/**
+ * Implements hook_mail_alter().
+ */
+function opt_out_mail_alter(&$message) {
+  // Fetch the account based upon the destination address.
+  $account = user_load_by_mail($message['to']);
+  if ($account) {
+    $items = field_get_items('user', $account, 'opt_out');
+    if (!empty($items[0]['value'])) {
+      // The user has opted out, check to see if this one goes through anyway:
+      $bypass = variable_get('opt_out_send_anyway', array('user'));
+      foreach ($bypass as $key) {
+        if (strpos($key, ':') !== FALSE) {
+          // Make it match the actual key format.
+          $key = str_replace(':', '_', $key);
+          if ($message['id'] == $key) {
+            // Bypass based upon exact key.
+            return;
+          }
+        }
+        else {
+          if ($message['module'] == $key) {
+            // Bypass based upon module match.
+            return;
+          }
+        }
+      }
+
+      // No bypasses matched, so abort sending the message.
+      $message['send'] = FALSE;
+    }
+  }
+}

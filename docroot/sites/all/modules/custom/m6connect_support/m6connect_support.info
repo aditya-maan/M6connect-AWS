@@ -1,0 +1,7 @@
+name = M6Connect Support Management
+description = M6Connect Support Management Functionality
+package = CUSTOM
+core = 7.x
+
+;files[] = views/handlers/m6connect_program_handler_company_address_custom.inc
+

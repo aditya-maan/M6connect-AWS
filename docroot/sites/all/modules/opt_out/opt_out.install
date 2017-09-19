@@ -1,0 +1,74 @@
+<?php
+
+/**
+ * @file
+ * Install file for the opt out module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function opt_out_install() {
+  // Add the opt out boolean field.
+  $field = array(
+    'active' => 1,
+    'cardinality' => 1,
+    'deleted' => 0,
+    'entity_types' => array(),
+    'field_name' => 'opt_out',
+    'foreign keys' => array(),
+    'indexes' => array(
+      'value' => array(
+        0 => 'value',
+      ),
+    ),
+    'locked' => 0,
+    'module' => 'list',
+    'settings' => array(
+      'allowed_values' => array(
+        0 => '',
+        1 => '',
+      ),
+      'allowed_values_function' => '',
+    ),
+    'translatable' => 0,
+    'type' => 'list_boolean',
+  );
+
+  field_create_field($field);
+
+  // Exported field_instance: 'content_variant-offering-field_cta_include_follow'
+  $instance = array(
+    'bundle' => 'user',
+    'default_value' => array(
+      0 => array(
+        'value' => 1,
+      ),
+    ),
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'hidden',
+        'type' => 'hidden',
+        'settings' => array(),
+        'type' => 'secondary_cta',
+      ),
+    ),
+    'entity_type' => 'user',
+    'field_name' => 'opt_out',
+    'label' => 'Opt out of emails from this site',
+    'required' => 0,
+    'widget' => array(
+      'active' => 1,
+      'module' => 'options',
+      'settings' => array(
+        'display_label' => 1,
+      ),
+      'type' => 'options_onoff',
+      'weight' => 35,
+    ),
+  );
+
+  field_create_instance($instance);
+}

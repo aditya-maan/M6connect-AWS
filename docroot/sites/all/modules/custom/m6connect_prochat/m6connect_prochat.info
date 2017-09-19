@@ -1,0 +1,5 @@
+name = M6Connect ProChat Custom
+description = Common Functionality for M6CONNECT
+package = CUSTOM
+core = 7.x
+files[] = m6connect_common.module

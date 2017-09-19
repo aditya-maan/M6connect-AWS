@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * @file
+ * Installation of the Fusion Charts module
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function fusioncharts_install() {    
+
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function fusioncharts_uninstall() {
+  //these are historical
+  variable_del('fusioncharts');
+  variable_del('fusioncharts-defset');
+  variable_del('fusioncharts-defattr');
+}

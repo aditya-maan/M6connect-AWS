@@ -1,0 +1,348 @@
+@import url(http://fonts.googleapis.com/css?family=Roboto+Condensed:400,300,300italic,400italic,700,700italic);
+
+/*COMMON CSS START*/
+body{
+	font-family: 'Roboto Condensed', sans-serif !important;
+	line-height:24px !important;
+}
+#pricing .row + .row{
+	padding:30px 0;
+}
+.btn, .alert-info{
+	-webkit-border-radius: 0px;
+	-moz-border-radius: 0px;
+	border-radius:0px !important;
+}
+.alert-info{
+	padding:10px 25px !important;
+	border:0 !important;
+	margin:0 !important;
+}
+/*END BOOTSTRAP OVEWRWRITES*/
+
+/*TOP NAVIGATION PLAN START*/
+ul.select-plan{
+	margin:0 auto !important;
+	display:table !important;
+	padding:30px 0 0 !important;
+	list-style:none !important;
+}
+
+ul.select-plan li{
+	float:left;
+}
+
+ul.select-plan li + li{
+	margin-left:1px;
+}
+
+ul.select-plan li a{
+	display:block;
+	padding:15px 20px 10px;
+	text-transform:uppercase;
+	text-decoration:none;
+	font-size:17px;
+	-webkit-transition: all 0.3s ease 0s;
+    -moz-transition: all 0.3s ease 0s;
+    -o-transition: all 0.3s ease 0s;
+    -ms-transition: all 0.3s ease 0s;    
+    transition:all 0.3s ease 0s; 
+}
+ul.select-plan li a span{
+	display:inline-block;
+	padding:5px;
+	font-size:12px;
+	line-height:12px;
+	position:relative;
+	top:-4px;
+	margin-left:10px;
+	-webkit-transition: all 0.3s ease 0s;
+    -moz-transition: all 0.3s ease 0s;
+    -o-transition: all 0.3s ease 0s;
+    -ms-transition: all 0.3s ease 0s;    
+    transition:all 0.3s ease 0s; 
+}
+.year-content{
+	display:none;
+	padding:50px 0px;
+}
+.year-content.active{
+	display:block;
+}
+/*TAB CSS END*/
+
+/*START HEADING CSS*/
+.pricing-heading{
+	text-align:center;
+}
+.pricing-heading h1{
+	font-size:48px;
+	font-weight:300;
+}
+/*END HEADING CSS*/
+
+/*PRICING BLOCK START*/
+.pricing-block{
+	position:relative;
+	-webkit-transition: all 0.3s ease 0s;
+    -moz-transition: all 0.3s ease 0s;
+    -o-transition: all 0.3s ease 0s;
+    -ms-transition: all 0.3s ease 0s;    
+    transition:all 0.3s ease 0s;
+}
+
+.pricing-block:hover{
+	-webkit-transform: scale(1.01);
+    -moz-transform: scale(1.01);
+    -o-transform: scale(1.01);
+    -ms-transform: scale(1.01);
+	transform:scale(1.01);
+}
+
+	/*RECOMMENDED PLAN*/
+	.pricing-block .featured-label{
+		position:absolute;
+		top:-25px;
+		right:10px;
+	}
+	.pricing-block .featured-label p{ 
+		margin:0;
+		padding:15px 20px;
+		font-weight:700;
+		text-transform:uppercase;
+		font-size:18px;
+		line-height:14px;
+	}
+	.pricing-block .featured-label p:before{
+		content: '';
+		position: absolute;
+		top: 0; right: 0;
+		width: 0;
+	}
+	/*RECOMMENDED PLAN END*/
+	
+	/*PRICING HEADING START*/
+	.pricing-block .head{
+		padding:45px 25px 10px;
+	}
+	.pricing-block .head h3{
+		font-size:29px;
+		font-weight:300;
+		margin: 0;
+		text-transform:uppercase;
+	}
+	.pricing-block .head h3 span{
+		font-weight:700;
+		padding-right:7px;
+	}
+	/*PRICING HEADING END*/
+	
+/*CURRENCY PRICE START*/
+	.pricing-block .currency{
+		margin: 0;
+		min-height:180px;
+		padding: 10px 0 10px 40px;
+	}
+	.pricing-block .currency p{
+		margin: 0;
+	}
+	.sign {
+		font-size: 35px;
+		font-weight:300;
+		line-height:90px;
+		vertical-align:top;
+	}
+	.cost {
+		/*font-size: 100px;*/ 
+		font-size: 42px;
+		font-weight:300;
+		line-height:130px;
+	}
+	.point {
+		font-weight:700;
+		line-height:10px;
+		vertical-align:middle;
+	}
+	.cent {
+		font-size: 35px;
+		font-weight:300;
+		line-height:80px;
+		vertical-align:bottom;
+	}
+	.month {
+		font-size: 18px;
+		font-weight: 100;
+		margin: 10px 0 0 0;
+		height:60px;
+	}
+	.pricing-block:hover .month a{
+		color:#FFF;
+		text-decoration:none;
+	}
+	/*CURRENCY PRICE END*/
+	
+	/*PRICING DESCRIPTION START*/
+	.pricing-description{
+		padding:15px 25px;
+		margin-bottom:25px;
+	}
+	/*PRICING DESCRIPTION END*/
+	
+	/*SAVINGS START*/
+	.pricing-block .savings{
+		font-weight:300;
+	}
+	.pricing-block .savings span{
+		display:inline-block;
+		padding:3px 7px;
+		margin-left:10px;
+	}
+	/*SAVINGS END*/
+	
+	/*SIGN UP BUTTON*/
+	.pricing-block .pricing-btn{
+		margin: 20px 0 20px;
+		text-align:center;
+	}
+	.pricing-block .pricing-btn a{
+		font-weight:300;
+		display:inline-block;
+		text-transform:uppercase;
+		padding:0;
+		border:0;
+		-webkit-border-radius: 3px;
+		-moz-border-radius: 3px;
+		border-radius: 3px;
+	}
+	.pricing-block .pricing-btn a span{
+		display:inline-block;
+		padding:0 35px;
+		line-height:40px;
+		font-size:18px;
+	}
+	/*SIGN UP BUTTON END*/
+	
+	/*FEATURE LIST START*/
+	.pricing-block ul{
+		list-style:none;
+		margin: 0;
+		padding:0;
+		min-height:120px;
+	}
+	.pricing-block ul li{
+		display:block;
+		position:relative;
+		padding:0 25px;
+		-webkit-transition: all 0.3s ease 0s;
+		-moz-transition: all 0.3s ease 0s;
+		-o-transition: all 0.3s ease 0s;
+		-ms-transition: all 0.3s ease 0s;    
+		transition:all 0.3s ease 0s; 
+	}
+	.pricing-block ul li .fa{
+		font-size: 20px;
+		left: 25px;
+		position: absolute;
+		top: 12px;
+		padding:6px 0px;
+		width:35px;
+		text-align:center;
+		-webkit-border-radius: 3px;
+		-moz-border-radius: 3px;
+		border-radius: 3px;
+	}
+	.pricing-block ul li a{		
+		display:block;
+		font-size: 17px;
+		font-weight: 300;
+		outline: medium none;
+		text-decoration: none;
+		padding:15px 0 15px 45px;
+	}
+	.pricing-block ul li p{
+		font-size:15px;
+		margin:0;
+		padding:0;
+	}
+		/*TOOLTIP*/
+		.pricing-block ul li a span.datatooltip{
+			display:inline-block;
+			margin:0;
+			padding:0;
+		}
+		.pricing-block ul li a span .fa{
+			position:relative;
+			top:0;
+			left:0;
+			padding-left:5px;
+			color:#333;
+		}
+		
+	/*************************** colan modified css start ************************/
+.node-add-to-cart.form-submit.plan {
+    border-radius: 5px;
+    display: inline-block;
+    font-size: 18px !important;
+    padding: 8px 31px !important; 
+	
+}
+.node-add-to-cart.form-submit.plan:hover {
+    border-radius: 3px;
+    display: inline-block;
+    font-size: 18px !important;
+    padding: 8px 36px !important;
+    background:#3498db!important;
+color:#fff !important;
+border:1px solid #fff !important;
+background-color:rgba(255, 255, 255, 0.1) !important;
+}
+.pricing-block-grid .node-add-to-cart.form-submit.plan{ border-radius: 5px;
+    display: inline-block;
+    font-size: 18px !important;
+    padding: 8px 36px !important;
+    background:#3498db!important;
+}	
+.pricing-block-grid :hover .node-add-to-cart.form-submit.plan{ border-radius: 5px;
+    display: inline-block;
+    font-size: 18px !important;
+    padding: 8px 36px !important;
+    background:#3498db!important;
+	background-color:rgba(255, 255, 255, 0.1) !important;
+}
+.node-add-to-cart.form-submit.planactive:hover {
+    border-radius: 3px;
+    display: inline-block;
+    font-size: 18px !important;
+    padding: 8px 36px !important;
+    background:#3f8dc0!important;
+color:#fff !important;
+border:1px solid #fff !important;
+background-color:rgba(255, 255, 255, 0.1) !important;
+}
+.pricing-block-grid .node-add-to-cart.form-submit.planactive{ border-radius: 5px;
+    display: inline-block;
+    font-size: 18px !important;
+    padding: 8px 36px !important;
+   background:#3f8dc0!important;
+	background-color:rgba(255, 255, 255, 0.1) !important;
+}	
+.pricing-block-grid :hover .node-add-to-cart.form-submit.planactive{ border-radius: 5px;
+    display: inline-block;
+    font-size: 18px !important;
+    padding: 8px 36px !important;
+    background:#3f8dc0!important;
+	background-color:rgba(255, 255, 255, 0.1) !important;
+}
+	
+#block-views-upgrade-plans-block .contextual-links-wrapper a {
+    display: none !important;
+}
+#block-views-upgrade-plans-block-1 .contextual-links-wrapper a {
+    display: none !important;
+}
+#block-views-upgrade-plans-block-2 .contextual-links-wrapper a {
+    display: none !important;
+}
+.pricing-block .pricing-description{
+	min-height:112px;
+}

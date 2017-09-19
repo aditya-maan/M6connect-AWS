@@ -1,0 +1,304 @@
+<?php
+
+function m6connect_rfp_schema() {
+  $schema = array();
+  $schema['m6connect_rfp_bidder_feedback'] = array(
+	'description' => 'Rfp Bidder Feedback Info',
+	'fields' => array(
+	  'bidder_feedback_id' => array(
+		'description' => 'Rfp Bidder FeedBack Auto incremented field',
+		'type' => 'serial',
+		'not null' => TRUE,
+	  ),
+	  'entity_id' => array(
+		'description' => 'Rfp Nid',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'user_id' => array(
+		'description' => 'Rfp User Id',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'rfp_invite_fc_itemid' => array(
+		'description' => 'Rfp Invite Field Collection item Id',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'bid_confidence' => array(
+		'description' => 'Bid Confidence',
+		'type' => 'varchar',
+		'length' => '100',
+		'not null' => FALSE,
+	  ),
+	  'request_bid_intent_count' => array(
+		'description' => 'total count of request bid intent',
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => 0,
+	  ),
+	  'delivery_status' => array(
+		'description' => 'Delivery Status',
+		'type' => 'varchar',
+		'length' => '100',
+		'not null' => FALSE,
+	  ),
+	  'email_opened' => array(
+		'description' => 'Email Opened',
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => 0,
+	  ),
+	  'email_clicks' => array(
+		'description' => 'Email Clicks',
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => 0,
+	  ),
+	  'opened_rfp' => array(
+		'description' => 'Opened RFP',
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => 0,
+	  ),
+	  'bidding' => array(
+		'description' => 'Bidding',
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => 0,
+	  ),
+	  'not_bigging' => array(
+		'description' => 'Not Bidding',
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => 0,
+	  ),
+	  'status' => array(
+		'description' => 'Bidder Feedback Status',
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => 1,
+	  ),
+	),
+	'primary key' => array('bidder_feedback_id'),
+  );
+  
+  $schema['m6connect_rfp_bidder_feedback_message'] = array(
+	'description' => 'Rfp Bidder Feedback Message Info',
+	'fields' => array(
+	  'message_id' => array(
+		'description' => 'Rfp Bidder FeedBack Message Auto incremented Id',
+		'type' => 'serial',
+		'not null' => TRUE,
+	  ),
+	  'bidder_feedback_id' => array(
+		'description' => 'Bidder Feedback Id form m6connect_rfp_bidder_feedback',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'bid_package_id' => array(
+        'description' => 'Bidder Feedback Id ',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+	  'user_uid' => array(
+        'description' => 'user Uid',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+	  'message' => array(
+		'description' => 'Rfp Bidder Feedback Message',
+		'type' => 'text',
+		'not null' => TRUE,
+	  ),
+		'message_prefix' => array(
+		'description' => 'Rfp Bidder Feedback message prefix',
+		'type' => 'VARCHAR',
+		'not null' => FALSE,
+	  ),
+	  'timestamp' => array(
+		'description' => 'Rfp Bidder Feedback Message timestamp',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	),
+	'primary key' => array('message_id'),
+  );
+  
+  $schema['m6connect_bid_packages'] = array(
+	'description' => 'Rfp Bid Packages',
+	'fields' => array(
+	  'bid_package_id' => array(
+		'description' => 'Rfp Bid Packages Auto Incremented Id',
+		'type' => 'serial',
+		'not null' => TRUE,
+	  ),
+	  'entity_id' => array(
+		'description' => 'Rfp Id',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'bid_package_name' => array(
+		'description' => 'Rfp Bid Name',
+		'type' => 'varchar',
+		'length' => '255',
+		'not null' => TRUE,
+	  ),
+	  'status' => array(
+        'description' => 'Bid Packages Status',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+	),
+	'primary key' => array('bid_package_id'),
+	);
+	
+  $schema['m6connect_bid_package_invitess'] = array(
+	'description' => 'Rfp Bid Packages Assigned to Invitee info',
+	'fields' => array(
+	  'bid_package_invites_id' => array(
+		'description' => 'Rfp Bid Packages Invitee Auto Incremented Id',
+		'type' => 'serial',
+		'not null' => TRUE,
+	  ),
+	  'rfp_invite_fc_itemid' => array(
+		'description' => 'Rfp Invite Field Collection item Id',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'bid_package_id' => array(
+		'description' => 'Rfp Bid Packages Id From m6connect_bid_packages table',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	   'interested_by_user' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+	),
+	'primary key' => array('bid_package_invites_id'),
+  );
+  
+  $schema['m6connect_bid_package_invitee_interested'] = array(
+	'description' => 'List of Packages invitee interested in',
+	'fields' => array(
+	  'id' => array(
+		'description' => 'Autoincrement id',
+		'type' => 'serial',
+		'not null' => TRUE,
+	  ),
+	  'entity_id' => array(
+		'description' => 'Eniity id invitess show interest in',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'user_id' => array(
+		'description' => 'User id who intersted in package',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'bid_package_id' => array(
+		'description' => 'Pavkeage is interested in',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'bidding_status' => array(
+        'description' => 'Bidding Status',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+	),
+	'primary key' => array('id'),
+  );
+  $schema['m6connect_rfp_agreed_membership_payment'] = array(
+	'description' => 'm6connect_rfp_agreed_membership_payment',
+	'fields' => array(
+	  'id' => array(
+		'description' => 'Auto incremented id',
+		'type' => 'serial',
+		'not null' => TRUE,
+	  ),
+	  'entity_id' => array(
+		'description' => 'RFP node id',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'company_nid' => array(
+		'description' => 'RFP node id',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'uid' => array(
+		'description' => 'access rfp by uid',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'timestamp' => array(
+		'description' => 'agreed o0n timestamp',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'hide_popup' => array(
+        'description' => 'If Selected, popup will not show for that rfp',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+	),
+	'primary key' => array('id'),
+  );
+  
+  $schema['m6connect_rfp_invited_award'] = array(
+	'description' => 'M6connect RFP Invited Award',
+	'fields' => array(
+	  'id' => array(
+		'description' => 'Auto Increment Id',
+		'type' => 'serial',
+		'not null' => TRUE,
+	  ),
+	  'entity_nid' => array(
+		'description' => 'RFP NID',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'user_uid' => array(
+		'description' => 'USER UID',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'field_collection_item_id' => array(
+		'description' => 'FIELD Collection Id',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	  'company_nid' => array(
+		'description' => 'Company Nid',
+		'type' => 'int',
+		'not null' => FALSE,
+	  ),
+	  'individual_mail' => array(
+		'description' => 'Individual Mail',
+		'type' => 'varchar',
+		'length' => '100',
+		'not null' => FALSE,
+	  ),
+	  'timestamp' => array(
+        'description' => 'TODO: please describe this field!',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+	  'status' => array(
+		'description' => 'Status',
+		'type' => 'int',
+		'not null' => TRUE,
+	  ),
+	),
+	'primary key' => array('id'),
+  );
+  return $schema; 
+}
+
+?>

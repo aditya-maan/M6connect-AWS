@@ -1,0 +1,3376 @@
+<?php
+// implement hook_menu
+function m6connect_dashboard_menu() {
+
+    module_load_include('module', 'og', 'og_ui');
+    module_load_include('inc', 'og_ui', 'og_ui.admin');
+    module_load_include('inc', 'og_ui', 'og_ui.pages');
+
+
+    $items['dashboard'] = array(
+        'title' => '',
+        'page callback' => 'dashboard_page',
+        'access callback' => TRUE,
+    );
+    $items['add/group/public'] = array(
+        'title' => 'Add Group',
+        'page callback' => 'custom_group_group_node_form',
+        'access callback' => TRUE,
+        'modal' => TRUE,
+    );
+    $items['add/group/private'] = array(
+        'title' => 'Add Clique',
+        'page callback' => 'custom_group_group_node_form',
+        'access callback' => TRUE,
+        'modal' => TRUE,
+    );
+    $items['add/connection/private'] = array(
+        'title' => 'Create Category',
+        'page callback' => 'custom_connection_node_form',
+        'access callback' => TRUE,
+        'modal' => TRUE,
+    );
+    $items['add/group-files/%/%ctools_js'] = array(
+        'title' => 'Add Files',
+        'page callback' => 'm6connect_dashboard_files_node_form',
+        'page arguments' => array(2, 3),
+        'access callback' => TRUE,
+        'modal' => TRUE,
+    );
+    $items['dashboard/company/set/%'] = array(
+        'title' => 'Add Clique',
+        'page callback' => 'm6connect_dashboard_set_company',
+        'page arguments' => array(3, 4),
+        'access callback' => TRUE,
+    );
+    $items['get/copmany/feeds/%'] = array(
+        'title' => 'Get company feeds',
+        'page callback' => 'm6connect_dashboard_get_company_feeds',
+        'page arguments' => array(3),
+        'access callback' => TRUE,
+        'modal' => TRUE,
+    );
+    $items['messages/new/forword/%'] = array(
+        'title' => 'Forword Message',
+        'page callback' => 'm6connect_dashboard_message_new_forword',
+        'page arguments' => array(3),
+        'access callback' => 'user_is_logged_in',
+    );
+    $items['switch-dashboard/%/%/%ctools_js'] = array(
+        'title' => 'switch-dashboard',
+        'page callback' => 'm6connect_dashboard_switch_dashboard',
+        'page arguments' => array(1, 2, 3),
+        'access callback' => TRUE,
+        'modal' => TRUE,
+    );
+    $items['get/feed/like/%/%'] = array(
+        'title' => 'Get user like button',
+        'page callback' => 'm6connect_dashboard_get_like_link',
+        'page arguments' => array(3, 4),
+        'access callback' => TRUE,
+    );
+    $items['like-action/%/%/%/%ctools_js'] = array(
+        'title' => 'Get user like button',
+        'page callback' => 'm6connect_dashboard_like_actions',
+        'page arguments' => array(1, 2, 3, 4),
+        'access callback' => TRUE,
+    );
+    $items['get/feed/spam/%/%'] = array(
+        'title' => 'Get user like button',
+        'page callback' => 'm6connect_dashboard_get_spam_link',
+        'page arguments' => array(3, 4),
+        'access callback' => TRUE,
+    );
+    $items['spam-action/%/%/%/%ctools_js'] = array(
+        'title' => 'Get user like button',
+        'page callback' => 'm6connect_dashboard_spam_actions',
+        'page arguments' => array(1, 2, 3, 4),
+        'access callback' => TRUE,
+    );
+    $items['assign_connection_category/%/%/%ctools_js'] = array(
+        'title' => 'Assign Connection Category',
+        'page callback' => 'm6connect_dashboard_assign_connection_category',
+        'page arguments' => array(1, 2, 3),
+        'access callback' => TRUE,
+    );
+// User listing pages.
+    $items['group/%/%/people/edit-membership/%og_membership/%ctools_js'] = array(
+        'title callback' => 'm6connect_dashboard_menu_title_callback',
+        'title arguments' => array('Edit membership in group @group', 1, 2),
+        'type' => MENU_CALLBACK,
+        'page callback' => 'm6connect_dashboard_edit_membership_form',
+        'page arguments' => array(1, 2, 5, 6),
+        'access callback' => 'og_ui_user_access_group',
+        'access arguments' => array('manage members', 1, 2),
+    );
+// Delete a single membership.
+    $items['group/%/%/people/delete-membership/%og_membership/%ctools_js'] = array(
+        'title' => 'Delete',
+        'type' => MENU_CALLBACK,
+        'page callback' => 'm6connect_dashboard_delete_membership_form',
+        'page arguments' => array(1, 2, 5, 6),
+        'access callback' => 'og_ui_user_access_group',
+        'access arguments' => array('manage members', 1, 2),
+    );
+    $items['joingroup/%/%/subscribe/%ctools_js'] = array(
+        'type' => MENU_CALLBACK,
+        'page callback' => 'm6connect_dashboard_og_ui_subscribe',
+        'page arguments' => array(1, 2, 4),
+        // Function will take care of permissions, as we want to show "you are
+// already a member of the group" to group members, however it is not
+// possible to give authenticated group members the "subscribe" permissions.
+        'access callback' => 'user_is_logged_in',
+        // We don't add the group name, as it might be private.
+        'title' => 'Join group'
+    );
+    $items['leavegroup/%/%/unsubscribe/%ctools_js'] = array(
+        'type' => MENU_CALLBACK,
+        'page callback' => 'm6connect_dashboard_og_ui_unsubscribe',
+        'page arguments' => array(1, 2, 4),
+        'access callback' => 'og_ui_user_access_group',
+        'access arguments' => array('unsubscribe', 1, 2),
+        'title' => 'Leave group',
+    );
+    $items['edit/groups/%node/%/%ctools_js'] = array(
+        'type' => MENU_CALLBACK,
+        'page callback' => 'm6connect_dashboard_edit_groups',
+        'page arguments' => array(2, 3, 4),
+        'access callback' => true,
+        'title' => 'Edit group',
+    );
+	
+	$items['set-left-block-action'] = array(
+        'type' => MENU_CALLBACK,
+        'page callback' => 'set_left_block_action',
+        'access callback' => TRUE,
+    );
+	
+	$items['messaging-feed'] = array(
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'people_messaging_feed',
+      'access callback' => 'user_is_logged_in',
+    );
+     $items['change-user-profile-photo/%ctools_js'] = array(
+    //'title' => 'Upload File',
+    'page callback' => 'change_user_profile_photo_callback',
+    'page arguments' => array(1),
+    'access callback' => '_is_m6_user_logged_in', 
+    );
+    $items['update-user-cover-photo/%ctools_js'] = array(
+    //'title' => 'Upload File',
+    'page callback' => 'update_user_cover_photo_callback',
+    'page arguments' => array(1),
+    'access callback' => '_is_m6_user_logged_in', 
+    );
+  $items['remove-profile-img-from-user-ajax'] = array(
+    'title' => t('Remove Profile Image From User - Drupal'),
+    'page callback' => 'remove_profile_img_from_user_ajax',
+    'access callback' => TRUE,
+  );
+  $items['remove-profile-cover-from-user-ajax'] = array(
+    'title' => t('Remove Cover Image From User - Drupal'),
+    'page callback' => 'remove_profile_cover_from_user_ajax',
+    'access callback' => TRUE,
+  );
+
+    return $items;
+}
+
+function set_left_block_action(){
+  if(user_is_logged_in()){  
+    if(isset($_REQUEST['left_bar_action']) && !empty($_REQUEST['left_bar_action'])){
+	  $_SESSION['left_block_action'] = $_REQUEST['left_bar_action'];  
+    }
+  }
+  drupal_exit(0);
+}
+
+/**
+ * Add content to the view thread page.
+ *
+ * @param $content
+ *   Render-able array, contains the thread object in #thread.
+ */
+function m6connect_dashboard_privatemsg_view_alter($content) {
+//  dsm($conent); 
+    // checking the private message content
+}
+
+/*
+ * Function  for forword message 
+ */
+
+function m6connect_dashboard_message_new_forword($mid) {
+    global $user;
+    module_load_include('inc', 'privatemsg', 'privatemsg.pages');
+    if (is_numeric($mid)) {
+
+        $message = privatemsg_message_load($mid);
+//       dsm($message);
+        $data = drupal_get_form('privatemsg_new');
+        drupal_set_title(t('Forword message'));
+        $data['body']['#default_value'] = $message->body;
+        $data['body']['value']['#value'] = $message->body;
+        $data['actions']['submit']['#value'] = 'Forword message';
+        if (isset($message->field_attachment['und'][0]['fid'])) {
+            $data['send_file'] = array(
+                '#type' => 'checkbox',
+                '#title' => 'Do you want to send attachment?',
+                '#return_value' => $message->field_attachment['und'][0]['fid'],
+                '#default_value' => 0,
+                '#name' => 'send_file',
+            );
+            $data['field_attachment']['#access'] = false;
+        }
+
+
+      
+        return $data;
+    }
+}
+
+/*function m6connect_dashboard_form_statuses_box_alter(&$form, &$form_state) {
+    $form['fbsmp']['photo_icon']['#suffix'] .= '<span class="pull-left add-photo">Add Photo</span>';
+}*/
+
+/*
+  Hook for statuses
+ *  
+  function m6connect_dashboard_statuses_user_access_alter(&$allow, $op, $args) {
+  global $user;
+  switch ($op) {
+  case 'add':
+  $recipient = isset($args[0]) ? $args[0] : $user;
+  $type = isset($args[1]) ? $args[1] : 'user';
+  $sender = isset($args[2]) ? $args[2] : $user;
+  $context = statuses_determine_context($type);
+  // Updating one's own status should ALWAYS be allowed.
+  if ($type == 'user' && $context['handler']->recipient_id($recipient) == $sender->uid) {
+  $allow = TRUE;
+  }
+  break;
+  }
+  }
+ * */
+
+/**
+ * Menu callback; Return the title of a menu item based on the group title.
+ */
+function m6connect_dashboard_menu_title_callback($title, $entity_type, $etid) {
+    $wrapper = entity_metadata_wrapper($entity_type, $etid);
+    if ($_GET['user'] == 1) {
+        $title = 'Block user from company @group';
+    } else if ($_GET['user'] == 3) {
+        $title = 'Unblock user from company @group';
+    }
+    return str_replace('@group', $wrapper->label(), $title);
+}
+
+function m6connect_dashboard_edit_groups($node, $fieldname, $ajax = null) {
+    module_load_include('inc', 'node', 'node.pages');
+    if ($ajax) {
+        ctools_include('ajax');
+        ctools_include('modal');
+//        echo 'hi3';
+        $form_state = array(
+            'ajax' => TRUE,
+        );
+        $form_state['build_info']['args'] = array($node);
+        $output = ctools_modal_form_wrapper('groups_node_form', $form_state);
+        if (!empty($form_state['ajax_commands'])) {
+            $output = $form_state['ajax_commands'];
+        }
+        print ajax_render($output);
+        drupal_exit();
+    }
+    return drupal_get_form('groups_node_form', $node);
+}
+
+function m6connect_dashboard_block_info() {
+    $blocks = array();
+    $blocks['user_join_group_link_block'] = array(
+        'info' => t('Join and Leave link for group'),
+    );
+    $blocks['user_group_setting_block'] = array(
+        'info' => t('Group setting block'),
+    );
+    $blocks['profile_strenght'] = array(
+        'info' => t('Profile strenght block'),
+    );
+	$blocks['company_profile_strength'] = array(
+        'info' => t('company Profile strength block'),
+    );
+    return $blocks;
+}
+
+function m6connect_dashboard_block_view($delta = '') {
+    $block = array();
+    switch ($delta) {
+        case 'user_join_group_link_block':
+            $block['subject'] = '';
+            $block['content'] = m6connect_dashboard_user_join_group_link_block_content(func_get_args());
+            break;
+        case 'user_group_setting_block':
+            $block['subject'] = 'Group Settings';
+            $block['content'] = m6connect_dashboard_user_group_setting_block_content(func_get_args());
+            break;
+         case 'profile_strenght':
+            $block['subject'] = 'Profile strenght Settings';
+            $block['content'] = m6connect_profile_strenght();
+            break;
+		 case 'company_profile_strength':
+            $block['subject'] = 'Company Profile Strenght Settings';
+            $block['content'] = m6connect_company_profile_strength();
+            break;    
+    }
+    return $block;
+}
+
+function m6connect_dashboard_user_group_setting_block_content($args = null) {
+    global $user;
+    ctools_include('ajax');
+    ctools_include('modal');
+    $node = menu_get_object();
+    $output = '<div class="dropdown pull-right"> <a id="dLabel1" class="company-list" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-sort-desc"></i></a>
+                                                                        <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dLabel1">';
+
+    $attributes = array(
+        'attributes' => array('class' => 'use-ajax ctools-modal-assign-dashboard-popup-style')
+    );
+    $output .= '<li>' . l('Edit Group Name', 'edit/groups/' . $node->nid . '/name/nojs', $attributes) . '</li>';
+    $output .= '<li>' . l('Description', 'edit/groups/' . $node->nid . '/description/nojs', $attributes) . '</li>';
+    $output .= '<li>' . l('Group Keywords', 'edit/groups/' . $node->nid . '/keywords/nojs', $attributes) . '</li>';
+
+    $output .= '</ul></div>';
+
+
+    return '<div class="clearfix"><div class="pull-left block-title">Group Settings</div>' . $output . '</div>';
+}
+
+function m6connect_dashboard_user_join_group_link_block_content($nid = NULL) {
+    global $user;
+
+    $node = menu_get_object();
+    if (is_numeric($nid[1]) && !is_object($node)) {
+        $node = node_load($nid[1]);
+    }
+    if (is_object($node) && (isset($node->type) && $node->type == 'groups')) {
+
+//joingroup/%/%/subscribe/%ctools_js
+        $params = array();
+        $params['@user'] = format_username($user);
+// Show the group name only if user has access to it.
+        $params['@group'] = $node->title;
+        if (og_is_member('node', $node->nid, 'user', $user, array(OG_STATE_BLOCKED))) {
+// User is blocked, access denied.
+            drupal_access_denied();
+            return;
+        }
+        if (og_is_member('node', $node->nid, 'user', $user, array(OG_STATE_PENDING))) {
+// User is pending, return them back.
+            return $message = $user->uid == $user->uid ? t('You already have a pending membership for the group @group.', $params) : t('@user already has a pending membership for the  the group @group.', $params);
+        } else if (og_is_member('node', $node->nid, 'user', $user, array(OG_STATE_ACTIVE))) {
+// User is already a member, return them back.
+//            $message = $user->uid == $user->uid ? t('You are already a member of the group @group.', $params) : t('@user is already a member of the group @group.', $params);
+
+            if ($node->uid != $user->uid) {
+                $message .= l('Leave Group', 'leavegroup/node/' . $node->nid . '/unsubscribe/nojs', array('attributes' => array('class' => 'use-ajax btn btn-primary ctools-modal-assign-dashboard-popup-style')));
+            } else {
+                $message .= 'you are the manager';
+            }
+            return $message;
+        } else {
+
+            $output .= l('Join Group', 'joingroup/node/' . $node->nid . '/subscribe/nojs', array('attributes' => array('class' => 'use-ajax btn btn-primary ctools-modal-assign-dashboard-popup-style')));
+            return $output;
+        }
+    } else {
+        return $message;
+    }
+}
+
+function m6connect_dashboard_delete_membership_form($group_type, $gid, $og_membership, $ajax = null) {
+    if ($ajax) {
+        ctools_include('ajax');
+        ctools_include('modal');
+        $form_state = array(
+            'ajax' => TRUE,
+            'group_type' => $group_type,
+            'gid' => $gid,
+            'og_membership' => $og_membership,
+        );
+        $output = ctools_modal_form_wrapper('m6connect_dashboard_delete_membership', $form_state);
+        if (!empty($form_state['ajax_commands'])) {
+            $output = $form_state['ajax_commands'];
+        }
+        print ajax_render($output);
+        drupal_exit();
+    }
+    return drupal_get_form('m6connect_dashboard_delete_membership', $group_type, $gid, $og_membership);
+}
+
+function m6connect_dashboard_og_ui_subscribe($entity_type, $etid, $ajax = NULL, $field_name = NULL) {
+    global $user;
+
+    $entity_info = entity_get_info($entity_type);
+    if (!$entity_type || !$entity_info) {
+// Not a valid entity type.
+        drupal_not_found();
+        return;
+    }
+    $entity = entity_load_single($entity_type, $etid);
+    if (!$entity || !og_is_group($entity_type, $entity)) {
+// Not a valid entity, or not a group.
+        drupal_not_found();
+        return;
+    }
+
+    list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+
+    $account = user_load($user->uid);
+    if (empty($field_name)) {
+        $field_name = og_get_best_group_audience_field('user', $account, $entity_type, $bundle);
+        if (empty($field_name)) {
+// User entity has no group audience field.
+            drupal_not_found();
+            return;
+        }
+    }
+
+    $field = field_info_field($field_name);
+    $instance = field_info_instance('user', $field_name, 'user');
+
+    if (empty($instance) || !field_access('view', $field, 'user', $account)) {
+// Field name given is incorrect, or user doesn't have access to the field.
+        drupal_not_found();
+        return;
+    }
+
+    if (!$user->uid) {
+// Anonymous user can't request membership.
+        $dest = drupal_get_destination();
+        if (variable_get('user_register', 1)) {
+            drupal_set_message(t('In order to join any group, you must <a href="!login">login</a>. After you have successfully done so, you will need to request membership again.', array('!login' => url("user/login", array('query' => $dest)))));
+        } else {
+            drupal_set_message(t('In order to join any group, you must <a href="!login">login</a> or <a href="!register">register</a> a new account. After you have successfully done so, you will need to request membership again.', array('!register' => url("user/register", array('query' => $dest)), '!login' => url("user/login", array('query' => $dest)))));
+        }
+        drupal_goto('user');
+    }
+
+    $redirect = FALSE;
+    $message = '';
+
+    $params = array();
+    $params['@user'] = format_username($user);
+// Show the group name only if user has access to it.
+    $params['@group'] = entity_access('view', $entity_type, $entity) ? entity_label($entity_type, $entity) : t('Private group');
+
+    if (og_is_member($entity_type, $id, 'user', $user, array(OG_STATE_BLOCKED))) {
+// User is blocked, access denied.
+        drupal_access_denied();
+        return;
+    }
+    if (og_is_member($entity_type, $id, 'user', $user, array(OG_STATE_PENDING))) {
+// User is pending, return them back.
+        $message = $user->uid == $user->uid ? t('You already have a pending membership for the group @group.', $params) : t('@user already has a pending membership for the  the group @group.', $params);
+        $redirect = TRUE;
+    }
+
+    if (og_is_member($entity_type, $id, 'user', $user, array(OG_STATE_ACTIVE))) {
+// User is already a member, return them back.
+        $message = $user->uid == $user->uid ? t('You are already a member of the group @group.', $params) : t('@user is already a member of the group @group.', $params);
+        $redirect = TRUE;
+    }
+
+    if (!$message && $field['cardinality'] != FIELD_CARDINALITY_UNLIMITED) {
+// Check if user is already registered as active or pending in the maximum
+// allowed values.
+        $wrapper = entity_metadata_wrapper('user', $account->uid);
+        if ($field['cardinality'] == 1) {
+            $count = $wrapper->{$field_name}->value() ? 1 : 0;
+        } else {
+            $count = $wrapper->{$field_name}->count();
+        }
+        if ($count >= $field['cardinality']) {
+            $message = t('You cannot register to this group, as you have reached your maximum allowed subscriptions.');
+            $redirect = TRUE;
+        }
+    }
+
+    if ($redirect) {
+        drupal_set_message($message, 'warning');
+        $url = entity_uri($entity_type, $entity);
+        drupal_goto($url['path'], $url['options']);
+    }
+
+    if (og_user_access($entity_type, $id, 'subscribe', $user) || og_user_access($entity_type, $id, 'subscribe without approval', $user)) {
+// Show the user a subscription confirmation.
+        if ($ajax) {
+            $form_state = array(
+                'ajax' => true,
+                'group_type' => $entity_type,
+                'gid' => $id,
+                'account' => $user,
+                'field_name' => $field_name
+            );
+            ctools_include('ajax');
+            ctools_include('modal');
+            $output = ctools_modal_form_wrapper('m6connect_dashboard_og_ui_confirm_subscribe', $form_state);
+            if (!empty($form_state['ajax_commands'])) {
+                $output = $form_state['ajax_commands'];
+            }
+            print ajax_render($output);
+            drupal_exit();
+        }
+        return drupal_get_form('m6connect_dashboard_og_ui_confirm_subscribe', $entity_type, $id, $user, $field_name);
+    }
+    drupal_access_denied();
+}
+
+/**
+ * Confirm subscribe form.
+ */
+function m6connect_dashboard_og_ui_confirm_subscribe($form, &$form_state, $group_type, $gid, $account, $field_name) {
+    if ($form_state['ajax'] == true) {
+        $group_type = $form_state['group_type'];
+        $gid = $form_state['gid'];
+        $account = $form_state['account'];
+        $field_name = $form_state['field_name'];
+    }
+
+    $wrapper = entity_metadata_wrapper($group_type, $gid);
+
+// Indicate the OG membership state (active or pending).
+    $state = og_user_access($group_type, $gid, 'subscribe without approval') ? OG_STATE_ACTIVE : OG_STATE_PENDING;
+
+    if ($wrapper->access('view')) {
+        $label = $wrapper->label();
+    } else {
+        $label = t('Private group');
+        if ($state == OG_STATE_ACTIVE) {
+// Determine if a user can subscribe to a private group, when OG-access
+// module is enabled, and the group is set to private.
+            $state = variable_get('og_ui_deny_subscribe_without_approval', TRUE) ? OG_STATE_PENDING : OG_STATE_ACTIVE;
+        }
+    }
+
+// Add group membership form.
+    $og_membership = og_membership_create($group_type, $gid, 'user', $account->uid, $field_name, array('state' => $state));
+    $form_state['og_membership'] = $og_membership;
+    field_attach_form('og_membership', $og_membership, $form, $form_state);
+
+    if ($state == OG_STATE_ACTIVE && !empty($form[OG_MEMBERSHIP_REQUEST_FIELD])) {
+// Hide the user request field.
+        $form[OG_MEMBERSHIP_REQUEST_FIELD]['#access'] = FALSE;
+    }
+
+    $form['group_type'] = array('#type' => 'value', '#value' => $group_type);
+    $form['gid'] = array('#type' => 'value', '#value' => $gid);
+    $form['field_name'] = array('#type' => 'value', '#value' => $field_name);
+
+    return confirm_form($form, t('Are you sure you want to join the group %title?', array('%title' => $label)), $wrapper->url->value(), ' ', t('Join'), t('Cancel'));
+}
+
+/**
+ * Validate handler; Confirm OG membership.
+ */
+function m6connect_dashboard_og_ui_confirm_subscribe_validate($form, &$form_state) {
+// @see entity_form_field_validate().
+    $og_membership = $form_state['og_membership'];
+    field_attach_form_validate('og_membership', $og_membership, $form, $form_state);
+}
+
+/**
+ * Submit handler; Confirm OG membership.
+ */
+function m6connect_dashboard_og_ui_confirm_subscribe_submit($form, &$form_state) {
+    global $user;
+    $og_membership = $form_state['og_membership'];
+    field_attach_submit('og_membership', $og_membership, $form, $form_state);
+    $og_membership->save();
+
+    $group_type = $form_state['values']['group_type'];
+    $gid = $form_state['values']['gid'];
+    $group = entity_load_single($group_type, $gid);
+
+    if (entity_access('view', $group_type, $group)) {
+        $redirect = entity_uri($group_type, $group);
+    } else {
+// User doesn't have access to the group entity, so redirect to front page,
+// with a message.
+        $redirect = '';
+        drupal_set_message(t('Your subscription request was sent.'));
+    }
+
+    $form_state['redirect'] = $redirect;
+    $block = module_invoke('m6connect_dashboard', 'block_view', 'user_join_group_link_block', $group->nid);
+    $form_state['ajax_commands'][] = ajax_command_html('#block-m6connect-dashboard-user-join-group-link-block', render($block['content']));
+    $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+}
+
+/**
+ * Confirm OG unsubscription form.
+ *
+ * The unsubscribing user is always the acting user - like this we make sure
+ * no malicious user will unsubscribe another user. Administrators can reject or
+ * ban another group member from the "people" page.
+ */
+function m6connect_dashboard_og_ui_unsubscribe($group_type, $gid, $ajax = null) {
+    global $user;
+    $account = clone $user;
+    $group = entity_load_single($group_type, $gid);
+    if (!$group || !og_is_group($group_type, $group)) {
+// Not a valid entity, or not a group.
+        drupal_not_found();
+        return;
+    }
+
+// Check the user isn't the manager of the group.
+    if ($group->uid != $user->uid) {
+        if (og_is_member($group_type, $gid, 'user', $account, array(OG_STATE_ACTIVE, OG_STATE_PENDING))) {
+            if ($ajax) {
+                $form_state = array(
+                    'ajax' => true,
+                    'group_type' => $group_type,
+                    'group' => $group,
+                );
+                ctools_include('ajax');
+                ctools_include('modal');
+                $output = ctools_modal_form_wrapper('m6connect_dashboard_og_ui_confirm_unsubscribe', $form_state);
+                if (!empty($form_state['ajax_commands'])) {
+                    $output = $form_state['ajax_commands'];
+                }
+                print ajax_render($output);
+                drupal_exit();
+            }
+// Show the user a subscription confirmation.
+            return drupal_get_form('m6connect_dashboard_og_ui_confirm_unsubscribe', $group_type, $group);
+        }
+        drupal_access_denied();
+        return;
+    } else {
+        $label = entity_label($group_type, $group);
+        drupal_set_message(t('As the manager of %group, you can not leave the group.', array('%group' => $label)));
+
+        $url = entity_uri($group_type, $group);
+        drupal_goto($url['path'], $url['options']);
+    }
+}
+
+/**
+ * Confirm unsubscribe form.
+ */
+function m6connect_dashboard_og_ui_confirm_unsubscribe($form, &$form_state, $group_type, $group) {
+    if ($form_state['ajax'] == true) {
+        $group_type = $form_state['group_type'];
+        $group = $form_state['group'];
+    }
+    $form['group_type'] = array('#type' => 'value', '#value' => $group_type);
+    $form['group'] = array('#type' => 'value', '#value' => $group);
+
+    $label = entity_label($group_type, $group);
+    $url = entity_uri($group_type, $group);
+    return confirm_form($form, t('Are you sure you want to unsubscribe from the group %title?', array('%title' => $label)), $url, ' ', t('Remove'), t('Cancel'));
+}
+
+/**
+ * Submit handler; Confirm OG unsubscription.
+ */
+function m6connect_dashboard_og_ui_confirm_unsubscribe_submit($form, &$form_state) {
+    $group_type = $form_state['values']['group_type'];
+    $group = $form_state['values']['group'];
+
+    og_ungroup($group_type, $group);
+
+    if (entity_access('view', $group_type, $group)) {
+        $form_state['redirect'] = entity_uri($group_type, $group);
+    } else {
+        $form_state['redirect'] = '<front>';
+    }
+    $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+//block-m6connect-dashboard-user-join-group-link-block
+    $block = module_invoke('m6connect_dashboard', 'block_view', 'user_join_group_link_block', $group->nid);
+    $form_state['ajax_commands'][] = ajax_command_html('#block-m6connect-dashboard-user-join-group-link-block', render($block['content']));
+}
+
+function m6connect_dashboard_delete_membership($form, &$form_state, $group_type, $gid, $og_membership) {
+    ctools_include('ajax');
+    ctools_include('modal');
+    if ($form_state['ajax'] == true) {
+        $group_type = $form_state['group_type'];
+        $gid = $form_state['gid'];
+        $og_membership = $form_state['og_membership'];
+    } else {
+        $form_state['group_type'] = $group_type;
+        $form_state['gid'] = $gid;
+        $form_state['og_membership'] = $og_membership;
+    }
+
+//    og_set_breadcrumb($group_type, $gid, array(l(t('Group'), "$group_type/$gid/group")));
+    $group = entity_load_single($group_type, $gid);
+    $label = entity_label($group_type, $group);
+    $account = user_load($og_membership->etid);
+
+// You can't delete the group manager.
+    if ($group->uid == $account->uid) {
+        drupal_set_message(t("You can't remove membership of the group manager"));
+        drupal_goto('group/' . $group_type . '/' . $gid . '/admin/people');
+    }
+
+// Add group membership form. We still don't have the user or state.
+    $form_state['og_membership'] = $og_membership;
+    $description = t('Are you sure you would like to remove the membership for the user @user', array('@user' => $account->name)); //isset($description) ? $description : t('This action cannot be undone.');
+    drupal_set_title(t('Remove membership in group @group', array('@group' => $label)), PASS_THROUGH);
+
+    $form['#attributes']['class'][] = 'confirmation';
+    $form['description'] = array('#markup' => $description);
+    $form['confirm'] = array('#type' => 'hidden', '#value' => 1);
+
+    $form['actions'] = array('#type' => 'actions');
+    $form['actions']['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Confirm'),
+    );
+// By default, render the form using theme_confirm_form().
+    if (!isset($form['#theme'])) {
+        $form['#theme'] = 'confirm_form';
+    }
+    return $form;
+}
+
+function m6connect_dashboard_delete_membership_submit($form, &$form_state) {
+    $membership = $form_state['og_membership'];
+    $membership->delete();
+    $form_state['ajax_commands'][] = ajax_command_replace('#userblock', render(og_ui_admin_account_custom('node', $form_state['gid'])));
+    $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+    drupal_set_message(t('The membership was removed.'));
+}
+
+function m6connect_dashboard_edit_membership_form($group_type, $gid, $og_membership, $ajax = null) {
+    if ($ajax) {
+        ctools_include('ajax');
+        ctools_include('modal');
+        $form_state = array(
+            'ajax' => TRUE,
+            'group_type' => $group_type,
+            'gid' => $gid,
+            'og_membership' => $og_membership,
+        );
+        $output = ctools_modal_form_wrapper('m6connect_dashboard_edit_membership', $form_state);
+        if (!empty($form_state['ajax_commands'])) {
+            $output = $form_state['ajax_commands'];
+        }
+        print ajax_render($output);
+        drupal_exit();
+    }
+    return drupal_get_form('m6connect_dashboard_edit_membership', $group_type, $gid, $og_membership);
+}
+
+/**
+ * Add Edit membership form.
+ */
+function m6connect_dashboard_edit_membership($form, &$form_state, $group_type, $gid, $og_membership, $ajax = null) {
+    ctools_include('ajax');
+    ctools_include('modal');
+    if ($form_state['ajax'] == true) {
+        $group_type = $form_state['group_type'];
+        $gid = $form_state['gid'];
+        $og_membership = $form_state['og_membership'];
+    } else {
+        $form_state['group_type'] = $group_type;
+        $form_state['gid'] = $gid;
+        $form_state['og_membership'] = $og_membership;
+    }
+//    og_set_breadcrumb($group_type, $gid, array(l(t('Group'), "$group_type/$gid/group")));
+    $group = entity_load_single($group_type, $gid);
+    $label = entity_label($group_type, $group);
+
+    $account = user_load($og_membership->etid);
+    list(,, $bundle) = entity_extract_ids($group_type, $group);
+// Get all the non-default roles.
+    $og_roles = og_roles($group_type, $bundle, $gid, FALSE, FALSE);
+
+    $form['group_type'] = array('#type' => 'value', '#value' => $group_type);
+    $form['gid'] = array('#type' => 'value', '#value' => $gid);
+    $form['id'] = array('#type' => 'value', '#value' => $og_membership->id);
+    if ($_GET['user'] == 1) {
+        $form['og_user'] = array(
+            '#type' => 'fieldset',
+            '#title' => t('Block user from %group', array('%group' => $label)),
+        );
+    } else if ($_GET['user'] == 3) {
+        $form['og_user'] = array(
+            '#type' => 'fieldset',
+            '#title' => t('Unblock user to %group', array('%group' => $label)),
+        );
+    } else {
+        $form['og_user'] = array(
+            '#type' => 'fieldset',
+            '#title' => t('Edit a group membership in %group', array('%group' => $label)),
+        );
+    }
+    $form['og_user']['name'] = array(
+        '#type' => 'markup',
+        '#title' => t('User name'),
+        '#markup' => $account->name,
+    );
+    if ($_GET['user'] == 1) {
+        $form['og_user']['state'] = array(
+            '#type' => 'hidden',
+            '#default_value' => OG_STATE_BLOCKED,
+        );
+    } else if ($_GET['user'] == 3) {
+        $form['og_user']['state'] = array(
+            '#type' => 'hidden',
+            '#default_value' => OG_STATE_ACTIVE,
+        );
+    } else {
+        $form['og_user']['state'] = array(
+            '#type' => 'select',
+            '#title' => t('Status'),
+            '#description' => t('Change the current membership status.'),
+            '#options' => og_group_content_states(),
+            '#default_value' => $og_membership->state,
+        );
+    }
+//    if ($og_roles) {
+//        $form['og_user']['roles'] = array(
+//            '#type' => 'checkboxes',
+//            '#options' => $og_roles,
+//            '#title' => t('Roles'),
+//            '#default_value' => array_keys(og_get_user_roles($group_type, $gid, $account->uid)),
+//        );
+//    }
+// Add group membership form. We still don't have the user or state.
+    $form_state['og_membership'] = $og_membership;
+
+    $form['membership_fields'] = array(
+        '#prefix' => '<div id="og-ui-field-name">',
+        '#suffix' => '</div>',
+        '#tree' => TRUE,
+        '#parents' => array('membership_fields'),
+    );
+    field_attach_form('og_membership', $og_membership, $form['membership_fields'], $form_state);
+
+    $form['actions'] = array('#type' => 'actions');
+    if ($_GET['user'] == 1) {
+        $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Block User'));
+    } else if ($_GET['user'] == 3) {
+        $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Unblock User'));
+    } else {
+        $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Update membership'));
+    }
+
+// You can't delete the group manager.
+    if ($group->uid != $account->uid) {
+        $form['actions']['delete'] = array(
+            '#type' => 'markup',
+            '#markup' => l(t('Remove'), 'group/node/' . $gid . '/admin/people/delete-membership/' . $og_membership->id),
+        );
+    }
+
+    return $form;
+}
+
+/**
+ * Validate handler; Edit membership in group.
+ */
+function m6connect_dashboard_edit_membership_validate($form, &$form_state) {
+    $og_membership = $form_state['og_membership'];
+    field_attach_form_validate('og_membership', $og_membership, $form['membership_fields'], $form_state);
+}
+
+/**
+ * Submit handler; Edit membership in group.
+ */
+function m6connect_dashboard_edit_membership_submit($form, &$form_state) {
+    $group_type = $form_state['values']['group_type'];
+    $gid = $form_state['values']['gid'];
+    $og_membership = $form_state['og_membership'];
+    $og_membership->state = $form_state['values']['state'];
+    field_attach_submit('og_membership', $og_membership, $form['membership_fields'], $form_state);
+    drup_msg($og_membership);
+    drup_msg($form['membership_fields']);
+    drup_msg($form_state);
+    $account = user_load($og_membership->etid);
+// Assign roles.
+    $og_roles = og_get_user_roles($group_type, $gid, $account->uid);
+    //drup_msg($form_state['values']['roles']);
+    foreach (array_keys($og_roles) as $rid) {
+        if (!in_array($rid, $form_state['values']['roles'])) {
+            og_role_revoke($group_type, $gid, $account->uid, $rid);
+        }
+    }
+    if (!empty($form_state['values']['roles'])) {
+        foreach ($form_state['values']['roles'] as $rid) {
+            og_role_grant($group_type, $gid, $og_membership->etid, $rid);
+        }
+    }
+
+// Saving should be last in the process, so Rules can get a chance to
+// assign or revoke roles.
+    $og_membership->save();
+    $form_state['ajax_commands'][] = ajax_command_html('#userblock', render(og_ui_admin_account_custom('node', $form_state['gid'])));
+    $form_state['ajax_commands'][] = ajax_command_html('#block-views-og-members-admin-block-2 .content', render(og_ui_admin_account_custom('node', $form_state['gid'], 'block_2')));
+    $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+    if (isset($_GET['user'])) {
+        $form_state['ajax_commands'][] = ctools_ajax_command_reload();
+    }
+
+    drupal_set_message(t('The membership has been updated.'));
+}
+
+/**
+ * Form builder; OG user administration page.
+ */
+function og_ui_admin_account_custom($group_type, $gid, $block = 'block_1') {
+// $view = explode(':', variable_get)
+    list($view_name, $display) = array('og_members_admin', 'block_1');
+// We can't use views_embed_view() as we have exposed filter, and we need to
+// make sure the path is overriden to the current URL.
+// @see http://drupal.org/node/525592#comment-1968604
+    $view = views_get_view('og_members_admin', $block);
+    $view->set_display($block);
+    $view->set_arguments(array($group_type, $gid));
+    $view->override_url = $_GET['q'];
+    return $view->preview();
+}
+
+function m6connect_dashboard_get_file_view($gid = null) {
+    if ($gid == null) {
+        $gid = arg(1);
+    }
+    $view = views_get_view('group_files', 'block_1');
+    $view->set_display('block_1');
+    $view->set_arguments(array($gid));
+    $view->override_url = $_GET['q'];
+    return $view->preview();
+}
+
+function m6connect_dashboard_entity_info_alter(&$entity_info) {
+    $entity_info['og_membership']['views controller class'] = 'M6connectDashboardViewsController';
+}
+
+/*
+ * @$current_user: current user that assigning the category to other user
+ * @$target_user : target user that going to assign category; 
+ * @$ajax        : ajax variable; 
+ * 
+ *  */
+
+function m6connect_dashboard_init() {
+    global $company;
+    error_reporting(1);
+    assign_dashboard_ctools_popup_style();
+	assign_asset_category_ctools_popup_style();
+    assign_update_images_crop_ctools_popup_style();
+    if (!isset($_SESSION['deshboard_cid'])) {
+        if ($company->field_type_of_company['und'][0]['value'] == 'individual') {
+            $companies_detail = m6connect_misc_get_user_all_companies($user->uid);
+            $cid = '';
+            foreach ($companies_detail as $key => $value) {
+                if ($value->field_type_of_company_value != 'individual') {
+                    $cid = $value->nid;
+                }
+            }
+            if ($cid == '') {
+                $result = company_query('list');
+                $index = rand(0, 20);
+                $kp = 0;
+                foreach ($result as $copmanyRows) {
+                    if ($kp == $index) {
+                        $cid = $copmanyRows->nid;
+                    }
+                    $kp++;
+                }
+            }
+            $_SESSION['deshboard_cid'] = $cid;
+        }
+    }
+      $path = $_GET['q'];
+      $arguments = explode('/', $path);
+      if ($arguments[0] == 'change-user-profile-photo' && empty($arguments[2])) {
+        // When viewing a company profile.
+        drupal_add_js(drupal_get_path('module', 'm6connect_dashboard') . '/cropit-master/dist/jquery.cropit.js');
+        drupal_add_js(drupal_get_path('module', 'm6connect_dashboard') . '/js/cropit_custom.js');
+        drupal_add_css(drupal_get_path('module', 'm6connect_dashboard') . '/css/cropit.css');
+      }
+      if ($arguments[0] == 'update-user-cover-photo') {
+        drupal_add_js(drupal_get_path('module', 'm6connect_dashboard') . '/cropit-master/dist/jquery.cropit.js');
+        drupal_add_js(drupal_get_path('module', 'm6connect_dashboard') . '/js/cropit_custom.js');
+        drupal_add_css(drupal_get_path('module', 'm6connect_dashboard') . '/css/cropit.css');
+      }
+}
+
+function m6connect_dashboard_assign_connection_category($current_user, $target_user, $ajax = null) {
+    if ($ajax) {
+        ctools_include('ajax');
+        ctools_include('modal');
+        $form_state = array(
+            'ajax' => TRUE,
+            'current_user' => $current_user,
+            'target_user' => $target_user,
+        );
+        $output = ctools_modal_form_wrapper('m6connect_dashboard_manage_connection_category', $form_state);
+        if (!empty($form_state['ajax_commands'])) {
+            $output = $form_state['ajax_commands'];
+        }
+        print ajax_render($output);
+        drupal_exit();
+    }
+    return drupal_get_form('m6connect_dashboard_manage_connection_category', $current_user, $target_user);
+}
+
+//  $tables['users']['ur_action'] 
+// hook_views_data()
+function m6connect_dashboard_manage_connection_category($form, &$form_state, $current_user = '', $target_user = '') {
+    if ($form_state['ajax'] == true) {
+        $current_user = $form_state['current_user'];
+        $target_user = $form_state['target_user'];
+    } else {
+        $form_state['current_user'] = $current_user;
+        $form_state['target_user'] = $target_user;
+    }
+    $query = db_select('node', 'n');
+    $query->condition('type', 'connection_categories')->condition('uid', $current_user)
+            ->fields('n');
+    $result = $query->execute();
+    $customers = array();
+    foreach ($result as $row) {
+        $customers[$row->nid] = $row;
+    }
+    $active = array();
+    $active = array();
+    foreach ($customers as $key => $value) {
+        $active[$value->nid] = $value->title;
+    }
+//$active = array(0 => t('Closed'), 1 => t('Active'));
+
+    $form['select-group']['active'] = array(
+        '#type' => 'radios',
+        '#title' => t('Select Group to assign'),
+        //'#default_value' => isset($node->active) ? $node->active : 1,
+        '#options' => $active,
+        '#description' => t('Please select atleast one group to assign as connect.'),
+            //'#required' => TRUE,
+    );
+    $form['action_container']['submit'] = array(
+        '#type' => 'submit',
+        '#value' => 'Assign'
+    );
+
+    return $form;
+}
+
+function m6connect_dashboard_manage_connection_category_submit(&$form, &$form_state) {
+    global $user, $company;
+    if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+
+//        print_r($form_state);
+        if ($form_state['values']['active']) {
+
+            $account = user_load($form_state['target_user']);
+            $values = array(
+                'entity_type' => 'user',
+                'entity' => $account,
+                'state' => OG_STATE_ACTIVE,
+                'membership type' => OG_MEMBERSHIP_TYPE_DEFAULT,
+            );
+            og_group('node', $form_state['values']['active'], $values);
+            $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+        }
+    }
+}
+
+function m6connect_dashboard_file_download_access($file_item, $entity_type, $entity) {
+
+    return true;
+}
+
+/*
+
+ * @$type: type of connections
+ * @$nid: node that having feeds now; 
+ * 
+ *  */
+
+function m6connect_dashboard_switch_dashboard($type, $nid, $ajax = null) {
+    module_load_include('inc', 'statuses', 'includes/utility/statuses.form');
+    $path = drupal_get_path('module', 'statuses') . '/resources';
+    ctools_include('modal');
+    ctools_include('ajax');
+    $node = node_load($nid);
+    $form = render(drupal_get_form('statuses_box', $node, 'og'));
+//    $form .= "<script>Drupal.attachBehaviors(jQuery('#block-statuses-statuses'));";
+    $commads = array();
+    $commads[] = ctools_modal_command_dismiss();
+    $commads[] = ajax_command_html('#block-statuses-statuses .statuses-form-self-update', $form);
+    $commads[] = ajax_command_html('#dLabel2', $node->title);
+    $commads[] = array("command" => 'add_from_elements', 'selector' => '#block-statuses-statuses');
+
+//
+    print ajax_render($commads);
+    exit();
+}
+
+/*
+
+ * @$cid: company id
+ * Set company for dashboard
+ * 
+ *  */
+
+function m6connect_dashboard_set_company($cid = 0) {
+    global $copmany;
+    $commands = array();
+    if ($cid != 0) {
+        $_SESSION['deshboard_cid'] = $cid;
+    } else {
+        $_SESSION['deshboard_cid'] = $copmany->nid;
+    }
+//    $commands[] = ctools_modal_command_dismiss(); 
+    drupal_goto('/dashboard');
+    print ajax_render($commands);
+    exit;
+}
+
+/*
+  Implement hook_block_view_alter for alting status form for adding sharing between groups
+ *  */
+
+function m6connect_dashboard_block_view_alter(&$data, $block) {
+    if (current_path() == 'dashboard') {
+//        drupal_set_message('<pre>'.print_r($data,1).print_r($block,1).'</pre>');
+    }
+}
+
+function dashboard_page() {
+
+    return '';
+}
+
+/*
+ * Add group form for current user
+ * 
+ */
+
+function custom_group_group_node_form() {
+    global $user;
+
+    module_load_include('inc', 'node', 'node.pages');
+
+    $form = node_add('groups');
+
+//    return drupal_set_message('<pre>'.print_r($form,1).'</pre>');
+//    die();
+    return drupal_render($form);
+}
+
+function custom_connection_node_form() {
+    global $user;
+
+    module_load_include('inc', 'node', 'node.pages');
+    $form = node_add('connection_categories');
+
+//drupal_set_message('<pre>'.print_r($form['group_access'],1).'</pre>');
+    return drupal_render($form);
+}
+
+function m6connect_dashboard_files_node_form($current_group, $ajax = null) {
+
+    global $user;
+    ctools_include('node.pages', 'node', '');
+    $node = (object) array(
+                'uid' => $user->uid,
+                'name' => (isset($user->name) ? $user->name : ''),
+                'type' => 'files',
+                'language' => LANGUAGE_NONE,
+                'og_group_ref' => array('und' => array(array('target_id' => $current_group))),
+                'status' => 1,
+    );
+    $form_state = array(
+        'current_group' => $current_group,
+    );
+    $form_state['build_info']['args'] = array($node);
+    if ($ajax) {
+        ctools_include('ajax');
+        ctools_include('modal');
+        $form_state['ajax'] = true;
+        $output = ctools_modal_form_wrapper('files_node_form', $form_state);
+        if (!empty($form_state['ajax_commands'])) {
+            $output = $form_state['ajax_commands'];
+        }
+        print ajax_render($output);
+        drupal_exit();
+    }
+
+    return drupal_get_form('files_node_form', $node);
+}
+
+function m6connect_dashboard_form_files_node_form_alter(&$form, &$form_state, $form_id) {
+    $form['actions']['submit']['#submit'][] = 'm6connect_dashboard_form_files_node_form_custom_submit';
+    $form['og_group_ref']['#access'] = false;
+    $form['additional_settings']['#attributes'] = array(
+        'style' => 'display:none',
+    );
+//    dsm($form['additional_settings']);
+//    $form['additional_settings']['#access'] = false;
+}
+
+function m6connect_dashboard_form_files_node_form_custom_submit(&$form, &$form_state) {
+    $form_state['rebuild'] = true;
+    $form_state['ajax_commands'][] = ajax_command_replace('#group-files', render(m6connect_dashboard_get_file_view($form_state['current_group'])));
+    $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+}
+
+function get_group_member() {
+    $nid = arg(1);
+
+    $result = db_query("SELECT og_membership_users.id AS og_membership_users_id, users.name AS users_name, users.uid AS uid, og_membership_users.state AS og_membership_users_state, og_membership_users.group_type AS og_membership_users_group_type, og_membership_users.gid AS og_membership_users_gid, og_membership_users.created AS og_membership_users_created, 'og_membership' AS field_data_og_membership_request_og_membership_entity_type
+FROM 
+users users
+LEFT JOIN og_membership og_membership_users ON users.uid = og_membership_users.etid AND og_membership_users.entity_type = 'user'
+WHERE (( (users.status <> '0') AND (og_membership_users.group_type = 'node') AND (og_membership_users.gid = '$nid' ) ))
+ORDER BY users_name ASC;
+");
+    return $result;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function m6connect_dashboard_theme() {
+    $path = drupal_get_path('modules', 'm6connet_dashboard');
+    return array(
+        'm6connect_dashboard' => array(
+            'variables' => array('data' => array()),
+            'template' => 'm6connect-dashboard',
+        )
+    );
+}
+
+function m6connect_dashboard_get_company_feeds($companyId) {
+    ctools_include('modal');
+    ctools_include('ajax');
+    ctools_modal_add_js();
+    drupal_add_js($sample_style, 'setting');
+    ctools_add_js('ctools-ajax-sample', 'ctools_ajax_sample');
+    ctools_add_css('ctools-ajax-sample', 'ctools_ajax_sample');
+
+    return views_embed_view('cutom_statuses_stream', 'block_1', $companyId);
+}
+
+function my_custom_page() {
+    global $user, $company;
+
+//to check if the user is logged in>> if yes then shows the page.
+    if (!user_is_logged_in()) {
+        drupal_access_denied();
+        module_invoke_all('exit');
+        drupal_exit();
+    }
+//***************************end*********************************
+//$output = '';
+    $output = theme('m6connect_dashboard', array('data' => NULL));
+//$output .= get_dashboard_left_side_content();
+    /* module_load_include('inc', 'statuses', 'includes/utility/statuses.form');
+      $output .= '<div class="dashboard-block-fb" style="">';
+      $output .= '<div class="left-block-fb" style="width:50%; float:left;">';
+      $output .= render(drupal_get_form('statuses_box'));
+      $output .= views_embed_view('fbss_ur_stream','block_1', $user->uid);
+      $output .= '</div>';
+
+      $output .= '<div class="right-block-fb" style="width:50%; float:left;">';
+      $output .= render(drupal_get_form('statuses_box'));
+      $output .= views_embed_view('fbss_ur_stream','block_3', $company->nid);
+      $output .= '</div>';
+      $output .= '</div>'; */
+
+
+    /* $output .= '<div class="right-recom-companny>';
+      $output .= views_embed_view('dashboard_recom_companies','block');
+      $output .= '</div>'; */
+
+
+    return $output;
+}
+
+function m6connect_dashboard_get_like_link($uid, $sid) {
+    $query = db_select('fb_likes', 'fl')->fields('fl');
+
+    $query->condition('fl.uid', $uid, '=');
+    $query->condition('fl.sid', $sid, '=');
+    $result = $query->execute()->fetchAll();
+    $query1 = db_select('fb_likes', 'fl')->fields('fl');
+
+
+    $query1->condition('fl.sid', $sid, '=');
+    $result2 = $query1->execute()->fetchAll();
+    if ($result) {
+        $output = '<div class="bumpit-block"><div>' . count($result2) . ' bumps</div><a href="/like-action/unlike/' . $sid . '/' . $uid . '/nojs" class="use-ajax" >unbumpit </a></div>';
+    } else {
+        $output = '<div class="bumpit-block"><div>' . count($result2) . ' bumps</div><a href="/like-action/like/' . $sid . '/' . $uid . '/nojs" class="use-ajax" >
+		 bumpit</a></div>';
+    }
+    return $output;
+}
+
+function m6connect_dashboard_get_spam_link($uid, $sid) {
+    $query = db_select('spam', 'fl')->fields('fl');
+
+    $query->condition('fl.uid', $uid, '=');
+    $query->condition('fl.sid', $sid, '=');
+    $result = $query->execute()->fetchAll();
+    $query1 = db_select('fb_likes', 'fl')->fields('fl');
+
+
+    $query1->condition('fl.sid', $sid, '=');
+    $result2 = $query1->execute()->fetchAll();
+    if ($result) {
+        $output = '<div class="spam-block"><!--<div>' . count($result2) . ' Spams</div> --><a href="/spam-action/unspam/' . $sid . '/' . $uid . '/nojs" class="use-ajax" >unspam </a></div>';
+    } else {
+        $output = '<div class="spam-block"><!--<div>' . count($result2) . ' Spams</div> --><a href="/spam-action/spam/' . $sid . '/' . $uid . '/nojs" class="use-ajax" >
+		 spam</a></div>';
+    }
+    return $output;
+}
+
+function m6connect_dashboard_like_actions($action, $sid, $uid, $ajax = null) {
+    $commads = array();
+    $statuses = statuses_load($sid);
+    switch ($action) {
+        case 'like':
+            $db_insert = array(
+                'sid' => $sid,
+                'uid' => $uid,
+                'created' => time(),
+            );
+            $result = db_insert('fb_likes')->fields($db_insert)->execute();
+            $out_put = m6connect_dashboard_get_like_link($uid, $sid);
+
+            /*             * **notification*** */
+            $m6connect_notification_table_exist = db_table_exists('m6connect_notification');
+
+            if ($m6connect_notification_table_exist) {
+                $m6connect_notification = array(
+                    'type' => 'bumpit_status',
+                    'event' => $statuses->type,
+                    'entity_id' => $sid,
+                    'company_nid' => '',
+                    'message' => 'like',
+                    'request_from' => $uid,
+                    'request_to' => $statuses->sender,
+                    'status' => 1,
+                    'timestamp' => time(),
+                );
+                entity_save('m6connect_notification', (object) $m6connect_notification);
+            }
+            /*             * **notification*** */
+
+            break;
+        case 'unlike':
+            $num_deleted = db_delete('fb_likes')
+                    ->condition('sid', $sid)
+                    ->condition('uid', $uid)
+                    ->execute();
+            $out_put = m6connect_dashboard_get_like_link($uid, $sid);
+            /*             * **notification*** */
+            $m6connect_notification_table_exist = db_table_exists('m6connect_notification');
+
+            if ($m6connect_notification_table_exist) {
+                $m6connect_notification = array(
+                    'type' => 'bumpit_status',
+                    'event' => $statuses->type,
+                    'entity_id' => $sid,
+                    'company_nid' => '',
+                    'message' => 'unlike',
+                    'request_from' => $uid,
+                    'request_to' => $statuses->sender,
+                    'status' => 1,
+                    'timestamp' => time(),
+                );
+                entity_save('m6connect_notification', (object) $m6connect_notification);
+            }
+            /*             * **notification*** */
+            break;
+
+        default:
+            break;
+    }
+    $commads[] = ctools_modal_command_dismiss();
+    $commads[] = ajax_command_html('#statuses-item-' . $sid . ' .like-' . $sid, $out_put);
+    print ajax_render($commads);
+    exit();
+}
+
+function m6connect_dashboard_spam_actions($action, $sid, $uid, $ajax = null) {
+    $commads = array();
+    $statuses = statuses_load($sid);
+    switch ($action) {
+        case 'spam':
+            $db_insert = array(
+                'sid' => $sid,
+                'uid' => $uid,
+                'created' => time(),
+            );
+            $result = db_insert('spam')->fields($db_insert)->execute();
+            $out_put = m6connect_dashboard_get_spam_link($uid, $sid);
+
+            /*             * **notification*** */
+            $m6connect_notification_table_exist = db_table_exists('m6connect_notification');
+
+            if ($m6connect_notification_table_exist) {
+                $m6connect_notification = array(
+                    'type' => 'bumpit_status',
+                    'event' => $statuses->type,
+                    'entity_id' => $sid,
+                    'company_nid' => '',
+                    'message' => 'spam',
+                    'request_from' => $uid,
+                    'request_to' => $statuses->sender,
+                    'status' => 1,
+                    'timestamp' => time(),
+                );
+                entity_save('m6connect_notification', (object) $m6connect_notification);
+            }
+            /*             * **notification*** */
+
+            break;
+        case 'unspam':
+            $num_deleted = db_delete('spam')
+                    ->condition('sid', $sid)
+                    ->condition('uid', $uid)
+                    ->execute();
+            $out_put = m6connect_dashboard_get_spam_link($uid, $sid);
+            /*             * **notification*** */
+            $m6connect_notification_table_exist = db_table_exists('m6connect_notification');
+
+            if ($m6connect_notification_table_exist) {
+                $m6connect_notification = array(
+                    'type' => 'bumpit_status',
+                    'event' => $statuses->type,
+                    'entity_id' => $sid,
+                    'company_nid' => '',
+                    'message' => 'unspam',
+                    'request_from' => $uid,
+                    'request_to' => $statuses->sender,
+                    'status' => 1,
+                    'timestamp' => time(),
+                );
+                entity_save('m6connect_notification', (object) $m6connect_notification);
+            }
+            /*             * **notification*** */
+            break;
+
+        default:
+            break;
+    }
+    $commads[] = ctools_modal_command_dismiss();
+    $commads[] = ajax_command_html('.spam-' . $sid, $out_put);
+    print ajax_render($commads);
+    exit();
+}
+
+function m6connect_dashboard_pvt_new_validate($form, &$form_state) {
+    // The actual message that is being sent, we create this during validation and
+    // pass to submit to send out.
+
+    if (isset($form_state['input']['send_file']) && $form_state['input']['send_file'] !== 0) {
+        $existing_file = file_load($form_state['input']['send_file']);
+        $fileName = explode('.',$existing_file->filename);
+        $destination = 'temporary://' . $fileName[0] . time() . '.' . $fileName[1];
+        $new_file = file_copy($existing_file, $destination);
+        $new_file->status = 0;
+        file_save($new_file);
+        $form_state['values']['field_attachment']['und'][0]['fid'] = $new_file->fid;
+    }
+    
+    module_load_include('inc', 'privatemsg', 'privatemsg.pages');
+    $aditions_recepints = array();
+
+    if ($form_state['values']['cc'] != '') {
+        $aditions_recepints[] = 'cc';
+    }
+    if ($form_state['values']['bcc'] != '') {
+        $aditions_recepints[] = 'bcc';
+    }
+    if ($form_state['values']['recipient'] != '') {
+        $aditions_recepints[] = 'recipient';
+    }
+
+    if (count($aditions_recepints) > 0) {
+        for ($i = 0; $i < count($aditions_recepints); $i++) {
+            unset($message);
+            $message = (object) $form_state['values'];
+            $message->mid = 0;
+            $message->format = $message->body['format'];
+            $message->body = $message->body['value'];
+            $message->timestamp = REQUEST_TIME;
+            // Avoid subjects which only consist of a space as these can not be clicked.
+            $message->subject = trim($message->subject);
+
+            $trimmed_body = trim(truncate_utf8(strip_tags($message->body), 50, TRUE, TRUE));
+            if (empty($message->subject) && !empty($trimmed_body)) {
+                $message->subject = $trimmed_body;
+            }
+            // Only parse the user string for a new thread.
+            if ($aditions_recepints[$i] == 'cc') {
+                list($message->recipients, $invalid, $duplicates, $denieds) = _privatemsg_parse_userstring($message->cc);
+            } else if ($aditions_recepints[$i] == 'cc') {
+                list($message->recipients, $invalid, $duplicates, $denieds) = _privatemsg_parse_userstring($message->bcc);
+            } else {
+                list($message->recipients, $invalid, $duplicates, $denieds) = _privatemsg_parse_userstring($message->recipient);
+            }
+
+            if (!empty($invalid)) {
+                // Display information about invalid recipients.
+                drupal_set_message(t('The following users will not receive this private message: @invalid.', array('@invalid' => implode(", ", $invalid))), 'error');
+            }
+            if (!empty($denieds)) {
+                // Display information about denied recipients.
+                drupal_set_message(t('You do not have access to write these recipients: @denieds.', array('@denieds' => implode(", ", $denieds))), 'error');
+            }
+
+            if (!empty($duplicates)) {
+                // Add JS and CSS to allow choosing the recipient.
+                drupal_add_js(drupal_get_path('module', 'privatemsg') . '/privatemsg-alternatives.js');
+
+                // Display information about recipients that couldn't be identified
+                // uniquely.
+                $js_duplicates = array();
+                foreach ($duplicates as $string => $duplicate) {
+                    $alternatives = array();
+                    foreach ($duplicate as $match) {
+                        $formatted_match = privatemsg_recipient_format($match, array('plain' => TRUE, 'unique' => TRUE));
+                        $js_duplicates[$formatted_match] = $string;
+                        $alternatives[] = '<span class="privatemsg-recipient-alternative">' . $formatted_match . '</span>';
+                    }
+                    // Build a formatted list of possible recipients.
+                    $alternatives = theme('item_list', array('items' => $alternatives, 'attributes' => array('class' => array('action-links'))));
+                    form_set_error('recipient', '<span class="privatemsg-alternative-description">' . t('The site has multiple recipients named %string. Please choose your intended recipient: !list', array('%string' => $string, '!list' => $alternatives)) . '</span>');
+                }
+
+                // Also make that information available to the javascript replacement code.
+                drupal_add_js(array('privatemsg_duplicates' => $js_duplicates), 'setting');
+            }
+
+            $validated = _privatemsg_validate_message($message, TRUE);
+            foreach ($validated['messages'] as $type => $texts) {
+                foreach ($texts as $text) {
+                    drupal_set_message($text, $type);
+                }
+            }
+            if ($aditions_recepints[$i] == 'cc') {
+                $form_state['validate_built_message_cc'] = $message;
+            } else if ($aditions_recepints[$i] == 'bcc') {
+                $form_state['validate_built_message_bcc'] = $message;
+            } else {
+                $form_state['validate_built_message'] = $message;
+            }
+        }
+    }
+}
+
+function m6connect_dashboard_pvt_new_submit($form, &$form_state) {
+
+    if (isset($form_state['validate_built_message_cc'])) {
+        $mess[] = $form_state['validate_built_message_cc'];
+    }
+    if (isset($form_state['validate_built_message_bcc'])) {
+        $mess[] = $form_state['validate_built_message_bcc'];
+    }
+
+    if (count($mess) > 0) {
+        for ($j = 0; $j < count($mess); $j++) {
+            $message = $mess[$j];
+            field_attach_submit('privatemsg_message', $message, $form, $form_state);
+
+            // Format each recipient.
+            $recipient_names = array();
+            foreach ($message->recipients as $recipient) {
+                $recipient_names[] = privatemsg_recipient_format($recipient);
+            }
+            try {
+                $message = _privatemsg_send($message);
+                _privatemsg_handle_recipients($message->mid, $message->recipients);
+                drupal_set_message(t('A message has been sent to !recipients.', array('!recipients' => implode(', ', $recipient_names))));
+                // Only redirect on new threads.
+                if ($message->mid == $message->thread_id || variable_get('privatemsg_default_redirect_reply', FALSE)) {
+                    $redirect = variable_get('privatemsg_default_redirect', '<new-message>');
+                    if ($redirect == '<new-message>' || (!empty($_REQUEST['destination']) && $_REQUEST['destination'] == '[new-message]')) {
+                        if (!empty($_REQUEST['destination']) && $_REQUEST['destination'] == '[new-message]') {
+                            // Remove GET param so that drupal_goto() uses the redirect from
+                            // $form_state.
+                            unset($_GET['destination']);
+                        }
+                        // Forward to the new message in the thread.
+                        $form_state['redirect'] = array('messages/view/' . $message->thread_id, array('fragment' => 'privatemsg-mid-' . $message->mid));
+                    } elseif (!empty($redirect)) {
+                        $form_state['redirect'] = $redirect;
+                    }
+                }
+            } catch (Exception $e) {
+                if (error_displayable()) {
+                    require_once DRUPAL_ROOT . '/includes/errors.inc';
+                    $variables = _drupal_decode_exception($e);
+                    drupal_set_message(t('Failed to send a message to !recipients. %type: !message in %function (line %line of %file).', array('!recipients' => implode(', ', $recipient_names)) + $variables), 'error');
+                } else {
+                    drupal_set_message(t($e->getTraceAsString() . 'Failed to send a message to !recipients. Contact your site administrator.', array('!recipients' => implode(', ', $recipient_names))), 'error');
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Implements hook_privatemsg_message_insert().
+ */
+function m6connect_dashboard_privatemsg_message_insert($message) {
+    global $user;
+    foreach ($message->recipients as $recipient) {
+        // check if recipient enabled email notifications
+        if (isset($recipient->uid)) {
+            /*             * **notification*** */
+            $m6connect_notification_table_exist = db_table_exists('m6connect_notification');
+
+            if ($m6connect_notification_table_exist) {
+                $m6connect_notification = array(
+                    'type' => 'private_message',
+                    'event' => 'message_sent',
+                    'entity_id' => $message->mid,
+                    'company_nid' => 0,
+                    'message' => 'Message',
+                    'request_from' => $user->uid,
+                    'request_to' => $recipient->uid,
+                    'status' => 1,
+                    'timestamp' => time(),
+                );
+                entity_save('m6connect_notification', (object) $m6connect_notification);
+            }
+            /*             * **notification*** */
+        }
+    }
+}
+
+function m6connect_dashboard_form_alter(&$form, &$form_state, $form_id) { //pre($form_id);
+    global $user;
+//fbss_comments_delete
+//kpr($form);
+    ctools_include('ajax');
+    ctools_include('modal');
+    switch ($form_id) {
+        case "user_relationships_ui_pending_requested":
+            $form['select-group'] = array(
+                '#type' => 'text',
+                '#title' => 'Select Category',
+            );
+            break;
+        case "privatemsg_new":
+            $strpos = strpos(current_path(), 'messages/new/forword');
+            if (!($strpos !== false)) {
+                $form['cc'] = $form['recipient'];
+                $form['bcc'] = $form['recipient'];
+
+                $form['cc']['#title'] = 'CC';
+                $form['bcc']['#title'] = 'BCC';
+                $form['cc']['#required'] = false;
+                $form['bcc']['#required'] = false;
+                $form['cc']['#description'] = 'Enter a user name to write a message to a user.';
+                $form['cc']['#weight'] = -9;
+                $form['bcc']['#description'] = 'Enter a user name to write a message to a user.';
+                $form['bcc']['#weight'] = -9;
+            }
+            $form['actions']['submit']['#validate'][] = 'm6connect_dashboard_pvt_new_validate';
+            $form['#submit'][] = 'm6connect_dashboard_pvt_new_submit';
+
+            break;
+        case "privatemsg_list":
+//            $form['updated']['list']['#header']['action']
+//            dsm($form);
+            break;
+        case "connection_categories_node_form":
+            $form['group_access']['und']['#type'] = 'hidden';
+            $form['#submit'][] = 'm6connect_dashboard_connection_categories_node_form_submit';
+            $commands = array();
+            if ($form_state['submitted']) {
+                $commands[] = ctools_modal_command_dismiss();
+
+                $commands[] = ajax_command_html('#connection_category', views_embed_view('copy_group_list', 'block_3'));
+
+
+                print ajax_render($commands);
+                exit;
+            }
+            /*
+              $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+              $form_state['ajax_commands'][] = ctools_ajax_command_reload();
+             *              */
+            break;
+        case "fbss_comments_edit":
+            $form['#submit'][] = 'm6connect_dashboard_comment_form_submit';
+            $commands = array();
+            if ($form_state['submitted']) {//pre($form_state);
+                $msg = theme('status_messages');
+                $sid = $form_state['build_info']['args'][0]->sid;
+                $comment = $form_state['values']['status-comment-edit'];
+                $form = drupal_get_form('fbss_comments_box_' . $sid, $sid, false, false);
+                $forms = '<div class="statuses-comments">' .
+                        theme('fbss_comments_form_display', array(
+                            'sid' => $sid,
+                            'delay_load_form' => TRUE,
+                            'delay_load_comments' => TRUE
+                        )) . '</div>';
+                $commands[] = ctools_modal_command_dismiss();
+                $commands[] = ajax_command_html('#statuses-item-' . $sid . ' .comment-block .comment-box', $forms);
+//                $commands[] = ajax_command_invoke('#content', 'replace_page_feeds_icon', array());
+                $commands[] = array("command" => 'add_from_elements_fb', 'selector' => '#block-statuses-statuses');
+//                $commands[] = ajax_command_html('.comment-count-' . $sid, count($comments));
+
+
+                print ajax_render($commands);
+                exit;
+            }
+            $form['close'] = array(
+                '#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Close" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('assign-dashboard-popup-close cust-status-close-btn'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+                    //'#weight' => 10, //location.reload();
+            );
+            break;
+        case "statuses_box":
+            if (strpos(current_path(), 'statuses/share') !== FALSE) {
+                $form['#attributes']['class'][] = 'share-post-statuses-box';
+                $form['back']['#access'] = FALSE;
+                $form['fbss-submit']['#suffix'] = '&nbsp;&nbsp;<span class="share-close-btn">' . l('<input type="button" class="btn btn primary form-submit" value="Close" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('share-popup-close-link'), 'onclick' => 'jQuery("span.popups-close").click();'))) . '</span>';
+                $form['#submit'][] = 'm6connect_dashboard_statuses_box_submit_handler';
+            }
+            $commands = array();
+            /* if ($form_state['submitted']) {
+              if($form_state['values']['op']=='Share'){
+              $commands[] = ctools_modal_command_dismiss();
+              print ajax_render($commands);
+              exit;
+              }
+              } */
+            break;
+        case 'statuses_edit':
+//                    kpr($form);
+            $form['intro']['#markup'] = '';
+            $form['fbss-submit']['#prefix'] = '<div class="pull-right">';
+            $form['fbss-submit']['#suffix'] = '&nbsp;&nbsp;' . l('<input type="button" class="btn cancel-button" value="Close" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('assign-dashboard-popup-close cust-status-close-btn'), 'onclick' => 'jQuery("span.popups-close").click();'))) . '</div>';
+            $form['fbss-submit']['#attributes']['class'] = array_diff($form['fbss-submit']['#attributes']['class'], array('statuses-submit', 'button', 'primary'));
+            array_push($form['fbss-submit']['#attributes']['class'], "btn", "btn-primary");
+
+            $form['#submit'][] = 'm6connect_dashboard_statuses_box_submit_handler';
+            $commands = array();
+            if ($form_state['submitted']) {
+                $sid = $form_state['values']['sid'];
+                $post = $form_state['values']['fbss-status'];
+                $commands[] = ctools_modal_command_dismiss();
+                $commands[] = ajax_command_html('#statuses-item-' . $sid . ' .message-block .statuses-content', $post);
+                $commands[] = ajax_command_html('#statuses-item-' . $sid . ' .content .statuses-content', $post);
+                $msg = theme('status_messages');
+                print ajax_render($commands);
+                exit;
+            }
+            break;
+        case '_statuses_delete':
+            $form['#submit'][] = 'm6connect_dashboard_statuses_box_submit_handler';
+            $commands = array();
+            if ($form_state['submitted']) {
+                $op = $form_state['values']['op'];
+                $sid = $form_state['values']['status-sid'];
+                $commands[] = ctools_modal_command_dismiss();
+                if ($op == 'Confirm') {
+                    $commands[] = ajax_command_remove('#statuses-item-' . $sid);
+                    $msg = theme('status_messages');
+                }
+                print ajax_render($commands);
+                exit;
+            }
+            break;
+      case 'user_login':
+        $form['#redirect'] = 'dashboard';
+         break;
+    }
+}
+
+function m6connect_dashboard_statuses_box_submit_handler(&$form, &$form_state) {
+//$form_state['custom_submit_callback'] =1;
+    $form_state['rebuild'] = true;
+}
+
+function m6connect_dashboard_connection_categories_node_form_submit($form, &$form_state) {
+//    $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+//    $form_state['ajax_commands'][] = ctools_ajax_command_reload();
+    $form_state['rebuild'] = true;
+}
+
+function m6connect_dashboard_statuses_form_ahah_alter(&$new_form, $form) {
+//    drupal_set_message('<pre>'.print_r($new_form,1).'</pre>');
+//    drupal_set_message('<pre>'.print_r($form,1).'</pre>');
+}
+
+//function m6connect_dashboard_query_alter(QueryAlterableInterface $query) {
+//    if (current_path() == 'dashboard') {
+//        drupal_set_message('<pre>' . print_r($query, 1) . '</pre>');
+//    }
+//}
+
+function m6connect_dashboard_views_query_alter(&$view, &$query) {
+    global $user;
+
+    if ($view->name == 'fbss_ur_stream') {
+        $og = og_get_groups_by_user($user, 'node');
+        $query->where[1]['conditions'][0]['value'] = $og;
+        $query->where[1]['conditions'][0]['operator'] = 'in';
+        $query->where[2]['conditions'][1]['value'] = $user->uid;
+    }
+
+    if ($view->name == 'cutom_statuses_stream') {
+        $query->where[1]['conditions'][0]['value'] = $view->args[0];
+    }
+    if ($view->name == 'fbss_ur_stream' && $view->current_display == 'block_3') {
+        if (isset($view->args[0]) && is_numeric($view->args[0])) {
+            $company_users = m6connect_misc_get_company_users_by_cnid($view->args[0]);
+            $ic_or = db_or();
+            $ic_or->condition('requestee_id', array($user->uid), 'in')->condition('requester_id', array($user->uid), 'in');
+            $ic_and = db_and();
+            $ic_and->condition($ic_or)->condition('approved', 1, '=');
+            $ic_or2 = db_or();
+            $ic_or2->condition($ic_and)->condition('users.uid', array($company_users), 'in');
+            $query->where[0]['conditions'][2]['field'] = $ic_or2;
+        }
+    }
+}
+
+function get_dashboard_left_side_content() {
+    global $user;
+    $user_data = user_load($user->uid);
+    $userLogo = (isset($user_data->field_user_profile_photo['und'])) ? theme('image_style', array('style_name' => 'user_pic_32x32', 'path' => $user_data->field_user_profile_photo['und'][0]['uri'], 'getsize' => TRUE)) : '';
+    $output = '';
+    $output .= '<div class="dashboard-left-block-fb" style="">';
+    $output .= '<div class="left-one-fb">';
+    $output .= '<div class="left-username-fb">';
+    $output .= $user_data->realname;
+    $output .= '</div>';
+    $output .= '<div class="left-dp-fb">';
+    $output .= $userLogo;
+    $output .= '</div>';
+    $output .= '<div class="left-dp-fb">';
+    $output .= l('Logout', '#');
+    $output .= '</div>';
+    $output .= '</div>';
+
+
+    $output .= '<div class="left-account-fb">';
+    $output .= '<div class="left-title-fb">';
+    $output .= l('Account', '#');
+    $output .= '</div>';
+    $output .= '<div class="left-content-fb">';
+    $output .= '<ul>';
+    $output .= l('Dashboard Home', '#');
+    $output .= '</ul>';
+    $output .= '<ul>';
+    $output .= l('Profiles', '#');
+    $output .= '<ul>';
+    $output .= '<li>';
+    $output .= l('John Clark', '#');
+    $output .= '</li>';
+    $output .= '<li>';
+    $output .= l('ESport Solutions', '#');
+    $output .= '</li>';
+    $output .= '</ul>';
+    $output .= '</ul>';
+    $output .= '</div>';
+    $output .= '</div>';
+
+    $output .= '<div class="left-myservices-fb">';
+    $output .= '<div class="left-title-fb">';
+    $output .= l('My Services', '#');
+    $output .= '</div>';
+    $output .= '<div class="left-content-fb">';
+    $output .= l('Projects', '#');
+    $output .= l('RFPs', '#');
+    $output .= l('Proposals', '#');
+    $output .= '</div>';
+    $output .= '<div class="left-availabeservices-fb">';
+    $output .= l('Ranks', '#');
+    $output .= '</div';
+    $output .= '</div>';
+
+    $output .= '<div class="left-connections-fb">';
+    $output .= '<div class="left-title-fb">';
+    $output .= l('Connections', '#');
+    $output .= '</div>';
+    $output .= '<div class="left-content-fb">';
+
+    $output .= '<ul>';
+    $output .= l('People', '#');
+
+    $output .= '<ul>';
+    $output .= '<li>';
+    $output .= l('Friends', '#');
+    $output .= '</li>';
+    $output .= '<li>';
+    $output .= l('Collegues', '#');
+    $output .= '</li>';
+    $output .= '<li>';
+    $output .= l('Business Aquaintances', '#');
+    $output .= '</li>';
+    $output .= '<li>';
+    $output .= l('Favouriate Friends', '#');
+    $output .= '</li>';
+    $output .= '<li>';
+    $output .= l('Prospects', '#');
+    $output .= '</li>';
+    $output .= '<li>';
+    $output .= l('Family', '#');
+    $output .= '</li>';
+    $output .= '<li>';
+    $output .= l('Create New Category', '#');
+    $output .= '</li>';
+    $output .= '<li>';
+    $output .= l('Find People', '#');
+    $output .= '</li>';
+    $output .= '</ul>';
+    $output .= '</ul>';
+
+    $output .= '<ul>';
+    $output .= l('Companies Followed', '#');
+    $output .= '<ul>';
+    $output .= '<li>';
+    $output .= l('Emsick Design Company', '#');
+    $output .= '</li>';
+    $output .= '<li>';
+    $output .= l('Betty White Industries', '#');
+    $output .= '</li>';
+    $output .= '<li>';
+    $output .= l('Find Companies', '#');
+    $output .= '</li>';
+    $output .= '</ul>';
+    $output .= '</ul>';
+    $output .= '<ul>';
+    $output .= l('M6 Cliques', '#');
+    $output .= '<li>';
+    $output .= l('Friends', '#');
+    $output .= '</li>';
+    $output .= '<li>';
+    $output .= l('Esport Solutions LLC', '#');
+    $output .= '</li>';
+    $output .= '<li>';
+    $output .= l('Create Clique', '#');
+    $output .= '</li>';
+    $output .= '</ul>';
+    $output .= '</ul>';
+
+    $output .= '</div>';
+    $output .= '</div>';
+
+
+    $output .= '</div>';
+    return $output;
+}
+
+/* * *************************************************** dashboard popup start *********************************************** */
+
+/**
+ * Popup’s setings function.
+ */
+function assign_dashboard_ctools_popup_style() {
+    static $dashboardAdded = FALSE;
+    if ($dashboardAdded == FALSE) {
+        $dashboardAdded = TRUE;
+        ctools_include('modal');
+        ctools_include('ajax');
+        ctools_modal_add_js();
+        $assign_dashboard_popup_style = array(
+            'assign-dashboard-popup-style' => array(
+                'modalSize' => array(
+                    'type' => 'fixed',
+                    'width' => 530,
+                    'height' => 'auto',
+                ),
+                'modalOptions' => array(
+                    'opacity' => (float) 0.85,
+                    'background-color' => '#000000',
+                ),
+                'closeText' => '',
+                'loadingText' => '',
+                'animation' => 'fadeIn',
+                'modalTheme' => 'AssignDashboardPopup',
+                'animationSpeed' => 'fast',
+            ),
+            'assign-dashboard-facebook-popup-style' => array(
+                'modalSize' => array(
+                    'type' => 'fixed',
+                    'width' => 650,
+                    'height' => 'auto',
+                ),
+                'modalOptions' => array(
+                    'opacity' => (float) 0.85,
+                    'background-color' => '#000000',
+                ),
+                'closeText' => '',
+                'loadingText' => '',
+                'animation' => 'fadeIn',
+                'modalTheme' => 'AssignDashboardPopup',
+                'animationSpeed' => 'fast',
+            ),
+            'assign-dashboard-invite-style' => array(
+                'modalSize' => array(
+                    'type' => 'fixed',
+                    'width' => 530,
+                    'height' => 'auto',
+                ),
+                'modalOptions' => array(
+                    'opacity' => (float) 0.85,
+                    'background-color' => '#000000',
+                ),
+                'closeText' => 'close',
+                'loadingText' => '',
+                'animation' => 'fadeIn',
+                'modalTheme' => 'AssignDashboardInvitePopup',
+                'animationSpeed' => 'fast',
+            ),
+        );
+        drupal_add_js($assign_dashboard_popup_style, 'setting');
+        ctools_add_js('m6connect_assign_dashboard_modal', 'm6connect_dashboard');
+    }
+}
+
+function assign_asset_category_ctools_popup_style() {
+    static $dashboardAdded = FALSE;
+    if ($dashboardAdded == FALSE) {
+        $dashboardAdded = TRUE;
+        ctools_include('modal');
+        ctools_include('ajax');
+        ctools_modal_add_js();
+        $assign_dashboard_popup_style = array(
+            'assign-asset-category-popup-style' => array(
+                'modalSize' => array(
+                    'type' => 'fixed',
+                    'width' => 1130,
+                    'height' => 'auto',
+                ),
+                'modalOptions' => array(
+                    'opacity' => (float) 0.85,
+                    'background-color' => '#000000',
+                ),
+                'closeText' => '',
+                'loadingText' => '',
+                'animation' => 'fadeIn',
+                'modalTheme' => 'AssignDashboardPopup',
+                'animationSpeed' => 'fast',
+            ),          
+        );
+        drupal_add_js($assign_dashboard_popup_style, 'setting');
+        ctools_add_js('m6connect_assign_dashboard_modal', 'm6connect_dashboard');
+    }
+}
+
+function m6connect_dashboard_comment_form_submit($form, &$form_state) {
+//    $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+//    $form_state['ajax_commands'][] = ctools_ajax_command_reload();
+    $form_state['rebuild'] = true;
+}
+
+function assign_update_images_crop_ctools_popup_style() {
+
+  static $dashboardAdded = FALSE;
+    if ($dashboardAdded == FALSE) {
+        $dashboardAdded = TRUE;
+        ctools_include('modal');
+        ctools_include('ajax');
+        ctools_modal_add_js();
+        $assign_dashboard_popup_style = array(
+            'assign-update-images-crop-popup-style' => array(
+                'modalSize' => array(
+                    'type' => 'fixed',
+                    'width' => 1045,
+                    'height' => 500,
+                ),
+                'modalOptions' => array(
+                    'opacity' => (float) 0.85,
+                    'background-color' => '#000000',
+                ),
+                'closeText' => '',
+                'loadingText' => '',
+                'animation' => 'fadeIn',
+                'modalTheme' => 'AssignDashboardPopup',
+                'animationSpeed' => 'fast',
+            ),          
+        );
+        drupal_add_js($assign_dashboard_popup_style, 'setting');
+        ctools_add_js('m6connect_assign_dashboard_modal', 'm6connect_dashboard');
+    }
+
+}
+
+/*     * *************************************************** dashboard popup end ************************************************* */   
+
+//Image autorotate
+/**
+ * Implements hook_image_default_styles().
+ */
+function m6connect_dashboard_image_default_styles() {
+  $styles = array();
+
+  $styles['image_exif_autorotate'] = array(
+    'effects' => array(
+      array(
+        'name' => 'imagecache_autorotate',
+        'weight' => '0',
+      ),
+    ),
+  );
+
+  return $styles;
+}
+
+/**
+ * Implements hook_file_insert().
+ */
+function m6connect_dashboard_file_insert($file) {
+/*  pre($file);
+  $full_filename =drupal_realpath($file->uri);  
+  pre($full_filename);
+  $exif = exif_read_data($full_filename);  
+  pre($exif,1);*/
+  
+  list($type, $subtype) = explode('/', $file->filemime, 2);
+  if ($type == 'image') {
+    $image_style = image_style_load('image_exif_autorotate');
+    if (image_style_create_derivative($image_style, $file->uri, $file->uri)) {
+      // Resave the file so it updates the file size and other properties.
+      file_save($file);
+    }
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////// Start LinkedIn Messaging //////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function people_messaging_feed(){
+  global $user;
+  $element = array();
+  $element['user-group-contianer'] = array(
+    '#type' => 'container',
+	'#attributes' => array('class'=> array('user-group-contianer')),
+	'#prefix' => '<div id="user-group-contianer-main">',
+	'#suffix' => '</div>',
+  );
+  
+  $users = array(581,311);
+  foreach($users as $delta => $userUid){
+  
+	$element['user-group-contianer']['user-group-'.$userUid] = array(
+	  '#type' => 'container',
+	  '#attributes' => array('class'=> array('user-group-'.$userUid)),
+	  '#prefix' => '<div id="user-group-contianer-'.$userUid.'" class="user-info-messaging">',
+	  '#suffix' => '</div>',
+	);
+	
+	$userLinkMarkup  = '<div id="user-contianer-'.$userUid.'" class="clearfix">';
+	$userLinkMarkup .= '  <div class="msg-img-user pull-left">img';
+	$userLinkMarkup .= '  </div>';
+	$userLinkMarkup .= '  <div class="msg-user-data pull-left">';
+	$userLinkMarkup .= '    <div class="msg-user-name">Mayank';
+	$userLinkMarkup .= '    </div>';
+	$userLinkMarkup .= '    <div class="msg-user-degn">abc';
+	$userLinkMarkup .= '    </div>';
+	$userLinkMarkup .= '  </div>';
+	$userLinkMarkup .= '</div>';
+	
+	$userLink = l('Select','javascript:void(0);', array('external'=>TRUE,'attributes'=> array('user-link')));
+	
+	$element['user-group-contianer']['user-group-'.$userUid]['user-'.$userUid] = array(
+	  '#markup' => $userLinkMarkup.$userLink,
+	);
+  }
+  return $element;	
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////// End LinkedIn Messaging ////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//
+
+/*function m6connect_dashboard_user_presave(&$edit, $account, $category) {
+    $profile_wieght = 0;
+    if(isset($edit['field_first_name'],$edit['field_last_name'],$edit['mail'],$edit['field_date_of_birth'],$edit['field_gender'],$edit['field_phone'],$edit['field_mobile_phone'],$edit['field_user_profile_photo'],$edit['field_user_profile_cover_img'],$edit['field_address'],$edit['field_alt_phone'],$edit['field_facebook_url'],$edit['field_linkedin_url'],$edit['field_twitter_url'],$edit['field_behance_url'])){
+      if(isset($edit['field_first_name']['und']) && !empty($edit['field_first_name']['und']['0']['value'])){
+        $profile_wieght += 2;
+       }
+       if(isset($edit['field_last_name']['und']) && !empty($edit['field_last_name']['und']['0']['value'])){
+        $profile_wieght += 2;
+       }
+       if(isset($edit['mail']) && !empty($edit['mail'])){
+        $profile_wieght += 2;
+       }
+       if(isset($edit['field_date_of_birth']['und']) && !empty($edit['field_date_of_birth']['und']['0']['value'])){
+        $profile_wieght += 2;
+       }
+       if(isset($edit['field_gender']['und']) && !empty($edit['field_gender']['und']['0']['value'])){
+        $profile_wieght += 2;
+       }
+       if(isset($edit['field_phone']['und']) && !empty($edit['field_phone']['und']['0']['value'])){
+        $profile_wieght += 2;
+       }
+      if(isset($edit['field_mobile_phone']['und']) && !empty($edit['field_mobile_phone']['und']['0']['value'])){
+        $profile_wieght += 2;
+       }
+      if(isset($edit['field_user_profile_photo']['und']) && !empty($edit['field_user_profile_photo']['und']['0']['fid'])){
+        $profile_wieght += 2;
+       }
+       if(isset($edit['field_user_profile_cover_img']['und']) && !empty($edit['field_user_profile_cover_img']['und']['0']['fid'])){
+        $profile_wieght += 2;
+       }
+       if(isset($edit['field_address']['und']) && !empty($edit['field_address']['und']['0']['thoroughfare'])){
+        $profile_wieght += 2;
+       }
+       if(isset($edit['field_alt_phone']['und']) && !empty($edit['field_alt_phone']['und']['0']['value'])){
+        $profile_wieght += 2;
+       }  
+        if(isset($edit['field_facebook_url']['und']) && !empty($edit['field_facebook_url']['und']['0']['value'])){
+        $profile_wieght += 2;
+       }  
+       if(isset($edit['field_linkedin_url']['und']) && !empty($edit['field_linkedin_url']['und']['0']['value'])){
+        $profile_wieght += 2;
+       } 
+       if(isset($edit['field_twitter_url']['und']) && !empty($edit['field_twitter_url']['und']['0']['value'])){
+        $profile_wieght += 2;
+       }
+       if(isset($edit['field_behance_url']['und']) && !empty($edit['field_behance_url']['und']['0']['value'])){
+        $profile_wieght += 2;
+       }
+       $edit['field_profile_strenght']['und']['0']['value'] = $profile_wieght;
+    }
+}*/
+
+/*function m6connect_dashboard_node_presave($node) {
+  
+   if($node->type == 'onboarding'){
+        //drup_msg($node);  
+        $profile_wieght = 0;
+        if(isset($node->field_organization_mail['und']) && !empty($node->field_organization_mail['und'][0]['email'])){
+          $profile_wieght += 3;
+        }
+        if(isset($node->field_are_you_a_us_citizen['und']) && !empty($node->field_are_you_a_us_citizen['und'][0]['value'])){
+             $profile_wieght += 2; 
+        }
+        if(isset($node->field_home_phone['und']) && !empty($node->field_home_phone['und'][0]['value'])){
+          $profile_wieght += 2;
+        }
+        if(isset($node->field_facilities_construction['und']) && !empty($node->field_facilities_construction['und'][0]['tid'])){
+          $profile_wieght += 2;
+        }
+        if(isset($node->field_drivers_license_number['und']) && !empty($node->field_drivers_license_number['und'][0]['value'])){
+          $profile_wieght += 1;
+        }
+        if(isset($node->field_attach_driving_licence['und']) && !empty($node->field_attach_driving_licence['und'][0]['fid'])){
+          $profile_wieght += 2;
+        }
+        if(isset($node->field_drivers_license_issuance['und']) && !empty($node->field_drivers_license_issuance['und'][0]['country'])){
+          $profile_wieght += 1;
+        }
+        if(isset($node->field_drivers_license_issuance['und']) && !empty($node->field_drivers_license_issuance['und'][0]['administrative_area'])){
+          $profile_wieght += 1;
+        }
+        if(isset($node->field_attach_copy['und']) && !empty($node->field_attach_copy['und'][0]['fid'])){
+          $profile_wieght += 2;
+        }
+        if(isset($node->field_vehicle_insurance_statemen['und']) && !empty($node->field_vehicle_insurance_statemen['und'][0]['value'])){
+          $profile_wieght += 1;
+        }
+        if(isset($node->field_policy_expiration_date['und']) && !empty($node->field_policy_expiration_date['und'][0]['value'])){
+          $profile_wieght += 1;
+        }
+        if(isset($node->field_vehicle_license_plate_numb['und']) && !empty($node->field_vehicle_license_plate_numb['und'][0]['value'])){
+          $profile_wieght += 1;
+        }
+        if(isset($node->field_emergency_phone_number['und']) && !empty($node->field_emergency_phone_number['und'][0]['value'])){
+          $profile_wieght += 6;
+        }
+        if(isset($node->field_onbarding_credentials['und'],$node->field_onbarding_credentials['und'][0])){
+          if((isset($node->field_onbarding_credentials['und'][0]['field_title_name_of_credential']['und']) && !empty($node->field_onbarding_credentials['und'][0]['field_title_name_of_credential']['und']['0']['value'])) || !empty($node->field_onbarding_credentials['und'][0]['value'])){
+            $profile_wieght += 5;  
+          }
+        } 
+        $node->field_profile_strenght['und'][0]['value'] = $profile_wieght;
+       // drup_msg($node);  
+        //drup_msg($node->field_profile_strenght['und'][0]['value']);             
+    
+     }  
+
+}*/
+//---Strat here for profile strenth ---------//
+function profile_strength_skill_weight($uid){
+	
+$query = db_select('users','u');
+$query->leftjoin('m6connect_user_skill_set','ssu','ssu.skill_uid=u.uid');
+$query->addExpression('count(ssu.skill_uid)','skill_profile_strenght');
+$query->groupBy('ssu.skill_uid');
+$query->condition('u.uid', $uid);
+$result = $query->execute()->fetchAssoc();
+     $weight = 0;
+
+     if($result['skill_profile_strenght'] >= 2){
+       $weight += 20;
+     }else{
+       $tmp = $result['skill_profile_strenght']*10;
+       $weight += $tmp; 
+     } 
+  return $weight;
+}
+function profile_strength_company_weight($uid){
+	
+ $query = db_select('users','u');
+ $query->leftjoin('field_data_field_primary_company','fpc','fpc.entity_id=u.uid AND fpc.bundle=:FPCBundle',array(':FPCBundle'=>'user'));
+ $query->addField('fpc','field_primary_company_value','user_primary_company');
+ $query->condition('u.uid', $uid);
+ $result = $query->execute()->fetchAssoc();
+ $weight = 0;
+  
+  $nid = $result['user_primary_company'];
+  $company_strenghts = company_strenght($nid);
+  $weight +=  $company_strenghts;
+  
+  return $weight;
+  
+}
+function profile_strenght($uid){
+
+//user skill set wieght total = 10 + 10
+ 
+  $query = db_select('users','u');
+$query->leftjoin('node','n','n.uid=u.uid AND n.type=:NodeType', array(':NodeType'=>'onboarding'));
+$query->leftjoin('field_data_field_primary_company','fpc','fpc.entity_id=u.uid AND fpc.bundle=:FPCBundle',array(':FPCBundle'=>'user'));
+$query->leftjoin('m6connect_user_skill_set','ssu','ssu.skill_uid=u.uid');
+$query->addField('n','nid','user_m6id_nid');
+$query->addField('fpc','field_primary_company_value','user_primary_company');
+$query->addExpression('count(ssu.skill_uid)','skill_profile_strenght');
+$query->groupBy('ssu.skill_uid');
+$query->condition('u.uid', $uid);
+$result = $query->execute()->fetchAssoc();
+  $weight = 0;
+
+  $user_strenght = user_strenght($uid);
+  $weight +=  $user_strenght;
+
+  $m6id = $result['user_m6id_nid'];
+  $m6id_strenghts = m6id_strenght($m6id);
+  $weight +=  $m6id_strenghts;
+
+  /*$nid = $result['user_primary_company'];
+  $company_strenghts = company_strenght($nid);
+  $weight +=  $company_strenghts;*/
+
+
+     if($result['skill_profile_strenght'] >= 2){
+       $weight += 20;
+       }else
+       {
+         $tmp = $result['skill_profile_strenght']*10;
+         $weight += $tmp; 
+        } 
+  return $weight;
+}
+
+function user_strenght($uid){
+
+//user wieght Strenght total = 25 + 15
+
+    $user_wieght = 0;
+    $edit = user_load($uid);
+	   //First name :
+       if(isset($edit->field_first_name['und']) && !empty($edit->field_first_name['und']['0']['value'])){
+        $user_wieght += 3;
+       }
+	   //Last Name :
+       if(isset($edit->field_last_name['und']) && !empty($edit->field_last_name['und']['0']['value'])){
+        $user_wieght += 3;
+       }
+	  // Mail :
+       if(isset($edit->mail) && !empty($edit->mail)){
+        $user_wieght += 2;
+       }
+	  // DOB :
+       if(isset($edit->field_date_of_birth['und']) && !empty($edit->field_date_of_birth['und']['0']['value'])){
+        $user_wieght += 3;
+       }
+	  // Gender :
+       if(isset($edit->field_gender['und']) && !empty($edit->field_gender['und']['0']['value'])){
+        $user_wieght += 3;
+       }
+	  // phone :
+       if(isset($edit->field_phone['und']) && !empty($edit->field_phone['und']['0']['value'])){
+        $user_wieght += 4;
+       }
+	  // Mobile :
+      if(isset($edit->field_mobile_phone['und']) && !empty($edit->field_mobile_phone['und']['0']['value'])){
+        $user_wieght += 4;
+       }
+	 // Profile image :
+      if(isset($edit->field_user_profile_photo['und']) && !empty($edit->field_user_profile_photo['und']['0']['fid'])){
+        $user_wieght += 4;
+       }
+	 //Profile image cover :
+       if(isset($edit->field_user_profile_cover_img['und']) && !empty($edit->field_user_profile_cover_img['und']['0']['fid'])){
+        $user_wieght += 4;
+       }
+	   //Address :
+       if(isset($edit->field_address['und']) && !empty($edit->field_address['und']['0']['thoroughfare'])){
+        $user_wieght += 2;
+       }
+	  // Alternate Phone :
+       if(isset($edit->field_alt_phone['und']) && !empty($edit->field_alt_phone['und']['0']['value'])){
+        $user_wieght += 1;
+       }
+	   //Facebook:  
+        if(isset($edit->field_facebook_url['und']) && !empty($edit->field_facebook_url['und']['0']['value'])){
+        $user_wieght += 1;
+       }
+	   //Linkedin :  
+       if(isset($edit->field_linkedin_url['und']) && !empty($edit->field_linkedin_url['und']['0']['value'])){
+        $user_wieght += 1;
+       }
+	   //Twitter : 
+       if(isset($edit->field_twitter_url['und']) && !empty($edit->field_twitter_url['und']['0']['value'])){
+        $user_wieght += 1;
+       }
+	   //Yammer Url :
+       if(isset($edit->field_behance_url['und']) && !empty($edit->field_behance_url['und']['0']['value'])){
+        $user_wieght += 1;
+       }
+	   //15-09-2016---------new field-------------//
+	  // M6Standard Job title:
+	   if(isset($edit->field_job_titles['und']) && !empty($edit->field_job_titles['und']['0']['target_id'])){
+        $user_wieght += 1;
+       }
+	 // Responsibility:
+      if(isset($edit->field_responsibilities['und']) && !empty($edit->field_responsibilities['und']['0']['value'])){
+        $user_wieght += 1;
+       }
+	  // Title:
+	   if(isset($edit->field_user_title['und']) && !empty($edit->field_user_title['und']['0']['value'])){
+        $user_wieght += 1;
+       }
+
+       return $user_wieght;
+
+}
+
+function m6id_strenght($nid){
+	
+ //m6id wieght Strenght total = 25 + 15
+    if (is_numeric($nid)) {
+
+      $profile_wieght = 0;
+       $node = node_load($nid);
+	   //Personal E-mail address :
+        if(isset($node->field_organization_mail['und']) && !empty($node->field_organization_mail['und'][0]['email'])){
+          $profile_wieght += 2;
+        }
+		//Are you a US citizen? :
+        if(isset($node->field_are_you_a_us_citizen['und']) && !empty($node->field_are_you_a_us_citizen['und'][0]['value'])){
+             $profile_wieght += 3;
+        }
+		//Home Phone Number :
+        if(isset($node->field_home_phone['und']) && !empty($node->field_home_phone['und'][0]['value'])){
+          $profile_wieght += 3;
+        }
+		//Select Trade Category :
+        if(isset($node->field_facilities_construction['und']) && !empty($node->field_facilities_construction['und'][0]['tid'])){
+          $profile_wieght += 3;
+        }
+		//Drivers License Number :
+        if(isset($node->field_drivers_license_number['und']) && !empty($node->field_drivers_license_number['und'][0]['value'])){
+          $profile_wieght += 2;
+        }
+		//Attach  :
+        if(isset($node->field_attach_driving_licence['und']) && !empty($node->field_attach_driving_licence['und'][0]['fid'])){
+          $profile_wieght += 3;
+        }
+		//country of issuance:
+        if(isset($node->field_drivers_license_issuance['und']) && !empty($node->field_drivers_license_issuance['und'][0]['country'])){
+          $profile_wieght += 2;
+        }
+		//state of Issuance  :
+        if(isset($node->field_drivers_license_issuance['und']) && !empty($node->field_drivers_license_issuance['und'][0]['administrative_area'])){
+          $profile_wieght += 2;
+        }
+		//Attach Copy :
+        if(isset($node->field_attach_copy['und']) && !empty($node->field_attach_copy['und'][0]['fid'])){
+          $profile_wieght += 3;
+        }
+		//Company name :
+        if(isset($node->field_vehicle_insurance_statemen['und']) && !empty($node->field_vehicle_insurance_statemen['und'][0]['value'])){
+          $profile_wieght += 2;
+        }
+		//Policy Expiration Date :
+        if(isset($node->field_policy_expiration_date['und']) && !empty($node->field_policy_expiration_date['und'][0]['value'])){
+          $profile_wieght += 1;
+        }
+		//Vehicle License Plate Number :
+        if(isset($node->field_vehicle_license_plate_numb['und']) && !empty($node->field_vehicle_license_plate_numb['und'][0]['value'])){
+          $profile_wieght += 1;
+        }
+		//Cellular Phone Number :
+        if(isset($node->field_emergency_phone_number['und']) && !empty($node->field_emergency_phone_number['und'][0]['value'])){
+          $profile_wieght += 3;
+        }
+		//Credentials :
+        if(isset($node->field_onbarding_credentials['und'],$node->field_onbarding_credentials['und'][0])){
+          if((isset($node->field_onbarding_credentials['und'][0]['field_title_name_of_credential']['und']) && !empty($node->field_onbarding_credentials['und'][0]['field_title_name_of_credential']['und']['0']['value'])) || !empty($node->field_onbarding_credentials['und'][0]['value'])){
+            $profile_wieght += 10;  
+          }
+        }
+		  
+        return  $profile_wieght;
+
+    }else{
+
+       return 0;  
+    }    
+
+}
+
+function company_strenght($nid){
+  
+//company wieght total 40 + 60
+  
+    if (is_numeric($nid)) {
+
+        $node = node_load($nid);
+        $company_wieght = 0;
+		//Company Profile Photo :
+        if(isset($node->field_logo['und']) && !empty($node->field_logo['und'][0]['fid'])){
+          $company_wieght += 4;
+        }
+		//Company Profile Cover Image :
+        if(isset($node->field_company_profile_cover_img['und']) && !empty($node->field_company_profile_cover_img['und'][0]['fid'])){
+          $company_wieght += 4;
+        }
+		//Company Tagline :
+        if(isset($node->field_company_tagline['und']) && !empty($node->field_company_tagline['und'][0]['value'])){
+          $company_wieght += 4;
+        }
+		//Company Description :
+        if(isset($node->field_description['und']) && !empty($node->field_description['und'][0]['value'])){
+          $company_wieght += 4;
+        }
+		//Company Website URL :
+        if(isset($node->field_website['und']) && !empty($node->field_website['und'][0]['value'])){
+          $company_wieght += 2;
+        }
+		//Legal Structure :
+        if(isset($node->field_legal_structure['und']) && !empty($node->field_legal_structure['und'][0]['value'])){
+          $company_wieght += 4;
+        }
+		//Incorporated State :
+        if(isset($node->field_incorporated_state['und']) && !empty($node->field_incorporated_state['und'][0]['value'])){
+          $company_wieght += 3;
+        }
+		//Taxpayer SSN/EIN :
+        if(isset($node->field_taxpayer_ssn_ein['und']) && !empty($node->field_taxpayer_ssn_ein['und'][0]['value'])){
+          $company_wieght += 2;
+        }
+		//Keywords :
+        if(isset($node->field_keywords['und']) && !empty($node->field_keywords['und'][0]['value'])){
+          $company_wieght += 2;
+        }
+		//Address :
+        if(isset($node->field_org_address['und']) && !empty($node->field_org_address['und'][0]['thoroughfare'])){
+          $company_wieght += 4;
+        }
+		//Diversity Credentials :
+        if(isset($node->field_diversity_credentials['und']) && !empty($node->field_diversity_credentials['und'][0]['target_id'])){
+          $company_wieght += 15;
+        }
+		//M6 Company Types :
+        if(isset($node->field_facilities_construction['und']) && !empty($node->field_facilities_construction['und'][0]['tid'])){
+          $company_wieght += 4;
+        }
+		//Industry NAICS :
+        if(isset($node->field_industry_naicss['und']) && !empty($node->field_industry_naicss['und'][0]['tid'])){
+          $company_wieght += 2;
+        }
+		//Provided Products & Services UNSPSC :
+        if(isset($node->field_products_service_unspsc['und']) && !empty($node->field_products_service_unspsc['und'][0]['tid'])){
+          $company_wieght += 2;
+        }
+		//Needed Products & Services UNSPSC :
+        if(isset($node->field_needed_products_services['und']) && !empty($node->field_needed_products_services['und'][0]['tid'])){
+          $company_wieght += 2;
+        }
+		//15-09-2016----new field added here ---------//
+		
+		//Company Type:
+		if(isset($node->field_organization_type['und']) && !empty($node->field_organization_type['und'][0]['value'])){
+          $company_wieght += 2;
+        }
+		//Facebook:
+		if(isset($node->field_facebook['und']) && !empty($node->field_facebook['und'][0]['value'])){
+          $company_wieght += 2;
+        }
+		//Twitter:
+		if(isset($node->field_twitter['und']) && !empty($node->field_twitter['und'][0]['value'])){
+          $company_wieght += 2;
+        }
+		//Instagram:
+		if(isset($node->field_instagram['und']) && !empty($node->field_instagram['und'][0]['value'])){
+          $company_wieght += 2;
+        }
+		//Skype:
+		if(isset($node->field_skype['und']) && !empty($node->field_skype['und'][0]['value'])){
+          $company_wieght += 2;
+        }
+		//LinkedIn:
+		if(isset($node->field_linkdin['und']) && !empty($node->field_linkdin['und'][0]['value'])){
+          $company_wieght += 2;
+        }
+		//Legal Name:
+		if(isset($node->field_legal_name['und']) && !empty($node->field_legal_name['und'][0]['value'])){
+          $company_wieght += 4;
+        }
+		//DUNS Number:
+		if(isset($node->field_duns_number['und']) && !empty($node->field_duns_number['und'][0]['value'])){
+          $company_wieght += 4;
+        }
+		//Number of Employees: 
+		if(isset($node->field_number_of_employees['und']) && !empty($node->field_number_of_employees['und'][0]['value'])){
+          $company_wieght += 4;
+        }
+		//Annual Revenue:
+		if(isset($node->field_annual_revenue['und']) && !empty($node->field_annual_revenue['und'][0]['value'])){
+          $company_wieght += 4;
+        }
+		//Year Founded:
+		if(isset($node->field_year_founded['und']) && !empty($node->field_year_founded['und'][0]['value'])){
+          $company_wieght += 4;
+        }
+		//Bondable:
+		if(isset($node->field_bondable_['und']) && !empty($node->field_bondable_['und'][0]['value'])){
+			
+		  if($node->field_bondable_['und'][0]['value'] == 'yes'){
+          $company_wieght += 10;
+		  }else{
+		  $company_wieght += 0;
+		  }
+        }
+        return  $company_wieght;
+       // drup_msg($node);
+            }else{
+                return 0;
+            }
+}
+function m6connect_profile_strenght(){
+  global $user;
+  $output = '';
+  $currentPageUserUid = arg(1);
+  $uid = $user->uid;
+  if($currentPageUserUid == $user->uid){
+    $weight = profile_strenght($user->uid);
+	
+	//get user onboarding nid function get m6id using user uid
+	$m6nid = get_user_onboarding_nid($user->uid);
+	
+	//m6id_strenght function get m6id weight using user uid 
+	$m6idstrenght = m6id_strenght($m6nid);
+	
+	//user_strenght function get personal profile weight using user uid 
+	$userstrenght = user_strenght($user->uid);
+	
+	//profile_strength_company_weight function get primary company weight using user uid
+	/*$query = db_select('users','u');
+ 	$query->leftjoin('field_data_field_primary_company','fpc','fpc.entity_id=u.uid AND fpc.bundle=:FPCBundle',array(':FPCBundle'=>'user'));
+ 	$query->addField('fpc','field_primary_company_value','user_primary_company');
+ 	$query->condition('u.uid', $user->uid);
+ 	$result = $query->execute()->fetchAssoc();
+	$CompanyNid = $result['user_primary_company'];
+ 
+	$companystrenght = profile_strength_company_weight($user->uid);*/
+	
+	//profile_strength_skill_weight function get skill weight
+	$skillweight = profile_strength_skill_weight($user->uid);
+
+	if($userstrenght < 40){	
+	$usersRemWeight = 40 - $userstrenght;
+	$userEditLink = '<div class="padding-bottom-5"><a href="/user/'.$user->uid.'/edit">Personal Profile: To get '.$usersRemWeight.'% more.</a></div>';
+	}
+	if($m6idstrenght < 40){
+	$m6idRemWeight = 40 - $m6idstrenght;
+	$m6idLinks = '<div class="padding-bottom-5"><a href="/user/'.$user->uid.'/m6id-info">M6ID: To get '.$m6idRemWeight.'% more.</a></div>';	
+	}
+	if($skillweight < 20){
+	$skillRemweight = 20 - $skillweight;
+	$skillLinks  = '<div id="user-menu-nav" class="padding-bottom-5 user-profile-tab-area" role="tablist">  
+<a aria-controls="skillset" class="profile-tab-open" data-toggle="tab" href="#skillset" role="tab">Skill Sets: To get '.$skillRemweight.'% more.</a></div>';
+	}
+	/*if($companystrenght < 40){
+	$companyRemWeight = 40 - $companystrenght;
+	 if(!empty($CompanyNid)){
+	$companyLinks = '<div class="padding-bottom-5"><a href="/node/'.$CompanyNid.'/edit">Company Profile: To get '.$companyRemWeight.'% more.</a></div>';
+	 }else{
+	$companyLinks = '<div class="padding-bottom-5"><a href="/node/add/organization">Company Profile: To get '.$companyRemWeight.'% more.</a></div>';	 
+	 }
+		
+	}*/
+	
+   $output .= '<p style="font-style:italic;">Add and Update your Personal Profile to be more visible and engaging to others.</p><div class="profile-strength-main">
+	               <div class="progress progress-bar-danger">
+                     <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="'.$weight.'" aria-valuemin="0" aria-valuemax="100" style="width: '.$weight.'%;">
+    '.$weight.'%
+                     </div>
+                  </div>
+			     <div class="profile-strength-links">'.$userEditLink.''.$skillLinks.''.$m6idLinks.'</div>
+			  </div>';
+  }
+  return $output;
+} 
+//---End here profile strenth ---------//
+// for company profile strenth
+function m6connect_company_profile_strength(){
+  global $user;
+  $output = '';
+  $uid = $user->uid;
+  $currentNode = menu_get_object('node', 1);
+  $currentnid = $currentNode->nid;
+
+  $query = db_select('users','u');
+  $query->leftjoin('field_data_field_primary_company','fpc','fpc.entity_id=u.uid AND fpc.bundle=:FPCBundle',array(':FPCBundle'=>'user'));
+  $query->addField('fpc','field_primary_company_value','user_primary_company');
+  $query->condition('u.uid', $user->uid);
+  $result = $query->execute()->fetchAssoc();
+  $CompanyNid = $result['user_primary_company'];
+  
+  if($currentnid == $CompanyNid){
+    $weight = profile_strength_company_weight($user->uid);
+	$companystrenght = profile_strength_company_weight($user->uid);
+    if ($companystrenght == 100 && $currentNode) {
+        // If company profile is complete, then updating it's level.
+        if (isset($currentNode->field_m6level[LANGUAGE_NONE][0]['value'])) {
+            if ($currentNode->field_m6level[LANGUAGE_NONE][0]['value'] < 7) {
+                $currentNode->field_m6level[LANGUAGE_NONE][0]['value'] = 7;
+                node_save($currentNode);
+            }
+        }
+    }
+	if($companystrenght < 100){
+	  $companyRemWeight = 100 - $companystrenght;
+		if(!empty($CompanyNid)){
+		  $company_admin =_get_company_users_email_by_onboarding_roles($CompanyNid, array('company admin'));
+          $companyadminRoles = $company_admin['company admin'];
+           foreach($companyadminRoles as $usersuid){
+	        $checkuid = $usersuid->uid;
+			//$checkuidarray = array($checkuid);
+			  if($user->uid == $checkuid){   
+		        $companyLinks = '<div class="padding-bottom-5"><a href="/node/'.$CompanyNid.'/edit">Company Profile: To get '.$companyRemWeight.'% more.</a></div>';
+		       } 
+		   }
+	    }
+	}
+		
+	 $output .= '<div class="profile-strength-main">
+	               <div class="progress progress-bar-danger">
+                     <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="'.$weight.'" aria-valuemin="0" aria-valuemax="100" style="width: '.$weight.'%;">
+    '.$weight.'%
+                     </div>
+                  </div>
+			     <div class="profile-strength-links">'.$companyLinks.'</div>
+			  </div>';
+  }
+  return $output;
+}
+
+//===== change user profile photo for dashboard====================
+function change_user_profile_photo_callback($ajax = NULL){
+  
+  if($ajax){
+    ctools_include('ajax');
+    ctools_include('modal');
+    $form_state = array(
+      'ajax' => TRUE,
+      'title' => '<p class="asset-popup-title-custom">'.t('Update Profile photo').'</p>',
+    );
+    $output = ctools_modal_form_wrapper('change_user_profile_photo_form', $form_state);
+    if (!empty($form_state['ajax_commands'])) {
+      $output = $form_state['ajax_commands'];
+    }
+    print ajax_render($output);
+    drupal_exit();
+   }
+   return drupal_get_form('change_user_profile_photo_form');
+  
+}
+function change_user_profile_photo_form($form, &$form_state) {
+   global $user;
+
+  $closeButton = l('<input type="button" class="btn btn-primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('packages-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();Drupal.attachBehaviors();')));
+
+  $custom_save_button = l('<input type="button" class="form-submit" value="Save" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('logo-upload-save-custom', 'margin-right-10'))));
+
+  
+  $form['#prefix'] = '<div class="all_crop_image_custom_form">';
+  $form['#suffix'] = '</div>';
+
+ $user = user_load($user->uid);
+  // Image Field.
+  $logo_old_img = '';
+  if(!empty($user->field_user_profile_photo['und'][0]['uri'])){
+    $file_url = file_create_url($user->field_user_profile_photo['und'][0]['uri']);
+    $logo_old_img = '<img class="old_preview_img" src="' . $file_url . '" style="max-width:100%;">';
+  }
+  
+  $form['#attached']['js'] = array(
+    drupal_get_path('module', 'm6connect_dashboard') . '/cropit-master/dist/jquery.cropit.js',
+  );
+
+  $form['upload_img'] = array(
+    '#type' => 'file',
+    '#title' => t('Upload New File'),
+    '#title_display' => 'invisible',
+    '#attributes' => array('class' => array('cropit-image-input', 'hidden')),
+    '#prefix' => '<div id="upload_log_ele" class="image-editor banner_small_log_ele"><div class="cropit-preview">' . $logo_old_img . '</div>',
+    '#suffix' => '</div>',
+  );
+
+  $form['crop-img'] = array(
+    '#type' => 'textarea',
+    '#name' => t('Cropped Image Data'),
+    '#prefix' => '<div id="cropped-img-data" style="display:none;">',
+    '#suffix' => '</div>',
+  );
+
+  // A blank space for new logo upload.
+  $form['logo_new'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div id="logo_new"></div>',
+  );
+  $form['choose_logo'] = array(
+   '#markup' => '<div class="all_choose_image_custom display-inline-block">
+                  <a class="btn btn-primary" id="all_choose_image_custom" href="javascript:void(0);">Upload New Image</a>
+               </div>',
+    '#prefix' => '<div class="clearfix">',
+  );
+  if(!empty($user->field_user_profile_photo['und'][0]['uri'])){
+    // If there is an image already present. Then we show the image with a
+    // remove button.
+    $form['old_img'] = array(
+      '#type' => 'markup',
+      '#markup' => '<div class="btn btn-primary display-inline-block logo_old_remove user_' . $user->uid . '">Remove</div>',
+    );
+  }  
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#submit'=> array('change_user_profile_photo_form_submit'),
+    '#value' => 'Save',
+    //'#prefix' => '<div class="clearfix">',  
+   // '#suffix' => $closeButton.'</div></div></div>', 
+    '#prefix' => '<div class="origina-submit-logo display-inline-block" style="display:none;">',
+    '#suffix' => '</div><div class="display-inline-block">' . $custom_save_button . $closeButton . '</div></div>', 
+  );
+  return $form;
+}
+
+function change_user_profile_photo_form_submit($form, &$form_state) {
+   global $user, $base_url;
+
+   $user = user_load($user->uid);
+  if(!empty($_POST['Cropped_Image_Data'])){
+    $imgData = str_replace(' ','+',$_POST['Cropped_Image_Data']);
+    if (strpos($imgData, 'jpg') !== FALSE || strpos($imgData, 'jpeg') !== FALSE) {
+      $ext = '.jpeg';
+    }
+    else {
+      $ext = '.png';
+    }
+    $imgData =  substr($imgData,strpos($imgData,",")+1);
+    $imgData = base64_decode($imgData);
+    $img_name = 'logo_image_' . time();
+    if ($file = file_save_data($imgData, 'public://' . $img_name . $ext)) {
+      $user->field_user_profile_photo['und'][0] = (array)$file;
+      field_attach_presave('user', $user);
+      field_attach_update('user', $user);
+      entity_get_controller('user')->resetCache(array($user->uid));
+    }
+    }
+     
+    //print "<pre>"; print_r($node); die;
+  //}
+
+   //$nodePath = drupal_lookup_path('alias','node/'.$nid);
+
+  $UserPic = isset($user->field_user_profile_photo['und']['0']['uri']) ? $user->field_user_profile_photo['und']['0']['uri'] : 'public://images_13.png'; 
+                   
+  $output = '<div class="user-profile-custom-wrapper">
+               <a href="'.file_create_url($UserPic).'" class="colorbox">
+                <img typeof="foaf:Image" src="'.image_style_url('user_profile_image_244_220', $UserPic).'" alt="">
+               </a>';
+  if($user->uid) {
+    $output  .= '<div class="custom-user-profile-photo">';
+    $output .=   l('Update Profile Photo', 'change-user-profile-photo/nojs', array('attributes' => array('class' => array('ctools-use-modal ctools-modal-assign-dashboard-popup-style btn btn-success text-white'),'title' =>"Update Profile Photo"))); 
+    $output .='</div>';
+  }
+  $output .= '</div>';
+
+  if((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+      $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+      $form_state['ajax_commands'][] = ajax_command_replace(".user-profile-custom-wrapper", $output);
+  }
+}
+///////////////////////////////////////////////////////////////////////////////////////////
+//////////////// End user profile photo ///////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+//===== change user cover photo for dashboard====================
+function update_user_cover_photo_callback($ajax = NULL){
+  
+  if($ajax){
+    ctools_include('ajax');
+    ctools_include('modal');
+    $form_state = array(
+      'ajax' => TRUE,
+      'title' => '<p class="asset-popup-title-custom">'.t('Update Cover photo').'</p>',
+    );
+    $output = ctools_modal_form_wrapper('update_user_cover_photo_form', $form_state);
+    if (!empty($form_state['ajax_commands'])) {
+      $output = $form_state['ajax_commands'];
+    }
+    print ajax_render($output);
+    drupal_exit();
+   }
+   return drupal_get_form('update_user_cover_photo_form');
+  
+}
+function update_user_cover_photo_form($form, &$form_state) {
+   global $user, $company;
+
+ $closeButton = l('<input type="button" class="btn btn-primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('packages-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();Drupal.attachBehaviors();')));
+
+   $custom_save_button = l('<input type="button" class="form-submit" value="Save" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('logo-upload-save-custom', 'margin-right-10'))));
+
+   
+  $form['#prefix'] = '<div class="all_crop_image_custom_form">';
+  $form['#suffix'] = '</div>';
+
+   $user = user_load($user->uid);
+
+   // Image Field.
+   $logo_old_img = '';
+   if(!empty($user->field_user_profile_cover_img['und'][0]['uri'])){
+    $file_url = '';
+    $file_url = image_style_url('company_cover_1073_394', $user->field_user_profile_cover_img['und'][0]['uri']);
+    $logo_old_img = '<img class="old_preview_img" src="' . $file_url . '" style="max-width:100%;">';
+   }
+   
+   $form['#attached']['js'] = array(
+     drupal_get_path('module', 'm6connect_dashboard') . '/cropit-master/dist/jquery.cropit.js',
+   );
+
+   $form['upload_img'] = array(
+     '#type' => 'file',
+     '#title' => t('Upload New File'),
+     '#title_display' => 'invisible',
+     '#attributes' => array('class' => array('cropit-image-input', 'hidden')),
+     '#prefix' => '<div id="upload_log_ele" class="image-editor banner_upload_log_ele"><div class="cropit-preview">' . $logo_old_img . '</div>',
+     '#suffix' => '</div>',
+   );
+
+   $form['crop-img'] = array(
+     '#type' => 'textarea',
+     '#name' => t('Cropped Image Data'),
+     '#prefix' => '<div id="cropped-img-data" style="display:none;">',
+     '#suffix' => '</div>',
+   );
+
+   // A blank space for new logo upload.
+   $form['logo_new'] = array(
+     '#type' => 'markup',
+     '#markup' => '<div id="logo_new"></div>',
+   );
+
+   $form['choose_logo'] = array(
+    '#markup' => '<div class="all_choose_image_custom display-inline-block">
+                   <a class="btn btn-primary" id="all_choose_image_custom" href="javascript:void(0);">Upload New Image</a>
+                </div>',
+    '#prefix' => '<div class="clearfix">',
+   );  
+  if(!empty($user->field_user_profile_cover_img['und']['0']['uri'])){
+     // If there is an image already present. Then we show the image with a
+     // remove button.
+     $form['old_img'] = array(
+       '#type' => 'markup',
+       '#markup' => '<div class="btn btn-primary display-inline-block banner_old_remove node_' . $node_nid . '">Remove</div>',
+     );
+   }
+   $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#submit'=> array('update_user_cover_photo_form_submit'),
+    '#value' => 'Save',
+     //'#prefix' => '<div class="clearfix">',  
+     //'#suffix' => $closeButton.'</div></div></div>', 
+    '#prefix' => '<div class="origina-submit-logo display-inline-block" style="display:none;">',
+    '#suffix' => '</div><div class="display-inline-block">' . $custom_save_button . $closeButton . '</div></div>', 
+  ); 
+  return $form;
+}
+
+function update_user_cover_photo_form_submit($form, &$form_state) {
+  global $user, $base_url;
+
+  $user = user_load($user->uid);
+  $file = FALSE;
+
+  $cuser = menu_get_object('user',1);
+  $cuid = $cuser->uid;
+  //print "<pre>"; print_r($cuid); die;
+
+  if(!empty($_POST['Cropped_Image_Data'])){
+    $imgData = str_replace(' ','+',$_POST['Cropped_Image_Data']);
+    if (strpos($imgData, 'jpg') !== FALSE || strpos($imgData, 'jpeg') !== FALSE) {
+      $ext = '.jpeg';
+    }
+    else {
+      $ext = '.png';
+    }
+    $imgData =  substr($imgData,strpos($imgData,",")+1);
+    $imgData = base64_decode($imgData);
+    $img_name = 'banner_image_' . time();
+    if ($file = file_save_data($imgData, 'public://' . $img_name . $ext)) {
+      if (!empty($user->field_user_profile_cover_img['und'][0])) {
+        unset($user->field_user_profile_cover_img['und']);
+      }
+      $user->field_user_profile_cover_img['und'][0] = (array)$file;
+      field_attach_presave('user', $user);
+      field_attach_update('user', $user);
+      entity_get_controller('user')->resetCache(array($user->uid));
+    }
+  }
+
+  $img_src = '';
+  
+   $profile_cover_img = $user->field_user_profile_cover_img['und'][0]['uri'];
+    if (isset($profile_cover_img)) {
+       $img_src = '<img src="'. image_style_url('company_cover_1073_394', $profile_cover_img).'">';
+    }
+    else {
+         $img_src = '<div class="field field-name-field-user-profile-cover-img field-type-image field-label-hidden">
+                       <div class="field-items">
+                            <div class="field-item even">
+                              <img  alt="" src="' . $base_url.'/sites/all/themes/m6connect/images/default-company-cover-new.jpg" typeof="foaf:Image">
+                            </div>
+                        </div>
+                     </div>';
+                          
+  }
+  $output = '';
+  $output = '<div class="company-header relative" id="user-cover-custom-header-wrapper">' . $img_src;
+  if($user->uid ) {
+    $output  .= '<div class="custom-user-cover-photo">';
+    $output .=   l('Update Cover Photo', 'update-user-cover-photo/nojs', array('attributes' => array('class' => array('ctools-use-modal ctools-modal-assign-update-images-crop-popup-style btn btn-success text-white'),'title' =>"Update Cover Photo"))); 
+    $output .='</div>';
+  }
+  $output .= '</div>';
+
+  //echo $nodePath; die;
+  if((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+    $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+    $form_state['ajax_commands'][] = ajax_command_replace("#user-cover-custom-header-wrapper", $output);
+  }
+}
+
+
+// Reomve images for user profile ////////////////////////////////
+
+/**
+ * Menu callback for removing image from node via ajax.
+ */
+function remove_profile_img_from_user_ajax() {
+
+  global $user; 
+  if (!empty($user->uid)) {
+    if ($user =user_load($user->uid)) {
+      if (!empty($user->field_user_profile_photo['und'])) {
+        unset($user->field_user_profile_photo['und']);
+        field_attach_presave('user', $user);
+        field_attach_update('user', $user);
+        entity_get_controller('user')->resetCache(array($user->uid));
+        print '1';
+      }
+      else {
+        print '2';
+      }
+    }
+    else {
+      print '3';
+    }
+  }
+  else {
+    print '4';
+  }
+  drupal_exit();
+}
+
+/**
+ * Menu callback for removing banner image from node via ajax.
+ */
+function remove_profile_cover_from_user_ajax() {
+  global $user; 
+
+  if (!empty($user->uid)) {
+    if ($user = user_load($user->uid)) {
+      if (!empty($user->field_user_profile_cover_img['und'])) {
+        unset($user->field_user_profile_cover_img['und']);
+        field_attach_presave('user', $user);
+        field_attach_update('user', $user);
+        entity_get_controller('user')->resetCache(array($user->uid));
+        print '1';
+      }
+      else {
+        print '2';
+      }
+    }
+    else {
+      print '3';
+    }
+  }
+  else {
+    print '4';
+  }
+  drupal_exit();
+}
+
+
+/*********  acquia appendix c query function ************/
+function getNodeStatusFromNid($nid = ''){
+    $query = db_select('node', 'n');
+    $query->condition('nid', $nid, '=');
+    $query->fields('n', array('uid','status'));
+    $result = $query->execute()->fetchAll();
+    return $result;   
+}
+function insCertFlaging($fid = '', $nid = '', $uid = ''){
+    $query = db_select('flagging', 'fl');
+    $query->fields('fl',array('flagging_id'));
+    $query->condition('fl.fid',$fid,'=');
+    $query->condition('fl.entity_id',$nid,'=');
+    $query->condition('fl.uid',$user->uid,'=');
+    $isBidding = $query->execute()->rowCount();
+    return $isBidding;    
+}
+function getProposalComment($comment_id = ''){
+    $comment_detail_query = db_select('comment','c');
+    $comment_detail_query->leftjoin('field_data_field_first_name','fn', 'fn.entity_id=c.uid AND fn.bundle=:bundle' , array(':bundle'=>'user'));
+    $comment_detail_query->leftjoin('field_data_field_last_name','ln', 'ln.entity_id=c.uid AND ln.bundle=:bundle' , array(':bundle'=>'user'));
+    $comment_detail_query->leftjoin('field_data_comment_body','cb', 'cb.entity_id=c.cid');
+    $comment_detail_query->fields('c');
+    $comment_detail_query->fields('fn', array('field_first_name_value'));
+    $comment_detail_query->fields('ln', array('field_last_name_value'));
+    $comment_detail_query->fields('cb', array('comment_body_value'));
+    $comment_detail_query->condition('c.cid',$comment_id);
+    $comment_detail = $comment_detail_query->execute()->fetchAssoc();
+    return $comment_detail;
+}
+function getProposalReadUnread(){
+    $sql_read_unread = db_query("SELECT * FROM read_unread_message")->fetchAll();
+    return $sql_read_unread;
+}
+function saveProposalReadUnread($pro_id = '', $comment_id = '', $use_id = ''){
+    $sql_read_insert = db_insert('read_unread_message')->fields(array(
+        'proposal_id' => $pro_id,
+        'comment_id' => $comment_id,
+        'user_id' => $use_id,
+        'staus' => 1,
+    ))->execute();
+    return $sql_read_insert;
+}
+function getProposalAttachment($comment_id = ''){
+    $attachment_query = db_select('field_data_field_image_upload','imgp');
+    $attachment_query->join('file_managed','fn','fn.fid=imgp.field_image_upload_fid');
+    $attachment_query->fields('fn')->condition('imgp.entity_id',$comment_id);
+    $attachment_result = $attachment_query->execute()->fetchAll();
+    return $attachment_result;
+}
+function getProposalFrontBoxQuery($nid = ''){
+    $query = db_select('field_data_field_front_box' ,'ffbo');
+    $query->leftjoin('field_data_field_front_box_title','ffbti','ffbti.entity_id=ffbo.field_front_box_value');
+    $query->leftjoin('field_data_field_front_box_url','ffbur','ffbur.entity_id=ffbo.field_front_box_value');
+    $query->leftjoin('field_data_field_front_box_body','ffbbod','ffbbod.entity_id=ffbo.field_front_box_value');
+    $query->fields('ffbo',array('field_front_box_value'));
+    $query->fields('ffbti',array('field_front_box_title_value'));
+    $query->fields('ffbur',array('field_front_box_url_value'));
+    $query->fields('ffbbod',array('field_front_box_body_value'));
+    $query->condition('ffbo.entity_id',$nid,'=');
+    $result = $query->execute()->fetchAll();
+    return $result;
+}
+function temprevertdsFlaggingQuery($nid = ''){
+    $userids = array();
+    $query = db_select('flagging', 'fl');
+    $query->fields('fl',array('uid'));
+    $query->condition('fl.entity_id', $nid);
+    $result = $query->execute();
+    while($record = $result->fetchAssoc()) {
+        $userids[] = $record['uid'];
+    }
+    return $userids;
+}
+function getProposalContractAddr($contractor_id = ''){
+    $query_contractor_addr = db_select('field_data_field_org_address', 'addr')
+                            ->condition('addr.entity_id', $contractor_id, '=')
+                            ->fields('addr', array('field_org_address_locality', 'field_org_address_administrative_area', 'field_org_address_postal_code'));
+    $result_contractor_addr = $query_contractor_addr->execute()->fetchAll();
+    return $result_contractor_addr;
+}
+function getProposalContractorName($contractor_id = ''){
+    $query_contractor = db_select('users', 'c')
+                    ->condition('c.uid', $contractor_id, '=')
+                    ->fields('c', array('name', 'mail'));
+    $result_contractor = $query_contractor->execute();
+    return $result_contractor;
+}
+function getProposalContractorPhone($contractor_id = ''){
+    $query_contractor_phone = db_select('field_revision_field_phone', 'ph')
+                            ->condition('ph.entity_id', $contractor_id, '=')
+                            ->fields('ph', array('field_phone_value'));
+    $result_contractor_phone = $query_contractor_phone->execute()->fetchAll();
+    return $result_contractor_phone;
+}
+function getProposalOwnerName($Submit_rfp_store_value = ''){
+    $query_owner = db_select('users', 'o')
+                ->condition('o.uid', $Submit_rfp_store_value, '=')
+                ->fields('o', array('name', 'mail'));
+    $result_owner = $query_owner->execute();
+    return $result_owner;
+}
+function getProposalOwnerPhone($Submit_rfp_store_value = ''){
+    $query_owner_phone = db_select('field_revision_field_phone', 'ph')
+                        ->condition('ph.entity_id', $Submit_rfp_store_value, '=')
+                        ->fields('ph', array('field_phone_value'));
+    $result_owner_phone = $query_owner_phone->execute()->fetchAll();
+    return $result_owner_phone;
+}
+function getProposalOwnerCompanyTitle($Submit_rfp_store_value = ''){
+    $query_owner_company = db_select('node', 'organization')
+            ->fields('organization', array('title'));
+    $db_or_owner = db_or();
+    $db_or_owner->condition(db_and()->condition('organization.type', 'organization', '=')->condition('organization.uid', $Submit_rfp_store_value, '='));
+    $src_owner_company = $query_owner_company->condition($db_or_owner);
+    $result_owner_company = $src_owner_company->execute()->fetchAll();
+    return $result_owner_company;
+}
+function getProposalOwnerCompanyVid($Submit_rfp_store_value = ''){
+    $query_owner_vid = db_select('node', 'mynode')
+                    ->fields('mynode', array('vid'));
+    $db_or_owner_vid = db_or();
+    $db_or_owner_vid->condition(db_and()->condition('mynode.type', 'organization', '=')->condition('mynode.uid', $Submit_rfp_store_value, '='));                                
+    $src_owner_company_vid = $query_owner_vid->condition($db_or_owner_vid);
+    $result_owner_company_vid = $src_owner_company_vid->execute()->fetchAll();
+    return $result_owner_company_vid;
+}
+function getProposalOwnerAddress($owner_company_vid = ''){
+    $query_owner_addr = db_select('field_data_field_org_address', 'addr')
+                    ->condition('addr.entity_id', $owner_company_vid, '=')
+                    ->fields('addr', array('field_org_address_thoroughfare','field_org_address_premise','field_org_address_locality', 'field_org_address_administrative_area', 'field_org_address_postal_code','field_org_address_country'));
+    $result_owner_addr = $query_owner_addr->execute()->fetchAll();
+    return $result_owner_addr;
+}
+function getProposalContractorVid($contractor_id = ''){
+    $query_cont_vid = db_select('node', 'contnode')
+            ->fields('contnode', array('vid'));
+    $db_or_cont_vid = db_or();
+    $db_or_cont_vid->condition(db_and()->condition('contnode.type', 'organization', '=')->condition('contnode.uid', $contractor_id, '='));
+    $src_cont_company_vid = $query_cont_vid->condition($db_or_cont_vid);
+    $result_cont_company_vid = $src_cont_company_vid->execute()->fetchAll();
+    return $result_cont_company_vid;
+}
+function getProposalContractorComAddr($cont_company_vid = ''){
+    $query_cont_addr = db_select('field_data_field_org_address', 'addrcon')
+                ->condition('addrcon.entity_id', $cont_company_vid, '=')
+                ->fields('addrcon', array('field_org_address_locality', 'field_org_address_administrative_area', 'field_org_address_postal_code', 'field_org_address_thoroughfare'));
+    $result_cont_addr = $query_cont_addr->execute()->fetchAll();
+    return $result_cont_addr;
+}
+function getProposalDiversityInfo($node_by_com = ''){
+    $query_diversity_info = db_select('node', 'n');
+    $query_diversity_info->join('field_data_field_diversity_credentials','dc','dc.field_diversity_credentials_target_id=n.nid');
+    $query_diversity_info->fields('n',array('title'));
+    $query_diversity_info->condition('dc.entity_id',$node_by_com,'=');    
+    $src_div_company_vid = $query_diversity_info->execute()->fetchAll();
+    return $src_div_company_vid;
+}
+function proposalReadUnreadMsg($logged_user = ''){
+    $query_status1 = db_select('read_unread_message', 'tes')
+                  ->condition('tes.user_id', $logged_user, '=')
+                  ->fields('tes', array('proposal_id', 'comment_id', 'user_id', 'staus'));
+    $result_status1 = $query_status1->execute();
+    return $result_status1;
+}
+function proposalComment($nid = ''){
+    $query_comment = db_select('comment', 'com')
+                  ->condition('com.nid', $nid, '=')
+                  ->fields('com', array('cid', 'uid', 'subject', 'created'));
+    $query_comment->orderBy('cid', 'DESC');
+    $result_comment = $query_comment->execute();
+    $result_comment_count = $query_comment->execute()->fetchAll();
+    return $result_comment_count;
+}
+function getProposalCommenterLastName($uid = ''){
+    $query_commenter_lname = db_select('field_revision_field_last_name', 'lname')
+                          ->condition('lname.entity_id', $uid, '=')
+                          ->fields('lname', array('field_last_name_value'));
+    $result_commenter_lname = $query_commenter_lname->execute();
+    return $result_commenter_lname;
+}
+function getProposalCommenterFirstName($uid = ''){
+    $query_commenter_fname = db_select('field_revision_field_first_name', 'fname')
+          ->condition('fname.entity_id', $uid, '=')
+          ->fields('fname', array('field_first_name_value'));
+    $result_commenter_fname = $query_commenter_fname->execute();
+    return $result_commenter_fname;
+}
+function proposalSentQuery($title_search = '', $arg1 = '', $arg2 = ''){
+    if (empty($arg2)) {
+        $sql_node3 = db_query('SELECT DISTINCT a.nid,a.title,a.uid,a.status,a.created,b.entity_id,b.field_proposal_number_value, c.entity_id,c.field_submit_proposal_in_respons_target_id,
+            d.entity_id,d.field_field_sub_proposal_pjt_target_id,e.entity_id,e.field_submit_proposal_member_target_id,f.entity_id,f.field_submit_proposal_to_company_target_id,g.entity_id,g.field_proposal_bid_amount_value,h.entity_id,h.field_proposoal_bid_types_value,
+            i.entity_id,i.field_proposal_job_location_administrative_area,i.field_proposal_job_location_locality,i.field_proposal_job_location_postal_code,
+            j.node_id,j.status,j.award_taker_id,j.award_giver_id,k.reject_node,k.status,k.reject_taker_id,k.reject_giver_id,CONVERT(REPLACE(g.field_proposal_bid_amount_value,:ReplaceFrom,:ReplaceTo), DECIMAL(10,2)) bid_amount,mpcnode.title proposal_company_title FROM node AS a LEFT JOIN field_data_field_cm_type AS cm ON a.nid = cm.entity_id LEFT JOIN field_revision_field_proposal_number AS b ON a.nid=b.entity_id LEFT JOIN og_membership AS mpog ON mpog.etid=a.nid AND mpog.entity_type=:MPEntityType LEFT JOIN node AS mpcnode ON mpcnode.nid=mpog.gid LEFT JOIN field_data_field_submit_proposal_in_respons AS c ON a.nid=c.entity_id LEFT JOIN field_revision_field_field_sub_proposal_pjt AS d ON a.nid=d.entity_id LEFT JOIN field_revision_field_submit_proposal_member AS e ON a.nid=e.entity_id LEFT JOIN field_revision_field_submit_proposal_to_company AS f ON a.nid=f.entity_id LEFT JOIN field_data_field_proposal_bid_amount AS g ON a.nid=g.entity_id LEFT JOIN field_data_field_proposoal_bid_types AS h ON a.nid=h.entity_id LEFT JOIN field_data_field_proposal_job_location AS i ON a.nid=i.entity_id LEFT JOIN proposal_award AS j ON a.nid=j.node_id LEFT JOIN proposal_reject AS k ON a.nid=k.reject_node WHERE a.status=1 AND cm.field_cm_type_value IS NULL AND a.type=:type ' . $title_search, array(':type'=>'my_proposal',':ReplaceFrom'=>',',':ReplaceTo'=>'',':MPEntityType'=>'node'));
+    }
+    else {
+        $sql_node3 = db_query('SELECT DISTINCT a.nid,a.title,a.uid,a.status,a.created,b.entity_id,b.field_proposal_number_value,c.entity_id,c.field_submit_proposal_in_respons_target_id,
+            d.entity_id,d.field_field_sub_proposal_pjt_target_id,e.entity_id,e.field_submit_proposal_member_target_id,f.entity_id,f.field_submit_proposal_to_company_target_id,g.entity_id,g.field_proposal_bid_amount_value,h.entity_id,h.field_proposoal_bid_types_value,
+            i.entity_id,i.field_proposal_job_location_administrative_area,i.field_proposal_job_location_locality,i.field_proposal_job_location_postal_code,
+            j.node_id,j.status,j.award_taker_id,j.award_giver_id,k.reject_node,k.status,k.reject_taker_id,k.reject_giver_id,CONVERT(REPLACE(g.field_proposal_bid_amount_value,:ReplaceFrom,:ReplaceTo), DECIMAL(10,2)) bid_amount,mpcnode.title proposal_company_title FROM node AS a LEFT JOIN field_data_field_cm_type AS cm ON a.nid = cm.entity_id LEFT JOIN field_revision_field_proposal_number AS b ON a.nid=b.entity_id LEFT JOIN og_membership AS mpog ON mpog.etid=a.nid AND mpog.entity_type=:MPEntityType LEFT JOIN node AS mpcnode ON mpcnode.nid=mpog.gid LEFT JOIN field_data_field_submit_proposal_in_respons AS c ON a.nid=c.entity_id LEFT JOIN field_revision_field_field_sub_proposal_pjt AS d ON a.nid=d.entity_id LEFT JOIN field_revision_field_submit_proposal_member AS e ON a.nid=e.entity_id LEFT JOIN field_revision_field_submit_proposal_to_company AS f ON a.nid=f.entity_id LEFT JOIN field_data_field_proposal_bid_amount AS g ON a.nid=g.entity_id LEFT JOIN field_data_field_proposoal_bid_types AS h ON a.nid=h.entity_id LEFT JOIN field_data_field_proposal_job_location AS i ON a.nid=i.entity_id LEFT JOIN proposal_award AS j ON a.nid=j.node_id LEFT JOIN proposal_reject AS k ON a.nid=k.reject_node WHERE a.status=1 AND cm.field_cm_type_value = :cm_type AND a.type=:type ' . $title_search, array(':type'=>'my_proposal',':ReplaceFrom'=>',',':ReplaceTo'=>'',':MPEntityType'=>'node', ':cm_type' => $arg1));
+    }
+    $sql_node4 = $sql_node3->fetchAll();
+    return $sql_node4;
+}
+function proposalSentRealName($target_member = ''){
+    $userquery = db_select('users','u');
+    $userquery->join('realname','r','r.uid=u.uid');
+    $userquery->fields('u');
+    $userquery->fields('r',array('realname'));
+    $userquery->condition('u.uid',$target_member,'=');
+    $userdetails = $userquery->execute()->fetchAssoc();
+    return $userdetails;
+}
+function proposalSentNodeDetail($target_member = ''){
+    $nodedetails = db_select('node','n')->fields('n')->condition('n.nid',$target_member)->execute()->fetchAssoc();
+    return $nodedetails;
+}
+function proposalSentReadUnreadMsg($id = '', $logged_user = ''){
+    $query_status1 = db_select('read_unread_message', 'tes')
+                  ->fields('tes', array('proposal_id', 'comment_id', 'user_id', 'staus'));
+    $db_or_cont_vid = db_or();
+    $db_or_cont_vid->condition(db_and()->condition('tes.proposal_id', $id, '=')->condition('tes.user_id', $logged_user, '='));  
+    $src_cont_company_vid = $query_status1->condition($db_or_cont_vid);
+    $result_status1 = $src_cont_company_vid->execute()->fetchAll();
+    return $result_status1;
+}
+function getProposalSentCommentQuery($node_pro_id = ''){
+    $query_comment = db_select('comment', 'com')
+                  ->condition('com.nid', $node_pro_id, '=')
+                  ->fields('com', array('cid', 'uid', 'subject', 'created'));
+    $query_comment->orderBy('cid', 'DESC');
+    $result_comment = $query_comment->execute();
+    $result_comment_count = $query_comment->execute()->fetchAll();
+}

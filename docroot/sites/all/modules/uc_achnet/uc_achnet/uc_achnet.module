@@ -1,0 +1,2321 @@
+<?php
+// $Id: uc_achnet.module,v 1.2.2.3 2009/05/21 17:44:47 rszrama Exp $
+
+/**
+ * @file
+ * Accept ACH payments using Authorize.Net's ACH.Net service.
+ */
+ /**
+ * Implements hook_init().
+ */
+function uc_achnet_init() {
+
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function uc_achnet_menu() {
+  $items = array();
+
+  $items['admin/store/orders/%uc_order/achnet'] = array(
+    'title callback' => 'uc_achnet_terminal_title',
+    'title arguments' => array(3),
+    'description' => 'Displays a form to process an ACH payment.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('uc_achnet_terminal_form', 3),
+    'access arguments' => array('process ach payments'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+// Set the title for the ACH.Net terminal.
+function uc_achnet_terminal_title($order) {
+  return t('ACH.Net terminal: Order @order_id', array('@order_id' => $order->order_id));
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function uc_achnet_perm() {
+  return array('process ach payments');
+}
+
+/**
+ * Implementation of hook_cron().
+ */
+function uc_achnet_cron() {
+  // Delete any ACH data that's been stagnant for 15 minutes or more.
+  //db_query("DELETE FROM {uc_payment_achnet} WHERE order_id IN(SELECT order_id FROM {uc_orders} WHERE order_status IN". uc_order_status_list('specific', TRUE) ." AND modified <= %d)", time() - variable_get('uc_achnet_wipe_interval', 900));
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function uc_achnet_form_alter(&$form, &$form_state, $form_id) {
+  switch ($form_id) {
+    case 'uc_payment_methods_form':
+      if (empty($_POST) && uc_achnet_encryption_key() === FALSE) {
+        drupal_set_message(t('The ACH.Net encryption key filepath must be configured to accept ACH payments.'), 'error');
+      }
+      $form['#validate'][] = 'uc_achnet_settings_form_validate';
+      $form['#submit'][] = 'uc_achnet_settings_form_submit';
+      break;
+
+  }
+}
+
+// Makes sure the encryption key directory in the ACH.Net settings is valid.
+function uc_achnet_settings_form_validate($form, &$form_state) {
+  $dir = variable_get('uc_achnet_encryption_path', t('Not configured, see below.'));
+  $filename = rtrim($dir, '/\\') .'/uc_achnet.key';
+
+  if ($form_state['values']['uc_achnet_encryption_path'] !== variable_get('uc_achnet_encryption_path', t('Not configured, see below.'))) {
+    $dir = rtrim($form_state['values']['uc_achnet_encryption_path'], '/\\');
+
+    $_SESSION['update_achnet_encrypt_dir'] = TRUE;
+    if (!empty($dir) && $dir !== t('Not configured, see below.')) {
+      if (!is_dir($dir)) {
+        form_set_error('uc_achnet_encryption_path', t('You have specified a non-existent directory.'));
+        unset($_SESSION['update_achnet_encrypt_dir']);
+      }
+      else {
+        $file = fopen($dir .'/encrypt.test', 'w');
+        if ($file === FALSE) {
+          form_set_error('uc_achnet_encryption_path', t('Cannot write to directory, please verify the directory permissions.'));
+          unset($_SESSION['update_achnet_encrypt_dir']);
+        }
+        else {
+          if (fwrite($file, '0123456789') === FALSE) {
+            form_set_error('uc_achnet_encryption_path', t('Cannot write to directory, please verify the directory permissions.'));
+            unset($_SESSION['update_achnet_encrypt_dir']);
+            fclose($file);
+          }
+          else {
+            fclose($file);
+            $file = fopen($dir .'/encrypt.test', 'r');
+            if ($file === FALSE) {
+              form_set_error('uc_achnet_encryption_path', t('Cannot read from directory, please verify the directory permissions.'));
+              unset($_SESSION['update_achnet_encrypt_dir']);
+            }
+            fclose($file);
+          }
+          unlink($dir .'/encrypt.test');
+        }
+      }
+    }
+  }
+}
+
+// Creates the encryption key file if it doesn't already exist.
+function uc_achnet_settings_form_submit($form, &$form_state) {
+  if ($_SESSION['update_achnet_encrypt_dir'] === TRUE) {
+    $dir = rtrim($form_state['values']['uc_achnet_encryption_path'], '/\\');
+
+    if (!empty($dir) && $dir !== t('Not configured, see below.')) {
+      if (!file_exists($dir .'/uc_achnet.key')) {
+        if (!$file = fopen($dir .'/uc_achnet.key', 'wb')) {
+          $message = t('ACH.Net encryption key file creation failed. Check your filepath settings and directory permissions.');
+          drupal_set_message($message, 'error');
+          watchdog('uc_credit', $message, WATCHDOG_ERROR);
+        }
+        else {
+          // Replacement key generation suggested by Barry Jaspan for increased security.
+          fwrite($file, md5(drupal_get_token(serialize($_REQUEST) . serialize($_SERVER) . time())));
+          fclose($file);
+
+          drupal_set_message(t('ACH.Net encryption key file generated. ACH data will now be encrypted.'));
+          watchdog('uc_achnet', 'ACH.Net encryption key file generated.');
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_store_status().
+ */
+function uc_achnet_store_status() {
+  // Throw up an error row if encryption has not been set up yet.
+  if ($key = uc_achnet_encryption_key()) {
+    $statuses[] = array(
+      'status' => 'ok',
+      'title' => t('ACH.Net encryption'),
+      'desc' => t('ACH data is encrypted during checkout for maximum security.'),
+    );
+  }
+  else {
+    $statuses[] = array(
+      'status' => 'error',
+      'title' => t('ACH.Net encryption'),
+      'desc' => t('You must review your <a href="!url">ACH.Net security settings</a> and enable encryption before you can accept ACH payments.', array('!url' => url('admin/store/settings/payment/edit/methods'))),
+    );
+  }
+
+  return $statuses;
+}
+
+/**
+ * Implementation of hook_uc_order().
+ */
+function uc_achnet_uc_order($op, &$order, $arg2) {
+  // If the order payment method is ACH.Net...
+  //watchdog('achout', print_r($order, TRUE));
+ // watchdog('op', print_r($op, TRUE));
+  /*$file = DRUPAL_ROOT . '/' . drupal_get_path('module', 'uc_store') . "/classes/encrypt.inc";
+  watchdog('teee', print_r($file, TRUE));
+  require $file;*/
+  if ($order->payment_method == 'achnet') {
+    switch ($op) {
+      // Attempt payment upon order submission during checkout.
+      case 'submit':
+        // Process the ACH payment.
+        $result = _uc_achnet_process($order, $order->order_total);
+
+        // If the payment failed, halt the checkout process.
+        if ($result !== TRUE) {
+          return array(array('pass' => FALSE, 'message' => $result));
+        }
+        else {
+          // Otherwise empty out the routing and account numbers.
+          uc_achnet_wipe_numbers($order->order_id);
+        }
+        break;
+
+      case 'save':
+        // Save the ACH data for the order.
+        if (isset($order->payment_details['ach_bank_name'])) {
+          uc_achnet_save_ach($order);
+        }
+        break;
+
+      case 'load':
+        // Load the ACH data for the order.
+        $order->payment_details = uc_achnet_load_ach($order);
+        break;
+    }
+  }
+}
+
+/**
+ * Implementation of hook_payment_method().
+ */
+function uc_achnet_uc_payment_method() {
+  $methods = array();
+
+  // Do not show the ACH payment method if encryption is not configured.
+  if (arg(1) == 'checkout' && uc_achnet_encryption_key() === FALSE) {
+    return;
+  }
+  $label ='';
+  $title = t('ACH:');
+  $title .= ' ' . theme('image', array(
+        'path' => drupal_get_path('module', 'uc_achnet') . '/cheque_image.png',
+        'alt' => $label,
+        'attributes' => array('class' => array('uc-achnet-cheque', 'uc-achnet-png')),
+      ));
+  
+  
+  $methods[] = array(
+    'id' => 'achnet',
+    'name' => arg(1) == 'checkout' ? t('ACH') : t('ACH.Net'),
+    'title' => $title,
+    'desc' => t('Pay by ACH using your bank account information.'),
+    'callback' => 'uc_payment_method_achnet',
+    'weight' => 3,
+    'checkout' => TRUE,
+    'no_gateway' => TRUE,
+  );
+
+  return $methods;
+}
+
+// Callback function for the ACH.Net payment method.
+function uc_payment_method_achnet($op, &$order, $form = NULL, &$form_state = NULL) {
+  switch ($op) {
+    case 'cart-details':
+      //return uc_strip_form(drupal_render(drupal_get_form('uc_achnet_payment_form', $arg1)));
+      $details = uc_achnet_payment_form(array(), $form_state, $order);
+      return $details;
+    case 'cart-process':
+      // Fetch the ACH details from the $_POST directly.
+      if (!isset($form_state['values']['panes']['payment']['details']['ach_bank_name'])) {
+        return;
+      }
+      $data = array(
+        'ach_bank_name' => $form_state['values']['panes']['payment']['details']['ach_bank_name'],
+        'ach_bank_aba_code' => str_replace(' ', '',  $form_state['values']['panes']['payment']['details']['ach_bank_aba_code']),
+        'ach_bank_acct_num' => str_replace(' ', '', $form_state['values']['panes']['payment']['details']['ach_bank_acct_num']),
+        'ach_bank_acct_name' => $form_state['values']['panes']['payment']['details']['ach_bank_acct_name'],
+        'ach_bank_acct_type' => $form_state['values']['panes']['payment']['details']['ach_bank_acct_type'],
+        'ach_bank_acct_num_last4' => substr($form_state['values']['panes']['payment']['details']['ach_bank_acct_num'], -4)
+      );
+
+      // Go ahead and put the ACH data in the payment details array.
+      $order->payment_details = $data;
+      watchdog('test-910', print_r($order, TRUE));
+      watchdog('test-920', print_r($form_state, TRUE));
+      // Default our value for validation.
+      $return = TRUE;
+
+      // Make sure a bank name was entered.
+      if (empty($data['ach_bank_name'])) {
+        if (!$silent) {
+          drupal_set_message(t('You must enter the name of your bank.'), 'error');
+        }
+        $return = FALSE;
+      }
+      $silent = TRUE;
+      // Validate the bank routing number.
+      if (empty($data['ach_bank_aba_code']) || !ctype_digit($data['ach_bank_aba_code'])) {
+        if (!$silent) {
+          drupal_set_message(t('You must enter a valid bank routing number.'), 'error');
+        }
+        $return = FALSE;
+      }
+
+      // Validate the bank account number.
+      if (empty($data['ach_bank_acct_num']) || !ctype_digit($data['ach_bank_acct_num'])) {
+        if (!$silent) {
+          drupal_set_message(t('You must enter a valid bank account number.'), 'error');
+        }
+        $return = FALSE;
+      }
+
+      // Make sure an account name was entered.
+      if (empty($data['ach_bank_acct_name'])) {
+        if (!$silent) {
+          drupal_set_message(t('You must enter the name associated with your bank account.'), 'error');
+        }
+        $return = FALSE;
+      }
+      $form_state['storage']['order']->data = $data;
+      return $return;
+
+    case 'cart-review':
+      $review = array();
+      watchdog('test-901', print_r($order, TRUE));
+      $review[] = array('title' => t('Bank'), 'data' => check_plain($order->data['ach_bank_name']));
+      $review[] = array('title' => t('Routing number'), 'data' => check_plain($order->data['ach_bank_aba_code']));
+      $review[] = array('title' => t('Account number'), 'data' => check_plain(variable_get('uc_achnet_acct_num_mask', 'xxxxxx') . $order->data['ach_bank_acct_num_last4']));
+      $review[] = array('title' => t('Account name'), 'data' => check_plain($order->data['ach_bank_acct_name']));
+      $review[] = array('title' => t('Account type'), 'data' => uc_achnet_acct_type($order->data['ach_bank_acct_type']));
+
+      return $review;
+
+    case 'order-view':
+    case 'customer-view':
+      $lines = array(
+        t('Bank name') .': '. check_plain($order->data['ach_bank_name']),
+        t('Account #') .': '. check_plain(variable_get('uc_achnet_acct_num_mask', 'xxxxxx') . $order->data['ach_bank_acct_num_last4']),
+      );
+
+      if ($op == 'order-view' && user_access('process ach payments')) {
+        $lines[] = l(t('Process ACH payment.'), 'admin/store/orders/'. $order->order_id .'/achnet');
+      }
+      $build['ACH_info'] = array(
+          '#prefix' => '<div>',
+          '#markup' => implode('<br />', $lines),
+          '#suffix' => '</div>',
+        );
+      return $build;
+
+    case 'order-details':
+      if (user_access('process ach payments')) {
+        return t('Process ACH.Net payments using the<br />terminal available through the view tab.');
+      }
+      else {
+        return t('Processing ACH.Net payments requires<br />appropriate admin permission.');
+      }
+
+    case 'settings':
+      return uc_achnet_settings_form();
+  }
+}
+
+// Form to gather the required fields to process an ACH payment.
+function uc_achnet_payment_form($form, &$form_state, $order) {
+  //$form = array();
+  $form['ach_bank_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Bank name'),
+    '#default_value' => isset($order->data['ach_bank_name']) ? $order->data['ach_bank_name'] : '' ,
+    '#attributes' => array('autocomplete' => 'off'),
+    '#required' => TRUE,
+    '#maxlength' => 50,
+    '#size' => 32,
+  );
+  $form['ach_bank_aba_code'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Bank routing number'),
+    '#description' => t('The first 9 digit number along the bottom of your checks.'),
+    '#default_value' => isset($order->data['ach_bank_aba_code']) ? $order->data['ach_bank_aba_code'] : '',
+    '#attributes' => array('autocomplete' => 'off'),
+    '#required' => TRUE,
+    '#maxlength' => 9,
+    '#size' => 32,
+  );
+  $form['ach_bank_acct_num'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Bank account number'),
+    '#description' => t('Up to a 20 digit number next to the the routing number.'),
+    '#default_value' => isset($order->data['ach_bank_acct_num']) ? $order->data['ach_bank_acct_num'] : '',
+    '#attributes' => array('autocomplete' => 'off'),
+    '#required' => TRUE,
+    '#maxlength' => 20,
+    '#size' => 32,
+  );
+  $form['ach_bank_acct_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Name on the account'),
+    '#default_value' => isset($order->data['ach_bank_acct_name']) ? $order->data['ach_bank_acct_name'] : '',
+    '#attributes' => array('autocomplete' => 'off'),
+    '#required' => TRUE,
+    '#maxlength' => 50,
+    '#size' => 32,
+  );
+  $form['ach_bank_acct_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Bank account type'),
+    '#options' => uc_achnet_acct_type(),
+    '#default_value' => !empty($order->data['ach_bank_acct_type']) ? $order->data['ach_bank_acct_type'] : 'CHECKING',
+    '#required' => TRUE,
+  );
+
+  return $form;
+}
+
+// Settings for the ACH.Net fieldset on the payment method settings form.
+function uc_achnet_settings_form() {
+  $form = array(
+    '#description' => t('ACH.Net is a service of Authorize.Net and Bluepay for ACH Payment Transaction. In order to use it, you must have an Authorize.Net account and Bluepay Account with this service enabled.'),
+  );
+
+   $form['uc_achnet'] = array(
+    '#type' => 'vertical_tabs',
+    '#attached' => array(
+      'js' => array(
+        'vertical-tabs' => drupal_get_path('module', 'uc_credit') . '/uc_credit.admin.js',
+      ),
+    ),
+  );
+  
+   $form['achnet_basic'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Basic settings'),
+    '#group' => 'uc_achnet',
+  );
+   
+   $options = array('ach_pg_authorizenet' => 'Authorize.Net','ach_pg_bluepay' => 'Bluepay');
+   
+   $form['achnet_basic']['uc_payment_achnet_gateway'] = array(
+    '#type' => 'radios',
+    '#title' => t('Default gateway'),
+    '#options' => $options,
+    '#default_value' => variable_get('uc_payment_achnet_gateway', '') ? variable_get('uc_payment_achnet_gateway', '') : 'ach_pg_bluepay',
+  );
+   
+  
+  $form['transaction'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Transaction settings'),
+    '#group' => 'uc_achnet',
+  );
+  
+  
+  
+  $form['transaction']['uc_achnet_txn_mode'] = array(
+    '#type' => 'radios',
+    '#title' => t('Transaction mode'),
+    '#description' => t('Only specify a developer test account if you login to your account through https://test.authorize.net.<br/>Adjust to live transactions when you are ready to start processing real payments.'),
+    '#options' => array(
+      'live' => t('Live transactions in a live account'),
+      'live_test' => t('Test transactions in a live account'),
+      'developer_test' => t('Developer test account transactions'),
+    ),
+    '#default_value' => variable_get('uc_achnet_txn_mode', 'live_test'),
+  );
+  $form['transaction']['uc_achnet_email_customer'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Tell Authorize.net to e-mail the customer a payment receipt based on your account settings.'),
+    '#default_value' => variable_get('uc_achnet_email_customer', FALSE),
+  );
+  
+   $form['ach_authorizenet'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Authorize.Net settings'),
+    '#group' => 'uc_achnet',
+  );
+
+  $form['ach_authorizenet']['api'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('API Login ID and Transaction Key'),
+    '#description' => t('These fields are required for Ubercart to communicate with your Authorize.Net account to process ACH payments. These are different from your normal account login ID and password and may be found through your account settings page.'),
+      
+  );
+  $form['ach_authorizenet']['api']['uc_achnet_api_login'] = array(
+    '#type' => 'textfield',
+    '#title' => t('API login ID'),
+    '#default_value' => variable_get('uc_achnet_api_login', ''),
+    '#maxlength' => 20,
+    '#size' => 24,
+  );
+  $form['ach_authorizenet']['api']['uc_achnet_api_tran_key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Transaction key'),
+    '#default_value' => variable_get('uc_achnet_api_tran_key', ''),
+    '#maxlength' => 16,
+    '#size' => 24,
+  );
+  
+  
+  
+   $form['ach_bluepay'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Bluepay settings'),
+    '#group' => 'uc_achnet',
+  );
+
+  $form['ach_bluepay']['api'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Account ID and Secret Key'),
+    '#description' => t('These fields are required for Ubercart to communicate with your Bluepay account to process ACH payments. These are different from your normal account login ID and password and may be found through your account settings page.'),
+      
+  );
+  $form['ach_bluepay']['api']['uc_achnet_bluepay_api_login'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Account ID'),
+    '#default_value' => variable_get('uc_achnet_bluepay_api_login', ''),
+    '#maxlength' => 100,
+    '#size' => 100,
+  );
+  $form['ach_bluepay']['api']['uc_achnet_bluepay_api_tran_key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Secret Key'),
+    '#default_value' => variable_get('uc_achnet_bluepay_api_tran_key', ''),
+    '#maxlength' => 100,
+    '#size' => 100,
+  );
+  
+  
+  
+  $form['ach_security'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Security settings'),
+    '#group' => 'uc_achnet',
+  );
+
+  $form['ach_security']['security'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Account number security'),
+  );
+  $form['ach_security']['security']['uc_achnet_encryption_path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Account number encryption key filepath'),
+    '#description' => t('<b>You must enable encryption</b> by following the <a href="!url">encryption instructions</a> in order to protect customer bank account data.<br />In short, you should specify a path outside of your document root where the encryption key may be stored.<br />Relative paths will be resolved relative to the Drupal installation directory.<br />Once this is set, you should not change it.', array('!url' => 'http://www.ubercart.org/docs/user/2731/credit_card_settings#security')),
+    '#default_value' => variable_get('uc_achnet_encryption_path', t('Not configured, see below.')),
+  );
+  $form['ach_security']['security']['uc_achnet_acct_num_mask'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Account number mask'),
+    '#description' => t('To protect bank account numbers, the last 4 digits will be displayed after this mask when they are shown to the user.'),
+    '#default_value' => variable_get('uc_achnet_acct_num_mask', 'xxxxxx'),
+  );
+  $form['ach_security']['security']['uc_achnet_wipe_interval'] = array(
+    '#type' => 'select',
+    '#title' => t('Data wipe interval'),
+    '#description' => t('ACH data will be wiped on inactive orders that are canceled or never make it through checkout after this interval of time passes.'),
+    '#options' => array(
+      300 => t('5 minutes'),
+      600 => t('10 minutes'),
+      900 => t('15 minutes'),
+      1200 => t('20 minutes'),
+      1500 => t('25 minutes'),
+      1800 => t('30 minutes'),
+      2700 => t('45 minutes'),
+      3600 => t('1 hour'),
+      7200 => t('2 hours'),
+      14400 => t('4 hours'),
+      28800 => t('8 hours'),
+      57600 => t('16 hours'),
+      86400 => t('1 day'),
+    ),
+    '#default_value' => variable_get('uc_achnet_wipe_interval', 900),
+  );
+
+  return $form;
+}
+
+/**
+ * Loads the key for bank account number encryption from a file.
+ *
+ * @return
+ *   The encryption key or FALSE if it can't be found.
+ */
+function uc_achnet_encryption_key() {
+  static $key;
+
+  if (!empty($key)) {
+    return $key;
+  }
+
+  $dir = variable_get('uc_achnet_encryption_path', t('Not configured, see below.'));
+
+  if (!empty($dir) && $dir !== t('Not configured, see below.')) {
+    $filename = rtrim($dir, '/\\') .'/uc_achnet.key';
+
+    if (file_exists($filename)) {
+      if (!$file = fopen($filename, 'r')) {
+        return FALSE;
+      }
+
+      $key = fread($file, filesize($filename));
+      fclose($file);
+    }
+  }
+  else {
+    return FALSE;
+  }
+
+  return $key;
+}
+
+/**
+ * Process an ACH payment for an order for the amount specified.
+ *
+ * @param $order
+ *   The fully loaded order object holding the ACH payment details.
+ * @param $amount
+ *   The amount to charge on the ACH.
+ * @return
+ *   TRUE if payment was successful or an error message if not.
+ */
+function _uc_achnet_process($order, $amount) {
+    
+    
+  watchdog('process-1', print_r($order, TRUE));
+  watchdog('process-2', print_r($amount, TRUE));
+  // Build a description of the order for logging in Auth.Net.
+  
+  $cus_fields = authnetcustomfields();
+  
+  $achnet_pay_gateway = variable_get('uc_payment_achnet_gateway','ach_pg_bluepay');
+  
+  if($achnet_pay_gateway == 'ach_pg_authorizenet')
+  {
+  $result = uc_achnet_authorizenet_method_option($order,$amount);
+  }
+  elseif($achnet_pay_gateway == 'ach_pg_bluepay')
+  {
+      
+  $result = uc_achnet_bluepay_method_option($order,$amount);
+      
+  }
+  
+  return $result;
+  
+  
+  
+}
+
+// Save the ACH data for an order.
+function uc_achnet_save_ach($order) {
+  $crypt = new UbercartEncryption();
+  //require_once $file;
+  // Build the data array for the record in the database.
+  $data = $order->payment_details;
+  $data['order_id'] = $order->order_id;
+
+  if (empty($data['ach_bank_acct_num_last4'])) {
+    $data['ach_bank_acct_num_last4'] = substr($data['ach_bank_acct_num'], -4);
+  }
+
+  // Encrypt the routing and account numbers.
+  $key = uc_achnet_encryption_key();
+
+  //$data['ach_bank_aba_code'] = $crypt->encrypt($key, base64_encode($data['ach_bank_aba_code'] . md5(time())));
+  //$data['ach_bank_acct_num'] = $crypt->encrypt($key, base64_encode($data['ach_bank_acct_num'] . md5(time())));
+
+  // Log any errors to the watchdog.
+  //uc_store_encryption_errors($crypt, 'uc_achnet');
+
+  // Check for an existing record.
+  $ach_id = db_query("SELECT ach_id FROM {uc_payment_achnet} WHERE order_id = :id", array(':id' => $order->order_id))->fetchField();
+  //$ach_id = db_result(db_query("SELECT ach_id FROM {uc_payment_achnet} WHERE order_id = %d", $order->order_id));
+
+  if ($ach_id) {
+    $data['ach_id'] = $ach_id;
+    $key = 'ach_id';
+  }
+  else {
+    $key = NULL;
+  }
+
+  drupal_write_record('uc_payment_achnet', $data, $key);
+}
+
+// Load the ACH data for an order.
+function uc_achnet_load_ach($order) {
+ // $result = db_query("SELECT * FROM {uc_payment_achnet} WHERE order_id = %d", $order->order_id);
+  $result = db_query("SELECT * FROM {uc_payment_achnet} WHERE order_id = :id ", array(':id' => $order->order_id));
+  if ($data_obj = $result->fetchObject()) {
+    // Decrypt the routing and account numbers.
+    $key = uc_achnet_encryption_key();
+    $crypt = new UbercartEncryption();
+
+    //$data['ach_bank_aba_code'] = base64_decode($crypt->decrypt($key, $data_obj->ach_bank_aba_code));
+    $data['ach_bank_aba_code'] = substr($data_obj->ach_bank_aba_code, 0, strlen($data_obj->ach_bank_aba_code) - 32);
+    //$data['ach_bank_acct_num'] = base64_decode($crypt->decrypt($key, $data_obj->ach_bank_acct_num));
+    $data['ach_bank_acct_num'] = substr($data_obj->ach_bank_acct_num, 0, strlen($data_obj->ach_bank_acct_num) - 32);
+
+    // Log any errors to the watchdog.
+    //uc_store_encryption_errors($crypt, 'uc_achnet');
+
+    return $data;
+  }
+  else {
+    return array();
+  }
+}
+
+// Wipe the routing and account numbers from the database for a given order.
+function uc_achnet_wipe_numbers($order_id) {
+  db_update('uc_payment_achnet')
+    ->fields(array(
+      'ach_bank_aba_code' => '',
+      'ach_bank_acct_num' => ''
+    ))
+    ->condition('order_id', $order_id)
+    ->execute();
+}
+
+// Return the name of an account type or the entire array of options.
+function uc_achnet_acct_type($option = NULL) {
+  $types = array(
+    'CHECKING' => t('Checking'),
+    'BUSINESSCHECKING' => t('Business checking'),
+    'SAVINGS' => t('Savings'),
+  );
+
+  if (!empty($option) && !empty($types[$option])) {
+    return $types[$option];
+  }
+
+  return $types;
+}
+
+// Allow administrators to process manual ACH payments.
+function uc_achnet_terminal_form($form_state, $order) {
+  $form = array();
+
+  $form['order'] = array(
+    '#type' => 'value',
+    '#value' => $order,
+  );
+
+  $balance = uc_payment_balance($order);
+
+  $form['amount'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Payment amount'),
+    '#description' => t('Order balance: @balance', array('@balance' => uc_currency_format($balance))),
+    '#default_value' => $balance > 0 ? uc_currency_format($balance, FALSE, FALSE) : 0,
+    '#field_prefix' => variable_get('uc_sign_after_amount', FALSE) ? '' : variable_get('uc_currency_sign', '$'),
+    '#field_suffix' => variable_get('uc_sign_after_amount', FALSE) ? variable_get('uc_currency_sign', '$') : '',
+    '#required' => TRUE,
+    '#size' => 12,
+  );
+
+  $form['payment'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Payment details'),
+    '#tree' => TRUE,
+  );
+
+  $form['payment'] += uc_achnet_payment_form(array(), $form_state, $order);
+
+  // If the ACH data was temporarily saved to the order, clear it now.
+  if ($_SESSION['ach_clear']) {
+    // Wipe the routing and account numbers from the order.
+    uc_achnet_wipe_numbers($order->order_id);
+
+    unset($_SESSION['ach_clear']);
+  }
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Process payment'),
+    '#suffix' => l(t('Cancel'), 'admin/store/orders/'. $order->order_id),
+  );
+
+  return $form;
+}
+
+function uc_achnet_terminal_form_validate($form, &$form_state) {
+  if (!is_numeric($form_state['values']['amount']) || $form_state['values']['amount'] <= 0) {
+    form_set_error('amount', t('You must enter a positive number for the payment amount.'));
+  }
+}
+
+function uc_achnet_terminal_form_submit($form, &$form_state) {
+  $order = $form_state['values']['order'];
+  $order->data = $form_state['values']['payment'];
+
+  // Process the ACH payment.
+  $result = _uc_achnet_process($order, $form_state['values']['amount']);
+
+  // If the payment failed, halt the checkout process.
+  if ($result !== TRUE) {
+    drupal_set_message($result, 'error');
+
+    uc_order_save($order);
+
+    $_SESSION['ach_clear'] = TRUE;
+  }
+  else {
+    // Otherwise empty out the routing and account numbers.
+    uc_achnet_wipe_numbers($order->order_id);
+
+    // Update the last 4 digits of the account stored in the database.
+    /*db_query("UPDATE {uc_payment_achnet} SET ach_bank_acct_num_last4 = '%s' WHERE order_id = %d", substr($order->data['ach_bank_acct_num'], -4), $order->order_id);*/
+		db_update('uc_payment_achnet')
+    ->fields(array(
+      'ach_bank_acct_num_last4' => substr($order->data['ach_bank_acct_num'], -4)
+    ))
+    ->condition('order_id', $order->order_id)
+    ->execute();
+    drupal_set_message(t('ACH payment processed successfully!'));
+
+    $form_state['redirect'] = 'admin/store/orders/'. $order->order_id;
+  }
+}
+function uc_strip_form($html) {
+  $html = preg_replace('`</?form.*>`', '', $html);
+  $html = preg_replace('`<input.*name="form_(token|id)".*>`', '', $html);
+
+  return $html;
+}
+
+
+
+
+function uc_achnet_bluepay_method_option($order,$amount) /// Bluepay Payment Gateway
+{
+    
+  
+  
+  global $user;
+    
+   
+  
+    $accountID = trim(variable_get('uc_achnet_bluepay_api_login', ''));
+   $secretKey = trim(variable_get('uc_achnet_bluepay_api_tran_key', ''));
+  
+
+
+$mode_set = trim(variable_get('uc_achnet_txn_mode',''));
+          
+          if($mode_set == 'live_test' || $mode_set == 'developer_test')
+          $mode = "TEST";
+          else
+          $mode = "LIVE";
+ 
+  
+
+  // Build a description of the order for logging in Auth.Net.
+  $description = array();
+  foreach ((array) $order->products as $product) {
+      $prod_id_cus = $product->nid;
+     
+    $description[] = $product->qty . 'x ' . $product->model;
+    $prod_sku_num = $product->model;
+  }
+  
+  
+
+  $billing_country = uc_get_country_data(array('country_id' => $order->billing_country));
+  $delivery_country = uc_get_country_data(array('country_id' => $order->delivery_country));
+
+  // Build the POST data for the transaction.
+  $submit_data = array(
+    // Merchant information.
+    'x_login' => trim(variable_get('uc_achnet_bluepay_api_login', '')),
+    'x_tran_key' => trim(variable_get('uc_achnet_bluepay_api_tran_key', '')),
+
+    // Transaction information.
+    'x_version' => '3.1',
+    'x_type' => _uc_bluepay_txn_map($data['txn_type']),
+    'x_amount' => uc_currency_format($amount, FALSE, FALSE, '.'),
+    // 'x_method' => $order->payment_method == 'credit' ? 'CC' : 'ECHECK',
+    'x_method' => 'ECHECK',
+    'x_bank_aba_code' => $order->data['ach_bank_aba_code'],
+    'x_bank_acct_num' => $order->data['ach_bank_acct_num'],
+    'x_bank_acct_type' => $order->data['ach_bank_acct_type'],
+    'x_bank_name' => $order->data['ach_bank_name'],
+    'x_bank_acct_name' => $order->data['ach_bank_acct_name'],
+    'x_ach_type' => 'WEB',
+    // 'x_trans_id' => '',
+    // 'x_auth_code' => '',
+    'x_test_request' => variable_get('uc_achnet_txn_mode', 'live_test') == 'live_test' ? 'TRUE' : 'FALSE',
+    'x_duplicate_window' => variable_get('uc_bluepay_duplicate_window', 120),
+
+    // Order information.
+    'x_invoice_num' => $order->order_id,
+    'x_description' => substr(implode(', ', $description), 0, 255),
+
+    // Customer information.
+    'x_first_name' => substr($order->billing_first_name, 0, 50),
+    'x_last_name' => substr($order->billing_last_name, 0, 50),
+    'x_company' => substr($order->billing_company, 0, 50),
+    'x_address' => substr($order->billing_street1, 0, 60),
+    'x_city' => substr($order->billing_city, 0, 40),
+    'x_state' => substr(uc_get_zone_code($order->billing_zone), 0, 40),
+    'x_zip' => substr($order->billing_postal_code, 0, 20),
+    'x_country' => !$billing_country ? '' : $billing_country[0]['country_iso_code_2'],
+    'x_phone' => substr($order->billing_phone, 0, 25),
+    // 'x_fax' => substr('', 0, 25),
+    'x_email' => substr($order->primary_email, 0, 255),
+    'x_cust_id' => substr($order->uid, 0, 20),
+    'x_customer_ip' => substr(ip_address(), 0, 15),
+
+    // Shipping information.
+    'x_ship_to_first_name' => substr($order->delivery_first_name, 0, 50),
+    'x_ship_to_last_name' => substr($order->delivery_last_name, 0, 50),
+    'x_ship_to_company' => substr($order->delivery_company, 0, 50),
+    'x_ship_to_address' => substr($order->delivery_street1, 0, 60),
+    'x_ship_to_city' => substr($order->delivery_city, 0, 40),
+    'x_ship_to_state' => substr(uc_get_zone_code($order->delivery_zone), 0, 40),
+    'x_ship_to_zip' => substr($order->delivery_postal_code, 0, 20),
+    'x_ship_to_country' => !$delivery_country ? '' : $delivery_country[0]['country_iso_code_2'],
+
+    // Extra information.
+	'x_customer_ip' => $_SERVER['REMOTE_ADDR'],
+    'x_delim_data' => 'TRUE',
+    'x_delim_char' => '|',
+    'x_encap_char' => '"',
+    'x_relay_response' => 'FALSE',
+    'x_email_customer' => variable_get('uc_bluepay_aim_email_customer', FALSE) ? 'TRUE' : 'FALSE',
+  );
+
+  if ($data['txn_type'] == UC_CREDIT_PRIOR_AUTH_CAPTURE) {
+    $submit_data['x_trans_id'] = $data['auth_id'];
+  }
+
+  // Determine the correct URL based on the transaction mode.
+  if (variable_get('uc_achnet_txn_mode', 'live_test') == 'developer_test') {
+    $post_url = variable_get('uc_bluepay_api_test_gateway_url', UC_BLUEPAY_TEST_GATEWAY_URL);
+  }
+  else {
+    $post_url = variable_get('uc_bluepay_api_live_gateway_url', UC_BLUEPAY_LIVE_GATEWAY_URL);
+  }
+
+  // Translate the data array into a string we can POST.
+  $post_fields = array();
+  foreach ($submit_data as $key => $value) {
+    $post_fields[] = $key . '=' . urlencode($value);
+  }
+
+  // Setup the cURL request.
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $post_url);
+  curl_setopt($ch, CURLOPT_VERBOSE, 0);
+  curl_setopt($ch, CURLOPT_POST, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, implode('&', $post_fields));
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+  curl_setopt($ch, CURLOPT_NOPROGRESS, 1);
+  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
+  $result = curl_exec($ch);
+ watchdog('request-15', print_r($result, TRUE));
+  // Log any errors to the watchdog.
+  if ($error = curl_error($ch)) {
+    watchdog('uc_achnet', 'cURL error: @error', array('@error' => $error), WATCHDOG_ERROR);
+    return t('We encountered a server error while trying to process your payment. Please try again and contact us to complete your order if the problem persists.');
+  }
+  curl_close($ch);
+  
+  $response = explode('|', $result);
+
+  // Trim off the encapsulating character from the results.
+  for ($i = 0; $i < count($response); $i++) {
+    $response[$i] = substr($response[$i], 1, strlen($response[$i]) - 2);
+  }
+
+ 
+  /**
+   * Response key index:
+   * 0 = Response Code
+   * 2 = Response Reason Code
+   * 3 = Response Reason Text
+   * 6 = Transaction ID.
+   * 9 = Amount
+   * 11 = Transaction Type
+   * 37 = Transaction Response MD5 Hash
+   */
+  switch ($response[0]) {
+    // Payment is accepted.
+    case '1':
+      $result = array(
+        'success' => TRUE,
+        'message' => t('Payment accepted. Transaction ID: @txn_id', array('@txn_id' => $response[6])),
+      );
+      break;
+
+    // Payment is declined.
+    case '2':
+      $result = array(
+        'success' => FALSE,
+        'message' => t('Payment declined: @message', array('@message' => $response[3])),
+      );
+      break;
+
+    // Error processing the transaction.
+    case '3':
+      $result = array(
+        'success' => FALSE,
+        'message' => t('Payment failed: @message', array('@message' => $response[3])),
+      );
+      break;
+
+    // Payment is under review.
+    case '4':
+      $result = array(
+        'success' => TRUE,
+        'message' => t('Payment under review: @message', array('@message' => $response[3])),
+      );
+      break;
+  }
+
+  // Build an admin order comment.
+  $context = array(
+    'revision' => 'formatted-original',
+    'location' => 'ACH.Net-charge-comment',
+  );
+  $comment = t('<b>ACH.Net</b><br />!message<br />Amount: !amount', array('!message' => $result['message'], '!amount' => uc_currency_format($amount)));
+
+  
+  uc_order_comment_save($order->order_id, $user->uid, $comment, 'admin');
+
+  /**
+   * Response key index:
+   * 0 = Response Code
+   * 2 = Response Reason Code
+   * 3 = Response Reason Text
+   * 4 = Authorization Code
+   * 5 = Address Verification Service (AVS) Response
+   * 6 = Transaction ID; needed for CREDIT, PRIOR_AUTH_CAPTURE, and VOID transactions.
+   * 9 = Amount
+   * 11 = Transaction Type
+   * 32 = Tax Amount Charged
+   * 37 = Transaction Response MD5 Hash
+   * 38 = Card Code (CVV) Response
+   */
+
+  // If we didn't get an approval response code...
+  if ($response[0] != '1') {
+    // Fail the charge with the reason text in the decline message.
+   
+    return $result['message'];
+  
+  }
+  else {
+      
+       $datas = $submit_data;
+      $can_account = user_load($user->uid,TRUE);
+      
+      $user_roles = $user->roles;
+      $current_plan = 'Paid';
+      if(array_key_exists('4',$user_roles))
+      {
+          
+          $current_plan = 'Free';
+          
+      }
+    
+  
+  
+  $an_field_items = field_get_items('user', $can_account, 'usr_last_pg');
+      
+      $last_payment = $an_field_items[0]['value'];
+      
+      if($last_payment == 'bluepay')
+      {
+      
+      
+      $bluepay_field_items = field_get_items('user', $can_account, 'user_bluepay_rebill_id');
+      
+      $rebill_id = $bluepay_field_items[0]['value'];
+      if($rebill_id!="")
+      {
+           
+         
+          $rebillCancel = new BluePay(
+        $accountID, 
+        $secretKey, 
+        $mode
+    );
+
+    # Find rebill by id and cancel rebilling cycle 
+   $rebillCancel->cancelRebillingCycle($rebill_id);
+
+    // Makes the API request to cancel the rebill
+    $rebillCancel->process();
+    
+    if ($rebillCancel->isSuccessfulResponse()) {
+        
+        
+         $account = user_load($user->uid); // Loading account
+$edit = array(
+  'user_bluepay_rebill_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_trans_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'RECURRING CANCELLED',
+      ),
+    ),
+  )
+);
+    
+user_save($account, $edit);
+   
+        
+        
+
+    // Reads the response from BluePay
+    /*echo 
+    'Rebill Status: ' . $rebillCancel->getRebStatus() . "\n" .
+    'Rebill ID: ' . $rebillCancel->getRebID() . "\n" .
+    'Rebill Creation Date: ' . $rebillCancel->getCreationDate() . "\n" .
+    'Rebill Next Date: ' . $rebillCancel->getNextDate() . "\n" .
+    'Rebill Last Date: ' . $rebillCancel->getLastDate() . "\n" .
+    'Rebill Expression: ' . $rebillCancel->getSchedExpr() . "\n" .
+    'Rebill Cycles Remaining: ' . $rebillCancel->getCyclesRemaining() . "\n" .
+    'Rebill Amount: ' . $rebillCancel->getRebAmount() . "\n" .
+    'Rebill Next Amount Charged: ' . $rebillCancel->getNextAmount() . "\n"; */
+    }
+    else
+    {
+
+   $rebillCancel->getMessage();
+    }
+
+      }
+      
+      
+      
+    }
+    else
+    {
+        
+        
+       
+         $an_field_items = field_get_items('user', $can_account, 'user_authorizenet_rebill_id');
+          $an_field_items2 = field_get_items('user', $can_account, 'user_authorizenet_rec_trans_id');
+          $an_field_items3 = field_get_items('user', $can_account, 'user_m6_next_bill_date');
+          $next_bill_date = $an_field_items3[0]['value'];
+          
+          $an_rebill_id = $an_field_items[0]['value'];
+          $an_rebill_ref_id = $an_field_items2[0]['value'];
+          if($an_rebill_id!="")
+          {
+             
+          $result_uns = cancel_authorizenet_recurring($an_rebill_id,$an_rebill_ref_id);
+          
+          }
+        
+        
+    }
+      
+     
+    $nids[] = $prod_id_cus;
+   
+    $query = db_select('uc_recurring_product', 'p');
+      $query->leftjoin('uc_product_features', 'f', 'p.pfid = f.pfid');
+      $result = $query->fields('p', array('pfid', 'model', 'fee_amount', 'initial_charge', 'regular_interval', 'number_intervals'))
+        ->fields('f', array('nid'))
+        ->condition('f.nid', $nids, 'IN')
+        ->execute();
+      $cs_record = $result->fetchAssoc();
+      
+      
+      
+      
+       $downgrade_plan = false; 
+              
+      $query_status = db_select('uc_orders', 'o')
+    ->fields('o', array('order_id','uid', 'order_status', 'order_total')) ; 
+    $db_or_status = db_or();  
+    $db_or_status->condition(db_and()->condition('o.uid', $user->uid, '=')->condition('o.order_status', 'completed', '='));
+    $query_status->orderBy('order_id', 'DESC');
+    $query_status ->range(0, 1);
+  
+   $src_status =  $query_status->condition($db_or_status);  
+   $result_status = $src_status->execute()->fetchAll();
+ 
+    if(isset($result_status[0]->order_total))
+    {
+      $total1 = $result_status[0]->order_total;
+    }
+    else {
+        $total1 = 0;
+    }
+ 
+ if($amount < $total1 && $current_plan == 'Paid')
+ {
+     $downgrade_plan = true;
+     $usr_account = user_load($user->uid);
+      $bluepay_field_items = field_get_items('user', $usr_account, 'user_m6_next_bill_date');
+     
+      $user_next_bill_date = $bluepay_field_items[0]['value'];
+     $next_rec_date = date('Y-m-d',strtotime($user_next_bill_date.' + '.$cs_record['initial_charge']));
+ }
+ else
+ {
+     $next_rec_date = date('Y-m-d',strtotime('+'.$cs_record['initial_charge']));
+ }
+      
+      
+     
+$rebill = new BluePay(
+    $accountID,
+    $secretKey,
+    $mode
+);
+
+
+//print_r($datas);
+$rebill->setCustomerInformation(array(
+     'firstName' => substr($order->billing_first_name, 0, 50),
+     'lastName' => substr($order->billing_last_name, 0, 50),
+     'company' => substr($order->billing_company, 0, 50),
+     'address' => substr($order->billing_street1, 0, 60),
+     'city' => substr($order->billing_city, 0, 40),
+     'state' => substr(uc_get_zone_code($order->billing_zone), 0, 2),
+     'zip' => substr($order->billing_postal_code, 0, 20),
+     'country' => !$billing_country ? '' : $billing_country[0]['country_iso_code_2'],
+    'phone' => substr($order->billing_phone, 0, 25), 
+    'email' => substr($order->primary_email, 0, 255) 
+));
+
+
+ 
+$rebill->setACHInformation(array(
+    'routingNumber' => $order->data['ach_bank_aba_code'], // Card Number: 4111111111111111
+    'accountNumber' => $order->data['ach_bank_acct_num'], // Card Expire: 12/15
+    'accountType' => $order->data['ach_bank_acct_type'],
+    'documentType' => 'WEB'// Card CVV2: 123
+));
+
+
+
+$reb_exp = explode(" ",$cs_record['regular_interval']);
+
+if($reb_exp[1] == 'months')
+$reb_exp_txt = $reb_exp[0]." MONTH";
+
+if($reb_exp[1] == 'years')
+$reb_exp_txt = $reb_exp[0]." YEAR";
+
+if($reb_exp[1] == 'days')
+$reb_exp_txt = $reb_exp[0]." DAY";
+
+if($reb_exp[1] == 'weeks')
+$reb_exp_txt = $reb_exp[0]." WEEK";
+
+$rebill->setRebillingInformation(array(
+   'rebillFirstDate' => $next_rec_date, // Rebill Start Date: Jan. 5, 2015
+   'rebillExpression' => $reb_exp_txt, // Rebill Frequency: 1 MONTH
+  'rebillCycles' => $cs_record['number_intervals'], // Rebill # of Cycles: 5
+   'rebillAmount' => $cs_record['fee_amount'] // Rebill Amount: $3.50
+    /*'rebillFirstDate' => '2015-09-20', // Rebill Start Date: Jan. 5, 2015
+   'rebillExpression' => '1 MONTH', // Rebill Frequency: 1 MONTH
+   'rebillCycles' => '5', // Rebill # of Cycles: 5
+   'rebillAmount' => '13.49' // Rebill Amount: $3.50    */
+        
+));
+
+
+
+
+$rebill->auth('0.00');
+
+// Makes the API Request with BluePay
+$rebill->process();
+
+if ($rebill->isSuccessfulResponse()) {
+    
+    
+    $account = user_load($user->uid); // Loading account
+    
+    
+    
+    if($downgrade_plan == true)
+    {
+        
+       $dwn_grd_id = bp_get_downgrade_role_id($prod_sku_num);
+        $edit = array(
+  'user_bluepay_rebill_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => $rebill->getRebillID(),
+      ),
+    ),
+  ),
+  'user_bluepay_rec_trans_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => $rebill->getTransID(),
+      ),
+    ),
+  ),
+  'user_bluepay_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => $rebill->getStatus(),
+      ),
+    ),
+  ),
+  'user_bluepay_rec_cancel_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => '0',
+      ),
+    )
+),
+ 'user_bluepay_rec_expiration' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+'user_m6_next_bill_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => $next_rec_date,
+      ),
+    )
+),
+ 'user_m6_dgrd_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => $user_next_bill_date,
+      ),
+    )
+),
+'user_m6_dgrd_rid' => array(
+    'und' => array(
+      0 => array(
+        'value' => $dwn_grd_id,
+      ),
+    )
+),
+ 'usr_last_pg' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'bluepay',
+      ),
+    )
+)
+);
+        
+        
+    }
+     
+    
+  else
+  {
+    
+$edit = array(
+  'user_bluepay_rebill_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => $rebill->getRebillID(),
+      ),
+    ),
+  ),
+  'user_bluepay_rec_trans_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => $rebill->getTransID(),
+      ),
+    ),
+  ),
+  'user_bluepay_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => $rebill->getStatus(),
+      ),
+    ),
+  ),
+  'user_bluepay_rec_cancel_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => '0',
+      ),
+    )
+),
+'user_bluepay_rec_expiration' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+'user_m6_next_bill_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => $next_rec_date,
+      ),
+    )
+),
+ 'user_m6_dgrd_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+'user_m6_dgrd_rid' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+ 'usr_last_pg' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'bluepay',
+      ),
+    )
+)
+);
+
+  }
+
+user_save($account, $edit);
+
+
+    /*echo 
+    'Transaction ID: '. $rebill->getTransID() . "\n" .
+    'Rebill ID: ' . $rebill->getRebillID() . "\n" .
+    'Status: '. $rebill->getStatus() . "\n" .
+    'Message: '. $rebill->getMessage() . "\n" .
+    'AVS Response: ' . $rebill->getAVSResponse() . "\n" .
+    'CVS Response: ' . $rebill->getCVV2Response() . "\n" .
+    'Masked Account: ' . $rebill->getMaskedAccount() . "\n" .
+    'Card Type: ' . $rebill->getCardType() . "\n" .
+    'Authorization Code: ' . $rebill->getAuthCode() . "\n";*/
+    
+    
+}
+else
+{
+   
+   
+     $account = user_load($user->uid); // Loading account
+     
+     
+  if($downgrade_plan == true)
+    {    
+     
+$edit = array(
+  'user_bluepay_rebill_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_trans_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_cancel_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => '0',
+      ),
+    )
+),
+'user_bluepay_rec_expiration' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+  'user_bluepay_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'RECURRING FAILED',
+      ),
+    ),
+  ),
+'user_m6_next_bill_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+ 'user_m6_dgrd_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+'user_m6_dgrd_rid' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+ 'usr_last_pg' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'bluepay',
+      ),
+    )
+)
+);
+    }
+    else
+    {
+        $edit = array(
+  'user_bluepay_rebill_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_trans_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_cancel_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => '0',
+      ),
+    )
+),
+'user_bluepay_rec_expiration' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+  'user_bluepay_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'RECURRING FAILED',
+      ),
+    ),
+  ),
+ 'usr_last_pg' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'bluepay',
+      ),
+    )
+)
+);
+    }
+    
+user_save($account, $edit);
+   
+    
+    
+}
+
+
+    
+    if($downgrade_plan == false)
+    {
+     $order_confirm_st = user_load($user->uid,TRUE);
+     
+     $edit = array(
+  'user_order_stat_recent' => array(
+    'und' => array(
+      0 => array(
+        'value' => '1',
+      ),
+    ),
+  )
+);
+    
+user_save($order_confirm_st, $edit);
+    }
+    
+  
+
+uc_payment_enter($order->order_id, 'achnet', $response[9], 0, '', t('Transaction ID: @txn_id', array('@txn_id' => $response[6])));
+uc_order_update_status($order->order_id,'completed');
+    
+    return TRUE;
+  }
+  
+  
+  
+ 
+  
+  
+
+  return $result;
+    
+    
+    
+    
+    
+    
+    
+}
+
+
+
+
+
+
+
+function uc_achnet_authorizenet_method_option($order,$amount)  // Authorize.net Payment Gateway
+{
+    
+    global $user;
+    
+    $description = array();
+  foreach ((array) $order->products as $product) {
+    $prod_id_cus = $product->nid;
+    $description[] = $product->qty .'x '. $product->model;
+    $prod_sku_num = $product->model;
+  }
+
+  $billing_country = uc_get_country_data(array('country_id' => $order->billing_country));
+  $delivery_country = uc_get_country_data(array('country_id' => $order->delivery_country));
+
+  $context = array(
+    'revision' => 'formatted-original',
+    'location' => 'ACH.Net-charge',
+  );
+  $options = array(
+    'sign' => FALSE,
+    'thou' => FALSE,
+    'dec' => '.',
+  );
+  
+  
+
+  // Build the POST data for the transaction.
+  $submit_data = array(
+    // Merchant Information
+    'x_login' => variable_get('uc_achnet_api_login', ''),
+    'x_tran_key' => variable_get('uc_achnet_api_tran_key', ''),
+
+    // Transaction Information
+    'x_version' => '3.1',
+    'x_method' => 'ECHECK',
+    'x_bank_aba_code' => $order->data['ach_bank_aba_code'],
+    'x_bank_acct_num' => $order->data['ach_bank_acct_num'],
+    'x_bank_acct_type' => $order->data['ach_bank_acct_type'],
+    'x_bank_name' => $order->data['ach_bank_name'],
+    'x_bank_acct_name' => $order->data['ach_bank_acct_name'],
+    'x_ach_type' => 'WEB',
+    'x_recurring_billing' => 'FALSE',
+    //'x_amount' => uc_price($amount, $context, $options),
+    'x_amount' => uc_currency_format($amount, FALSE, FALSE, '.'),
+    'x_test_request' => variable_get('uc_achnet_txn_mode', 'live_test') == 'live_test' ? 'TRUE' : 'FALSE',
+
+    // Order Information
+    'x_invoice_num' => $order->order_id,
+    'x_description' => substr(implode(', ', $description), 0, 255),
+
+    // Customer Information
+    'x_first_name' => substr($order->billing_first_name, 0, 50),
+    'x_last_name' => substr($order->billing_last_name, 0, 50),
+    'x_company' => substr($order->billing_company, 0, 50),
+    'x_address' => substr($order->billing_street1, 0, 60),
+    'x_city' => substr($order->billing_city, 0, 40),
+    'x_state' => substr(uc_get_zone_code($order->billing_zone), 0, 40),
+    'x_zip' => substr($order->billing_postal_code, 0, 20),
+    'x_country' => !$billing_country ? '' : $billing_country[0]['country_iso_code_2'],
+    'x_phone' => substr($order->billing_phone, 0, 25),
+    'x_email' => substr($order->primary_email, 0, 255),
+    'x_cust_id' => substr($order->uid, 0, 20),
+    'x_customer_ip' => substr(ip_address(), 0, 15),
+
+    // Shipping Information
+    'x_ship_to_first_name' => substr($order->delivery_first_name, 0, 50),
+    'x_ship_to_last_name' => substr($order->delivery_last_name, 0, 50),
+    'x_ship_to_company' => substr($order->delivery_company, 0, 50),
+    'x_ship_to_address' => substr($order->delivery_street1, 0, 60),
+    'x_ship_to_city' => substr($order->delivery_city, 0, 40),
+    'x_ship_to_state' => substr(uc_get_zone_code($order->delivery_zone), 0, 40),
+    'x_ship_to_zip' => substr($order->delivery_postal_code, 0, 20),
+    'x_ship_to_country' => !$delivery_country ? '' : $delivery_country[0]['country_iso_code_2'],
+
+    // Extra Information
+    'x_delim_data' => 'TRUE',
+    'x_delim_char' => '|',
+    'x_encap_char' => '"',
+    'x_relay_response' => 'FALSE',
+    'x_email_customer' => variable_get('uc_achnet_email_customer', FALSE) ? 'TRUE' : 'FALSE',
+  );
+
+  // Determine the correct URL based on the transaction mode.
+  if (variable_get('uc_achnet_txn_mode', 'live_test') == 'developer_test') {
+    $post_url = 'https://test.authorize.net/gateway/transact.dll';
+  }
+  else {
+    $post_url = 'https://secure.authorize.net/gateway/transact.dll';
+  }
+
+  // Translate the data array into a string we can POST.
+  $post_fields = array();
+  foreach ($submit_data as $key => $value) {
+    $post_fields[] = $key .'='. urlencode($value);
+  }
+
+  // Setup the cURL request.
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $post_url);
+  curl_setopt($ch, CURLOPT_VERBOSE, 0);
+  curl_setopt($ch, CURLOPT_POST, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, implode('&', $post_fields));
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+  curl_setopt($ch, CURLOPT_NOPROGRESS, 1);
+  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
+  $result = curl_exec($ch);
+  
+  
+  watchdog('request-15', print_r($result, TRUE));
+  // Log any errors to the watchdog.
+  if ($error = curl_error($ch)) {
+    watchdog('uc_achnet', 'cURL error: @error', array('@error' => $error), WATCHDOG_ERROR);
+    return t('We encountered a server error while trying to process your payment. Please try again and contact us to complete your order if the problem persists.');
+  }
+  curl_close($ch);
+  
+  $response = explode('|', $result);
+
+  // Trim off the encapsulating character from the results.
+  for ($i = 0; $i < count($response); $i++) {
+    $response[$i] = substr($response[$i], 1, strlen($response[$i]) - 2);
+  }
+
+ 
+  /**
+   * Response key index:
+   * 0 = Response Code
+   * 2 = Response Reason Code
+   * 3 = Response Reason Text
+   * 6 = Transaction ID.
+   * 9 = Amount
+   * 11 = Transaction Type
+   * 37 = Transaction Response MD5 Hash
+   */
+  switch ($response[0]) {
+    // Payment is accepted.
+    case '1':
+      $result = array(
+        'success' => TRUE,
+        'message' => t('Payment accepted. Transaction ID: @txn_id', array('@txn_id' => $response[6])),
+      );
+      break;
+
+    // Payment is declined.
+    case '2':
+      $result = array(
+        'success' => FALSE,
+        'message' => t('Payment declined: @message', array('@message' => $response[3])),
+      );
+      break;
+
+    // Error processing the transaction.
+    case '3':
+      $result = array(
+        'success' => FALSE,
+        'message' => t('Payment failed: @message', array('@message' => $response[3])),
+      );
+      break;
+
+    // Payment is under review.
+    case '4':
+      $result = array(
+        'success' => TRUE,
+        'message' => t('Payment under review: @message', array('@message' => $response[3])),
+      );
+      break;
+  }
+
+  // Build an admin order comment.
+  $context = array(
+    'revision' => 'formatted-original',
+    'location' => 'ACH.Net-charge-comment',
+  );
+  $comment = t('<b>ACH.Net</b><br />!message<br />Amount: !amount', array('!message' => $result['message'], '!amount' => uc_currency_format($amount)));
+
+  
+  uc_order_comment_save($order->order_id, $user->uid, $comment, 'admin');
+
+  // Return TRUE for successful payments or the error message for failures.
+  if ($result['success']) {
+      
+      
+      $can_account = user_load($user->uid,TRUE);
+      
+      
+      $user_roles = $user->roles;
+      $current_plan = 'Paid';
+      if(array_key_exists('4',$user_roles))
+      {
+          
+          $current_plan = 'Free';
+          
+      }
+    
+      
+      
+      $an_field_items = field_get_items('user', $can_account, 'usr_last_pg');
+      
+      $last_payment = $an_field_items[0]['value'];
+      
+      if($last_payment == 'authorizenet')
+      {
+          
+          $an_field_items = field_get_items('user', $can_account, 'user_authorizenet_rebill_id');
+          $an_field_items2 = field_get_items('user', $can_account, 'user_authorizenet_rec_trans_id');
+          $an_rebill_id = $an_field_items[0]['value'];
+          $an_rebill_ref_id = $an_field_items2[0]['value'];
+          if($an_rebill_id!="")
+          {
+             
+          cancel_authorizenet_recurring($an_rebill_id,$an_rebill_ref_id);
+          }
+      }
+      elseif($last_payment == 'bluepay')
+      {
+          $an_field_items = field_get_items('user', $can_account, 'user_bluepay_rebill_id');
+      
+          $bp_rebill_id = $an_field_items[0]['value'];
+          if($bp_rebill_id!="")
+          {
+          cancel_bluepay_recurring($bp_rebill_id);
+          }
+      }
+      
+      
+      
+      
+     
+    $nids[] = $prod_id_cus;
+   
+    $query = db_select('uc_recurring_product', 'p');
+      $query->leftjoin('uc_product_features', 'f', 'p.pfid = f.pfid');
+      $result = $query->fields('p', array('pfid', 'model', 'fee_amount', 'initial_charge', 'regular_interval', 'number_intervals'))
+        ->fields('f', array('nid'))
+        ->condition('f.nid', $nids, 'IN')
+        ->execute();
+      $cs_record = $result->fetchAssoc();
+      
+      
+       $downgrade_plan = false; 
+              
+      $query_status = db_select('uc_orders', 'o')
+    ->fields('o', array('order_id','uid', 'order_status', 'order_total')) ; 
+    $db_or_status = db_or();  
+    $db_or_status->condition(db_and()->condition('o.uid', $user->uid, '=')->condition('o.order_status', 'completed', '='));
+    $query_status->orderBy('order_id', 'DESC');
+    $query_status ->range(0, 1);
+  
+   $src_status =  $query_status->condition($db_or_status);  
+   $result_status = $src_status->execute()->fetchAll();
+ 
+    if(isset($result_status[0]->order_total))
+    {
+      $total1 = $result_status[0]->order_total;
+    }
+    else {
+        $total1 = 0;
+    }
+ 
+ if($amount < $total1 && $current_plan == 'Paid')
+ {
+     $downgrade_plan = true;
+     $usr_account = user_load($user->uid);
+      $bluepay_field_items = field_get_items('user', $usr_account, 'user_m6_next_bill_date');
+     
+      $user_next_bill_date = $bluepay_field_items[0]['value'];
+     $next_rec_date = date('Y-m-d',strtotime($user_next_bill_date.' + '.$cs_record['initial_charge']));
+ }
+ else
+ {
+     $next_rec_date = date('Y-m-d',strtotime('+'.$cs_record['initial_charge']));
+ }
+ 
+ 
+ 
+ $reb_exp = explode(" ",$cs_record['regular_interval']);
+ 
+ 
+ $unit = $reb_exp[1];
+$length = $reb_exp[0];
+
+
+if ($unit == 'weeks') {
+    $length *= 7;
+    $unit = 'days';
+  }
+  elseif ($unit == 'years') {
+    $length *= 365;
+    $unit = 'days';
+  }
+
+
+      
+       $data = array(
+    'refId' => substr($order->order_id . '-' . REQUEST_TIME, 0, 20),
+    'subscription' => array(
+      'name' => substr(t('Order @order_id', array('@order_id' => $order->order_id)), 0, 50),
+      'paymentSchedule' => array(
+        'interval' => array(
+          'length' => $length,
+          'unit' => $unit,
+        ),
+        'startDate' => $next_rec_date,
+        'totalOccurrences' => $cs_record['number_intervals'],
+        'trialOccurrences' => '0',
+      ),
+      'amount' => round($cs_record['fee_amount'], 2),
+      'trialAmount' => 0,
+      'payment' => array(), // Data inserted below based on payment method.
+      'order' => array(
+        'invoiceNumber' => substr($order->order_id, 0, 20),
+        'description' => substr(t('Order @order_id - @sku', array('@order_id' => $order->order_id, '@sku' => $fee->model)), 0, 255),
+      ),
+      'customer' => array(
+        'id' => substr($order->uid, 0, 20),
+        'email' => substr($order->primary_email, 0, 255),
+        'phoneNumber' => substr($order->billing_phone, 0, 25),
+      ),
+      'billTo' => array(
+        'firstName' => substr($order->billing_first_name, 0, 50),
+        'lastName' => substr($order->billing_last_name, 0, 50),
+        'company' => substr($order->billing_company, 0, 50),
+        'address' => substr($order->billing_street1, 0, 60),
+        'city' => substr($order->billing_city, 0, 40),
+        'state' => substr(uc_get_zone_code($order->billing_zone), 0, 2),
+        'zip' => substr($order->billing_postal_code, 0, 20),
+        'country' => !$billing_country ? '' : $billing_country[0]['country_iso_code_2'],
+      ),
+      'shipTo' => array(
+        'firstName' => substr($order->delivery_first_name, 0, 50),
+        'lastName' => substr($order->delivery_last_name, 0, 50),
+        'company' => substr($order->delivery_company, 0, 50),
+        'address' => substr($order->delivery_street1, 0, 60),
+        'city' => substr($order->delivery_city, 0, 40),
+        'state' => substr(uc_get_zone_code($order->delivery_zone), 0, 2),
+        'zip' => substr($order->delivery_postal_code, 0, 20),
+        'country' => !$delivery_country ? '' : $delivery_country[0]['country_iso_code_2'],
+      ),
+    ),
+  );
+
+  // Strip out the shipping info if it isn't necessary.
+  if (empty($data['subscription']['shipTo']['firstName'])) {
+    unset($data['subscription']['shipTo']);
+  }
+
+  // Add the payment information to the data array based on the payment method.
+  
+   
+
+    $data['subscription']['payment'] = array(
+      'bankAccount' => array(
+        'accountType' => strtolower($order->data['ach_bank_acct_type']),
+        'routingNumber' => $order->data['ach_bank_aba_code'],
+        'accountNumber'  => $order->data['ach_bank_acct_num'],
+        'nameOnAccount' => $order->data['ach_bank_acct_name'],
+        'bankName' => $order->data['ach_bank_name'],
+        //'echeckType' => 'WEB'
+      )
+    );
+  
+  
+  
+
+      
+      
+  $xml = _uc_authorizenet_xml_api_wrapper('ARBCreateSubscriptionRequest', _uc_authorizenet_array_to_xml($data)); 
+  
+
+  // Send the request off to the server and get the response.
+  $server = variable_get('uc_authnet_arb_mode', 'disabled');
+  
+  $response = uc_authorizenet_xml_api($server, $xml);
+ 
+ 
+
+  // Fail if the response is empty or FALSE.
+  if (!$response) {
+    return FALSE;
+  }
+
+  // Parse the response into a data array.
+  $data_res = _uc_authorizenet_arb_parse_response($response);
+  
+  if($data_res['resultCode'] == "Ok")
+  {
+    
+   
+   
+    
+    $account = user_load($user->uid,TRUE); // Loading account
+    
+    
+    
+    if($downgrade_plan == true)
+    {
+       
+        
+        
+       $dwn_grd_id = auth_get_downgrade_role_id($prod_sku_num);
+        $edit = array(
+  'user_authorizenet_rebill_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => $data_res['subscriptionId'],
+      ),
+    ),
+  ),
+  'user_authorizenet_rec_trans_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => $data_res['refId'],
+      ),
+    ),
+  ),
+  'user_authorizenet_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => $data_res['resultCode'],
+      ),
+    ),
+  ),
+  'user_authorizenet_rc_cncl_stat' => array(
+    'und' => array(
+      0 => array(
+        'value' => '0',
+      ),
+    )
+),
+'user_authorizenet_rec_expiration' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+'user_m6_next_bill_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => $next_rec_date,
+      ),
+    )
+),
+ 'user_m6_dgrd_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => $user_next_bill_date,
+      ),
+    )
+),
+'user_m6_dgrd_rid' => array(
+    'und' => array(
+      0 => array(
+        'value' => $dwn_grd_id,
+      ),
+    )
+),
+ 'usr_last_pg' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'authorizenet',
+      ),
+    )
+)
+);
+        
+        
+    }
+     
+    
+  else
+  {
+  
+$edit = array(
+  'user_authorizenet_rebill_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => $data_res['subscriptionId'],
+      ),
+    ),
+  ),
+  'user_authorizenet_rec_trans_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => $data_res['refId'],
+      ),
+    ),
+  ),
+  'user_authorizenet_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => $data_res['resultCode'],
+      ),
+    ),
+  ),
+  'user_authorizenet_rc_cncl_stat' => array(
+    'und' => array(
+      0 => array(
+        'value' => '0',
+      ),
+    )
+),
+'user_authorizenet_rec_expiration' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+'user_m6_next_bill_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => $next_rec_date,
+      ),
+    )
+),
+ 'user_m6_dgrd_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+'user_m6_dgrd_rid' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+ 'usr_last_pg' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'authorizenet',
+      ),
+    )
+)
+);
+
+  }
+$account = user_load($user->uid,TRUE);
+user_save($account, $edit);
+
+
+   
+    
+    
+}
+else
+{
+    
+    
+     $account = user_load($user->uid,TRUE); // Loading account
+     
+     
+  if($downgrade_plan == true)
+    {    
+     
+$edit = array(
+  'user_authorizenet_rebill_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_authorizenet_rec_trans_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_authorizenet_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => $data_res['resultCode'],
+      ),
+    ),
+  ),
+  'user_authorizenet_rc_cncl_stat' => array(
+    'und' => array(
+      0 => array(
+        'value' => '0',
+      ),
+    )
+),
+'user_authorizenet_rec_expiration' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+'user_m6_next_bill_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+ 'user_m6_dgrd_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+'user_m6_dgrd_rid' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+ 'usr_last_pg' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'authorizenet',
+      ),
+    )
+)
+);
+    }
+    else
+    {
+        $edit = array(
+  'user_authorizenet_rebill_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_authorizenet_rec_trans_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_authorizenet_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => $data_res['resultCode'],
+      ),
+    ),
+  ),
+  'user_authorizenet_rc_cncl_stat' => array(
+    'und' => array(
+      0 => array(
+        'value' => '0',
+      ),
+    )
+),
+'user_authorizenet_rec_expiration' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+ 'usr_last_pg' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'authorizenet',
+      ),
+    )
+)
+);
+    }
+    
+user_save($account, $edit);
+   
+    
+    
+}
+ 
+
+  
+   if($downgrade_plan == false)
+    {
+     $order_confirm_st = user_load($user->uid,TRUE);
+     
+     $edit = array(
+  'user_order_stat_recent' => array(
+    'und' => array(
+      0 => array(
+        'value' => '1',
+      ),
+    ),
+  )
+);
+    
+user_save($order_confirm_st, $edit);
+    }
+      
+      
+      
+    // Enter the payment.
+    uc_payment_enter($order->order_id, 'achnet', $response[9], 0, '', t('Transaction ID: @txn_id', array('@txn_id' => $response[6])));
+    uc_order_update_status($order->order_id,'completed');
+    
+    return TRUE;
+  }
+  else {
+    return $result['message'];
+  }
+    
+    
+    
+    
+}

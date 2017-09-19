@@ -1,0 +1,213 @@
+<?php
+
+/**
+ * @file
+ * Test for nodechanges.module.
+ */
+
+/**
+ * Implementation of DrupalWebTestCase for nodechanges tests.
+ */
+class NodeChangesTest extends DrupalWebTestCase {
+
+  protected $field, $instance;
+
+  /**
+   * A user with permission to create and edit own page content.
+   *
+   * @var object
+   */
+  protected $web_user;
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Nodechanges tests',
+      'description' => 'Ensure proper functioning of the Nodechanges module.',
+      'group' => 'Nodechanges',
+    );
+  }
+
+  public function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
+    $modules[] = 'comment';
+    $modules[] = 'field_extrawidgets';
+    $modules[] = 'token';
+    $modules[] = 'nodechanges';
+    parent::setUp($modules);
+
+    // Create the nodechanges field.
+    $this->field = field_create_field(array(
+      'field_name' => 'field_diff',
+      'type' => 'nodechanges_revision_diff',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'settings' => array(
+        'properties' => array(
+          'title' => t('Node title'),
+          'created' => t('Authored on date'),
+          'author' => t('Authored by')
+        ),
+        'revision_comment_field' => 'comment_body',
+        'hide_core_revision_log' => TRUE,
+      ),
+    ));
+
+    // Create the nodechanges field instance.
+    $this->instance = field_create_instance(array(
+      'entity_type' => 'comment',
+      'bundle' => 'comment_node_article',
+      'field_name' => 'field_diff',
+      'label' => t('Revisions'),
+      'widget' => array(
+        'type' => 'field_extrawidgets_hidden',
+        'settings' => array(),
+      ),
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'type' => 'nodechanges_diff_default',
+          'settings' => array(
+            'properties' => array(
+              'title' => t('Node title'),
+              'created' => t('Authored on date'),
+              'author' => t('Authored by'),
+            ),
+            'revision_comment_field' => 'comment_body',
+            'hide_core_revision_log' => TRUE,
+          ),
+        ),
+      ),
+    ));
+
+    // Change the teaser length for "Basic page" content type.
+    $instance = field_info_instance('node', 'body', 'article');
+    $instance['display']['nodechanges'] = $instance['display']['teaser'];
+    field_update_instance($instance);
+
+    $this->web_user = $this->drupalCreateUser(array('create article content', 'edit own article content'));
+  }
+
+  /**
+   * Tests basic nodechanges functionality.
+   */
+  function testNodechangesBasic() {
+    $this->drupalLogin($this->web_user);
+
+    $langcode = LANGUAGE_NONE;
+    $title_key = "title";
+    $body_key = "body[$langcode][0][value]";
+    $comment_key = "nodechanges_comment[comment_body][$langcode][0][value]";
+    $edit = array();
+
+    // Comment only.
+    $edit[1] = array(
+      $title_key => $this->randomName(8),
+      $body_key => $this->randomName(32),
+      $comment_key => $this->randomName(16),
+    );
+
+    // Change title.
+    $edit[2] = array(
+      $title_key => $this->randomName(8),
+      $body_key => $edit[1][$body_key],
+      $comment_key => $this->randomName(16),
+    );
+
+    // Change body.
+    $edit[3] = array(
+      $title_key => $edit[2][$title_key],
+      $body_key => $this->randomName(32),
+      $comment_key => $this->randomName(16),
+    );
+
+    // Change title & body.
+    $edit[4] = array(
+      $title_key => $this->randomName(8),
+      $body_key => $this->randomName(32),
+      $comment_key => $this->randomName(16),
+    );
+
+    $this->drupalPost('node/add/article', array($title_key => $edit[1][$title_key], $body_key => $edit[1][$body_key]), t('Save'));
+    $nid = db_query('SELECT nid FROM {node} WHERE title = :title', array(':title' =>  $edit[1][$title_key]))->fetchField();
+    $original_node = node_load($nid, NULL, TRUE);
+
+    foreach ($edit as $item => $value) {
+      $prev = (int) $item - 1;
+
+      $this->drupalGet('node/' . $original_node->nid . '/edit');
+
+      // Edit the content of the node.
+      $this->drupalPost(NULL, $value, t('Save'));
+
+      $new_node = node_load($nid, NULL, TRUE);
+
+      $match = array();
+      // Get comment ID
+      preg_match('/#comment-([0-9]+)/', $this->getURL(), $match);
+
+      if (!empty($match) && !empty($match[1])) {
+        $this->pass('Comment id found.');
+        $this->assertText($value[$comment_key], 'Comment body posted.');
+
+        if (!empty($edit[$prev][$title_key]) && $edit[$prev][$title_key] != $edit[$item][$title_key]) {
+          $regex = '/';
+          $regex .= '<a id="comment-' . $match[1] . '"(.*?)'; // Comment anchor.
+          $regex .= '<div(.*?)'; // Begin in comment div.
+          $regex .= 'nodechanges-old">' .  $edit[$prev][$title_key] . '(.*?)'; // Match subject.
+          $regex .= '/s';
+          $result = (boolean) preg_match($regex, $this->drupalGetContent());
+          $this->assertTrue($result, 'Old title displayed');
+
+          $regex = '/';
+          $regex .= '<a id="comment-' . $match[1] . '"(.*?)'; // Comment anchor.
+          $regex .= '<div(.*?)'; // Begin in comment div.
+          $regex .= 'nodechanges-new">» ' . $item[$title_key] . '(.*?)'; // Match subject.
+          $regex .= '/s';
+          $result = (boolean) preg_match($regex, $this->drupalGetContent());
+          $this->assertTrue($result, 'New title displayed');
+        }
+        else {
+          $regex = '/';
+          $regex .= '<a id="comment-' . $match[1] . '"(.*?)'; // Comment anchor.
+          $regex .= '<div(.*?)'; // Begin in comment div.
+          $regex .= 'nodechanges-label">Title' . '(.*?)'; // Match subject.
+          $regex .= '/s';
+          $result = (boolean) preg_match($regex, $this->drupalGetContent());
+          $this->assertFalse($result, 'Title unchanged');
+        }
+
+        if (!empty($edit[$prev][$body_key]) && $edit[$prev][$body_key] != $edit[$item][$body_key]) {
+          $old_url = 'node\/' . $original_node->nid . '\/revisions\/' . $original_node->vid . '\/view';
+          $regex = '/';
+          $regex .= '<a id="comment-' . $match[1] . '"(.*?)'; // Comment anchor.
+          $regex .= '<div(.*?)'; // Begin in comment div.
+          $regex .= "$old_url" . '(.*?)'; // Match subject.
+          $regex .= '/s';
+          $result = (boolean) preg_match($regex, $this->drupalGetContent());
+          $this->assertTrue($result, 'Old body link displayed (rev.: '. $original_node->vid . ').');
+
+          $new_url = 'node\/' . $original_node->nid . '\/revisions\/' . $new_node->vid . '\/view';
+          $regex = '/';
+          $regex .= '<a id="comment-' . $match[1] . '"(.*?)'; // Comment anchor.
+          $regex .= '<div(.*?)'; // Begin in comment div.
+          $regex .= $new_url . '(.*?)'; // Match subject.
+          $regex .= '/s';
+          $result = (boolean) preg_match($regex, $this->drupalGetContent());
+          $this->assertTrue($result, 'New body link displayed (rev.: '. $new_node->vid . ').');
+        }
+        else {
+          $regex = '/';
+          $regex .= '<a id="comment-' . $match[1] . '"(.*?)'; // Comment anchor.
+          $regex .= '<div(.*?)'; // Begin in comment div.
+          $regex .= 'nodechanges-label">Body' . '(.*?)'; // Match subject.
+          $regex .= '/s';
+          $result = (boolean) preg_match($regex, $this->drupalGetContent());
+          $this->assertFalse($result, 'Body unchanged');
+        }
+      }
+      else {
+        $this->fail('Comment not found!');
+      }
+
+      $original_node = $new_node;
+    }
+  }
+}

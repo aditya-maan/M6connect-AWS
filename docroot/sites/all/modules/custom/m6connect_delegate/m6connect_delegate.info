@@ -1,0 +1,6 @@
+name = M6Connect Delegate
+description = Delegate Functionality for M6CONNECT
+package = CUSTOM
+core = 7.x
+dependencies[] = masquerade
+files[] = m6connect_delegate.module 

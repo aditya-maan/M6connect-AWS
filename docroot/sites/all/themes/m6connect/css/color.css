@@ -1,0 +1,209 @@
+/*COMMON CSS START*/
+body{
+	background-color:#f7f7f7;
+}
+/*COMMON CSS END*/
+
+/*TOP NAVIGATION PLAN START*/
+ul.select-plan li{
+	background:#fff;
+}
+ul.select-plan li a{
+	color:#333;
+	outline: none !important;
+}
+ul.select-plan li a:hover{
+	background:#3498db;
+	color:#fff;
+}
+ul.select-plan li.active a{
+	background:#3498db;
+	color:#fff;
+}
+ul.select-plan li a span{
+	background:#3498db;
+	color:#fff;
+}
+ul.select-plan li a:hover span{
+	background:#FEE67C;
+	color:#007556;
+}
+ul.select-plan li.active a span{
+	background:#FEE67C;
+	color:#007556;
+}
+/*TOP NAVIGATION PLAN END*/
+
+/*START HEADING CSS*/
+.pricing-heading h1{
+	color:#333;
+}
+/*END HEADING CSS*/
+
+/*PRICING BLOCK START*/
+.pricing-block{
+	background:#fff;
+	border-top:5px solid #3498db;
+}
+.pricing-block:hover{
+	background:#3498db;
+	border-top:5px solid #3498db;	
+}
+.pricing-block.enable{
+	background:#3498db;
+	border-top:5px solid #3498db;	
+}
+.pricing-block.enable:hover{
+	background:#2980b9;
+	border-top:5px solid #2980b9;
+}
+	/*RECOMMENDED PLAN START*/
+	.pricing-block .featured-label p{
+		background:#FEE67C;
+		color:#333;
+	}
+	.pricing-block .featured-label p:before{
+		border-top: 10px solid #f7f7f7;
+		border-left: 10px solid #FEE67C;
+	}
+	/*RECOMMENDED PLAN END*/
+	
+	/*PRICING HEADING START*/
+	.pricing-block .head h3{
+		color:#333;
+	}
+	.pricing-block:hover .head h3{
+		color:#fff;
+	}
+	.pricing-block.enable .head h3{
+		color:#fff;
+	}
+	.pricing-block .head h3 span{
+		color:#3498db;
+	}
+	.pricing-block:hover .head h3 span{
+		color:#fff;
+	} 
+	.pricing-block.enable .head h3 span{
+		color:#fff;
+	} 
+	.pricing-block .head p{
+		color:#B5B5B5;
+		font-weight:100;
+	}
+	.pricing-block:hover .head p{
+		color:#fff;
+	}
+	.pricing-block.enable .head p{
+		color:#fff;
+	}
+	/*PRICING HEADING END*/
+	
+	/*CURRENCY PRICE START*/
+	.pricing-block:hover .currency{
+		background-color:rgba(255, 255, 255, 0.1);
+		color:#fff;
+	}
+	.pricing-block.enable .currency{
+		background-color:rgba(255, 255, 255, 0.1);
+		color:#fff;
+	}
+	/*CURRENCY PRICE END*/
+	
+	/*PRICING DESCRIPTION START*/
+	.pricing-block .pricing-description{
+		background: #3498db;
+	}
+	.pricing-block .pricing-description p{
+		color:#fff;	
+	}
+	/*PRICING DESCRIPTION END*/
+	
+	/*SAVINGS START*/
+	.pricing-block .savings span{
+		background:#FEE67C;
+		color:#333;
+	}
+	.pricing-block:hover .savings{
+		color:#fff;
+	}
+	.pricing-block.enable .savings{
+		color:#fff;
+	}
+	/*SAVINGS END*/
+	
+	/*SIGN UP BUTTON*/
+	.pricing-block .pricing-btn a{
+		background:#3498db;
+		border-width:1px;
+		border-style:solid;
+		border-color:transparent;
+		color:#fff;
+	}
+	.pricing-block:hover .pricing-btn a{
+		background-color:rgba(255, 255, 255, 0.1);
+	}
+	.pricing-block.enable .pricing-btn a{
+		background-color:rgba(255, 255, 255, 0.1);
+	}
+	.pricing-block:hover .pricing-btn a:hover{
+		box-shadow:0px 0px 3px rgba(255, 255, 255, 0.1);
+		border:1px solid #fff;
+	}
+	/*SIGN UP BUTTON END*/
+	
+	/*FEATURE LIST START*/
+	.pricing-block ul li{
+		border-bottom:1px solid #EDEDED; 
+	}
+	.pricing-block:hover ul li{
+		border-bottom:1px solid rgba(255, 255, 255, 0.1);
+	}
+	.pricing-block.enable ul li{
+		border-bottom:1px solid rgba(255, 255, 255, 0.1);
+	}
+	.pricing-block ul li:hover{
+		background:#EDEDED;	
+	}
+	.pricing-block:hover ul li:hover{
+		background-color:rgba(255, 255, 255, 0.1);
+	}
+	.pricing-block.enable ul li:hover{
+		background-color:rgba(255, 255, 255, 0.1);
+	}
+	.pricing-block ul li:last-child{
+		border:none;
+	}
+	.pricing-block ul li a{
+		color:#333;
+	}
+	.pricing-block:hover ul li a{
+		color:#fff;
+	}
+	.pricing-block.enable ul li a{
+		color:#fff;
+	}
+	.pricing-block ul li .fa{
+		background:#3498db;
+		color:#fff;
+	}
+	.pricing-block:hover ul li .fa{
+		background:none;	
+	}
+	.pricing-block.enable ul li .fa{
+		background:none;
+	}
+		/*TOOLTIP*/
+		.pricing-block ul li a span .fa{
+			background:none;
+			width:auto;
+		}
+		.pricing-block:hover ul li a span .fa{
+			color:#fff;
+			background:none;
+		}
+		.pricing-block.enable ul li a span .fa{
+			color:#fff;
+		}
+	/*FEATURE LIST END*/
+/*PRICING BLOCK END*/

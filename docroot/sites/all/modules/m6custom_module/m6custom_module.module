@@ -1,0 +1,40 @@
+<?php
+/*
+ * Implement hook_form_alter
+ */
+
+/*function m6custom_module_form_alter(&$form, &$form_state, $form_id) {	
+  global $user;  
+  if($form_id == 'user_register_form') {
+    $form['#validate'][] = 'user_register_forms_validate';
+	$form['#submit'][] = 'user_custom_register_submit';		
+  } 
+}  
+
+function user_register_forms_validate(&$form, &$form_state) {
+  if(isset($form_state['values']['og_group_ref']['und'])) {
+    $userGroupID = $form_state['values']['og_group_ref']['und'][0]['target_id'];
+	$nodeDetails = node_load($userGroupID);
+	if(isset($nodeDetails->field_company_type['und'])) {
+	  $getCompanyType = $nodeDetails->field_company_type['und'][0]['tid'];
+	  if($getCompanyType == 78237) {
+	    //form_set_error('og_group_ref', 'You cannot choose this company due to limited access.');
+	  }
+	}	
+  }
+}*/
+  
+/*function user_custom_register_submit($form, &$form_state) {  
+  if(isset($form_state['values']['og_group_ref']['und'])) {
+	$userGroupID = $form_state['values']['og_group_ref']['und'][0]['target_id'];  
+    drupal_goto('group/node/'.$userGroupID.'/subscribe');     
+  }
+  
+}*/
+
+/*function user_custom_register_submit($form, &$form_state) { //pre($form_state,1); 
+  if(isset($form_state['values']['field_user_company']['und'][0]['target_id']) && !empty($form_state['values']['field_user_company']['und'][0]['target_id'])) {
+	drupal_set_message("Thank you for joining M6Connect! During the registration process, you indicated that you would like to join a company that already exists within the website. To gain access to this company's information, your request to join must be approved by the company administrator. In order to complete this process, please contact M6Connect Customer Support at support@m6connect.com");          
+  }
+  
+}*/

@@ -1,0 +1,69 @@
+<?php    
+function m6connect_delegate_schema() {
+  $schema = array();
+  $schema['m6connect_user_delegate'] = array(
+	'description' => t('The base table for nodes.'),
+	'fields' => array(
+	  'id' => array(
+		'description' => 'The primary identifier for a node.',
+		'type' => 'serial',
+		'unsigned' => TRUE,
+		'not null' => TRUE
+	  ),
+	  'uid_from' => array(
+		'description' => 'this user gives permission to other user to access his account',
+		'type' => 'int',
+		'unsigned' => TRUE,
+		'not null' => TRUE,
+	  ),
+	  'uid_to' => array(
+		'description' => 'this the user which is have accecc of that user user which gives permission.',
+		'type' => 'int',
+		'unsigned' => TRUE,
+		'not null' => TRUE,
+	  ),
+	  'start_date' => array(
+		'description' => 'start date added by user',
+		'type' => 'int',
+		'length' => 11,
+		'unsigned' => TRUE,
+		'not null' => TRUE,
+	  ),
+	  'end_date' => array(
+		'description' => 'end date added by user',
+		'type' => 'int',
+		'length' => 11,
+		'unsigned' => TRUE,
+		'not null' => FALSE,
+	  ),
+	  'revoke_date' => array(
+		'description' => 'this date use for actuly revoke date to access user',
+		'type' => 'int',
+		'length' => 11,
+		'unsigned' => TRUE,
+		'not null' => FALSE,
+	  ),
+	  'last_login' => array(
+		'description' => 'this date use for actuly last Login date',
+		'type' => 'int',
+		'length' => 11,
+		'unsigned' => TRUE,
+		'not null' => FALSE,
+	  ),
+	  'status' => array(
+		'description' => 'status of delegate.',
+		'type' => 'int',
+		'unsigned' => TRUE,
+		'not null' => TRUE,
+	  ),
+	),
+	'primary key' => array('id'),
+	'indexes' => array(
+	  'delegate_user_to_from' => array('uid_from','uid_to'),
+	  'delegate_login_user'        => array('uid_to','last_login'),
+	  'delegate_status'       => array('status'),
+	  'delegate_period'      => array('start_date', 'end_date', 'revoke_date'),
+	),
+  );
+  return $schema;
+}

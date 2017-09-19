@@ -1,0 +1,3361 @@
+<?php 
+
+/**
+  * Implements hook_permission().
+  */
+function m6connect_delegate_permission() {
+  return array(
+    'delegate_user_access' => array(
+      'title' => t('Delegate User Access'),
+      'description' => t('Allows users to delegate own account to another user.'),
+    ),
+  );
+}
+
+/**
+  * Implements hook_cron().
+  */
+
+function m6connect_delegate_cron() {
+  $time = time();
+  $query = db_update('m6connect_user_delegate');
+  $dbor = db_or()->condition('end_date', '','=')->condition('end_date', $time, '>=');
+  $query->fields(array('status'=>1))
+	    ->condition('status',0,'=')
+		->condition('start_date',$time,'<=')
+		->condition($dbor)
+        ->execute(); 
+		
+  $query = db_update('m6connect_user_delegate');
+  $query->fields(array('status'=>0))
+	    ->condition('status',0,'=')
+		->condition('end_date', NULL, '!=')
+		->condition('end_date', $time, '<')
+        ->execute(); 
+}
+
+
+/**
+  * Implements hook_menu().
+  */
+function m6connect_delegate_menu() {
+  $items['delegation-user/add/%/%ctools_js'] = array(
+    'page callback' => 'delegation_user_callback',
+	'page arguments' => array(1,2,3),
+    'access callback' => 'user_is_logged_in',
+  );
+  $items['delegation-user/edit/%/%ctools_js/%'] = array(
+    'page callback' => 'delegation_user_callback',
+	'page arguments' => array(1,2,3,4),
+    'access callback' => 'user_is_logged_in',
+  );
+  $items['delegation-user/revoke/%'] = array(
+    'page callback' => 'delegation_user_access_revoke',
+	'page arguments' => array(2),
+    'access callback' => 'user_is_logged_in',
+  );
+  $items['delegation-user/login/%'] = array(
+    'page callback' => 'delegation_user_access_login',
+    'page arguments' => array(2),
+    'access callback' => 'user_is_logged_in',
+    'file' => 'm6connect_delegate_login.inc',  
+    'file path' => drupal_get_path('module', 'm6connect_delegate').'/includes',
+  );
+  $items['delegation-user/switch'] = array(
+    'page callback' => 'delegation_user_switch_back',
+    'access callback' => 'user_is_logged_in',
+    'file' => 'm6connect_delegate_login.inc',  
+    'file path' => drupal_get_path('module', 'm6connect_delegate').'/includes',
+  );
+  
+  $items['custom_company_profile_update/%node'] = array(
+   'title' => 'Update Profile',
+   'page callback' => 'drupal_get_form',
+   'page arguments' => array('custom_company_profile_change_form',1),
+   'access callback' => 'user_is_logged_in',
+   'modal' => TRUE,
+  );
+  
+  $items['custom_company_profile_remove/%node'] = array(
+   'title' => 'remove profile',
+   'page callback' => 'drupal_get_form',
+   'page arguments' => array('custom_company_profile_remove_form',1),
+   'access callback' => 'user_is_logged_in',
+   //'modal' => TRUE,
+  );
+  
+  //edit and update cover image of company
+   $items['custom_company_cover_update/%node'] = array(
+   'title' => 'Update Cover',
+   'page callback' => 'drupal_get_form',
+   'page arguments' => array('custom_company_cover_change_form',1),
+   'access callback' => 'user_is_logged_in',
+   'modal' => TRUE,
+  );
+  
+  
+  
+  $items['custom_company_cover_remove/%node'] = array(
+   'title' => 'Remove Cover',
+   'page callback' => 'drupal_get_form',
+   'page arguments' => array('custom_company_cover_remove_form',1),
+   'access callback' => 'user_is_logged_in',
+   //'modal' => TRUE,
+  );
+  
+  
+   $items['get_own_shared_images/%'] = array(
+   'title' => 'Fetch images',
+   'page callback' => 'fn_get_own_shared_images',
+   'page arguments' => array(1),
+   'access callback' => 'user_is_logged_in',
+   //'modal' => TRUE,
+  );
+
+
+	$items['notification/remove/%/%ctools_js'] = array(
+        'page callback' => 'm6_notification_remove_section_callback',
+        'page arguments' => array(2,3),
+        'access arguments' => array('access content'),
+  );
+  
+  $items['issuer_bidder_feedback_signature'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('issuer_bidder_feedback_signature_form'),
+    'access arguments' => array('access content'),
+  );
+  $items['company-member/roles-report'] = array(
+      'page callback' => 'company_member_roles_report',
+      'access arguments' => array('access content'),
+	  //'access callback' => user_is_logged_in(),
+      //'type' => MENU_NORMAL_ITEM,
+   );
+    //**************** Received Proposals Report for pdf ****************//
+	$items['rfp-proposal-summary/%'] = array(
+        'title' => 'Received Proposals Summary Report',
+        'page callback' => 'received_proposals_summary_report',
+        'page arguments' => array(1),
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );
+	$items['duplicate-companies'] = array(
+        'title' => 'Duplicate Companies',
+        'page callback' => 'display_duplicate_companies',
+		'access arguments' => array('administer users'),
+        'type' => MENU_CALLBACK,
+    );
+	$items['duplicate-users'] = array(
+        'title' => 'Duplicate Users',
+        'page callback' => 'display_duplicate_users_list',
+		'access arguments' => array('administer users'),
+        'type' => MENU_CALLBACK,
+    );
+	$items['rfp-proposal-report-new/%'] = array(
+        'title' => 'Rfp proposal Report New',
+        'page callback' => 'rfp_proposal_summary_report_new',
+        'page arguments' => array(1),
+        'access callback' => '_is_m6_user_logged_in',
+        'type' => MENU_CALLBACK,
+    );
+	$items['profile-companies-edit'] = array(
+     'title' => t('Personal Profile Companies'),
+     'page callback' => 'drupal_get_form',
+     'page arguments' => array('user_profile_delegate_access_form'),
+	 'access callback' => '_is_m6_user_logged_in',
+	 'type' => MENU_CALLBACK,
+   );
+   //////// For M6ID Personal Profile Update///// 
+   $items['user-m6id-personal-profile'] = array(
+     'title' => t('User M6ID Personal Profile'),
+     'page callback' => 'drupal_get_form',
+     'page arguments' => array('user_m6id_personal_profile_form'),
+	 'access callback' => '_is_m6_user_logged_in',
+	 //'type' => MENU_CALLBACK,
+   );
+    //////// For user-m6id-edit-trade-categories///// 
+   $items['user-m6id-edit-trade-categories'] = array(
+     'title' => t('User M6ID Trade Categories'),
+     'page callback' => 'drupal_get_form',
+     'page arguments' => array('user_m6id_edit_trade_categories_form'),
+	 'access callback' => '_is_m6_user_logged_in',
+   );
+    //////// For user-m6id-edit-trade-categories///// 
+   $items['user-m6id-edit-drivers-license'] = array(
+     'title' => t('User M6id Edit Drivers License'),
+     'page callback' => 'drupal_get_form',
+     'page arguments' => array('user_m6id_edit_drivers_license_form'),
+	 'access callback' => '_is_m6_user_logged_in',
+   );
+   //////// For create your skill set form///// 
+   $items['add-your-skill'] = array(
+     'title' => t('Create Your Skill Set'),
+     'page callback' => 'drupal_get_form',
+     'page arguments' => array('add_your_skill_custom_form'),
+	 'access callback' => '_is_m6_user_logged_in',
+   );
+   
+    //////// For test///// 
+   $items['add-your-skill1'] = array(
+     'title' => t('Create Your Skill Set'),
+     'page callback' => 'drupal_get_form',
+     'page arguments' => array('custom_registration_form'),
+	 'access callback' => '_is_m6_user_logged_in',
+   );
+   
+     //////// For M6ID view page on user profile view page///// 
+   $items['user-m6id-Profile-view/%'] = array(
+      'title' => 'M6ID',
+   	  'page callback' => 'user_m6id_Profile_content',
+	  'page arguments' => array(1),
+   	  'access callback' => '_is_m6_user_logged_in',
+	  //'type' => MENU_CALLBACK,
+   );
+     //////// skill set data view page///// 
+   $items['user-skill-set-view'] = array(
+      'title' => 'Skill Set',
+   	  'page callback' => 'user_skill_set_content_view',
+   	  'access callback' => '_is_m6_user_logged_in',
+	  'type' => MENU_CALLBACK,
+   );
+   $items['credentials-view-more/%user/%field_collection_item/%ctools_js'] = array(
+      'title' => 'Credentials Viewmore',
+   	  'page callback' => 'user_profile_credentials_view_more',
+	  'page arguments' => array(1,2),
+   	  'access callback' => '_is_m6_user_logged_in',
+   );
+    $items['user-m6id/credentials'] = array(
+      'title' => 'M6id Credentials Popup',
+   	  'page callback' => 'user_profile_m6id_credentials_popup',
+   	  'access callback' => '_is_m6_user_logged_in',
+   );
+   //----------Manage Licenses---------//
+   $items['manage1-user-license/%ctools_js/%user/%'] = array(
+        'page callback' => 'manage1_user_licenses_callback',
+        'page arguments' => array(1, 2, 3),
+        'access callback' => '_is_m6_user_logged_in',
+        'type' => MENU_CALLBACK,
+    );
+    //----------Remove user---------//
+	$items['people-member-remove-user/%ctools_js/%user/%'] = array(
+        'page callback' => 'people_member_remove_user_callback',
+        'page arguments' => array(1, 2, 3),
+        'access callback' => '_is_m6_user_logged_in',
+        'type' => MENU_CALLBACK,
+    );
+	 //----------Remove user---------//
+	$items['people-invite-managerole/%ctools_js/%user/%'] = array(
+        'page callback' => 'people_invite_managerole_callback',
+        'page arguments' => array(1, 2, 3),
+        'access callback' => '_is_m6_user_logged_in',
+        'type' => MENU_CALLBACK,
+    );
+	 $items['people1/invite/%/%/%'] = array(
+        'title' => t(''),
+        'page callback' => 'm6connect1_misc_invite',
+        'page arguments' => array(2, 3, 4),
+        //'access arguments' => array('see full bio of user'),
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+    );
+	// for company Gpo form
+	$items['add/company-gpo'] = array(
+	    'title' => 'Add Company GPo',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('add_new_company_gpo_form'),
+        'access callback' => '_is_m6_user_logged_in',
+        'type' => MENU_NORMAL_ITEM,
+    );
+	 
+  /// Start here for webservice //////////
+   $items['customwebservice'] = array(
+      'page callback' => 'customwebservice_callback',
+      'access callback' => TRUE,
+      'type' => MENU_NORMAL_ITEM,
+   );
+   $items['customwebservice-project-users'] = array(
+      'page callback' => 'customwebservice_project_users_callback',
+      'access callback' => TRUE,
+      'type' => MENU_NORMAL_ITEM,
+   );
+  /// Start here for webservice //////////
+  return $items;
+}
+/**
+ * Implements hook_block_info().
+ */
+function m6connect_delegate_block_info() {
+  $blocks['user-skill-set-data'] = array(
+    'info' => t('User Skill Set Data'),
+	'region' => 'content',
+    'status' => 1,
+  );
+  $blocks['user-nom6id-Profile-view'] = array(
+    'info' => t('User No M6id Profile View'),
+  );
+   return $blocks;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function m6connect_delegate_theme() {
+    $path = drupal_get_path('modules', 'm6connect_delegate');
+    return array(
+        'received_proposals_report_content' => array(
+            'variables' => array('data' => array()),
+            'template' => $path . '/includes/received-proposals-report-content',
+        ),
+		'proposals_report_content_new' => array(
+            'variables' => array('data' => array()),
+            'template' => $path . '/includes/proposals-report-content-new',
+        ),
+		'onboarding_profile_view_page' => array(
+            'variables' => array('data' => array()),
+            'template' => $path . '/includes/onboarding-profile-view-page',
+        ),
+		'user_Profile_credentials_viewmore' => array(
+            'variables' => array('data' => array()),
+            'template' => $path . '/includes/user-Profile-credentials-viewmore',
+        ),
+        
+    );
+} 
+ 
+
+/**
+  * Implements hook_init().
+  */ 
+function m6connect_delegate_init() {
+  //Check delegated user access of another user.
+  get_delegated_user_access_revoked();
+}
+
+/**
+  * Check delegated user access of another user.
+  */
+function get_delegated_user_access_revoked(){
+  global $user;
+  //drupal_set_message('<pre>'.print_r($_SESSION,1).'</pre>');
+  $uid = db_query("SELECT m.uid_from FROM {masquerade} m WHERE m.sid = :sid AND m.uid_as = :uid_as ", array( ':sid' => session_id(),':uid_as' => $user->uid,))->fetchField();
+  if($uid && is_numeric($uid)){
+	if(isset($_SESSION['delegated']) && $_SESSION['delegated']==1){
+	  $result = db_select('m6connect_user_delegate','mud')
+				->fields('mud')
+				->condition('uid_to',$uid,'=')
+				->condition('uid_from',$user->uid,'=')
+				->condition('status',1,'=')
+				->execute()->fetchAll();
+	  if(empty($result)){
+		masquerade_switch_back();
+		drupal_set_message('Delegation Access is Revoked, Switched to your Account','error');  
+		drupal_goto('');	
+	  }
+	}
+  }else if(isset($_SESSION['delegated'])){
+	unset($_SESSION['delegated']);  
+  }
+}
+
+
+function delegation_user_switch_back_access_callback(){
+  global $user;
+  $uid = db_query("SELECT m.uid_from FROM {masquerade} m WHERE m.sid = :sid AND m.uid_as = :uid_as ", array( ':sid' => session_id(),':uid_as' => $user->uid,))->fetchField();
+  if($uid && is_numeric($uid)){
+    return TRUE;	  
+  }
+  return FALSE;
+}
+
+
+/**
+  * Implements hook_form_alter().
+  */
+function m6connect_delegate_form_alter(&$form, &$form_state, $form_id) { 
+  global $user;
+  ctools_include('ajax');
+  ctools_include('modal');
+	
+  if($form_id=='user_profile_form'){
+    drupal_add_library('system', 'ui.dialog');
+    drupal_add_js(drupal_get_path('module', 'm6connect_delegate') .'/m6connect_delegate.js');
+  }
+  
+  
+  	if($form_id == 'user_relationships_ui_request'){
+		
+		
+		$form['user-requester'] = array(
+		'#type' => 'hidden',		
+		'#default_value' => $form['requester']['#value'],
+		);
+		
+		$form['user-requestee'] = array(
+		'#type' => 'hidden',		
+		'#default_value' => $form['requestee']['#value'],
+		);
+		
+		$query = db_select( 'node', 'n' );
+	  $query ->condition( 'type', 'connection_categories' )->condition( 'uid', $user->uid )->fields( 'n' );
+	  $result = $query->execute();
+	  $customers = array();
+	   foreach( $result as $row ) {
+	   	$customers[ $row->nid ] = $row;
+	   }
+	  $active=array();
+	  //$active=array();
+     foreach($customers as $key=>$value){
+    	 $active[$value->nid]=$value->title;
+     }
+	   //$active = array(0 => t('Closed'), 1 => t('Active'));
+
+	   $form['select-group']['req_category'] = array(
+		'#type' => 'radios',
+		'#title' => t('Assign Connection to one of the following:'),
+		//'#default_value' => isset($node->active) ? $node->active : 1,
+		'#options' => $active,
+		//'#description' => t('Please select atleast one group to assign as connect.'),
+		//'#required' => TRUE,
+	   );
+	
+		$form['#submit'][] = 'm6connect_delegate_user_relationships_ui_request_submit';
+	
+	}
+  
+    if($form_id == 'user_relationships_ui_pending_requested'){
+			//pre($form,1);
+		//drupal_set_message("<pre>".print_r($form,1));
+		
+		$relationships_user_datas = $form_state['build_info']['args'];
+		  if(isset($relationships_user_datas)){
+			foreach($relationships_user_datas as $relationships_user_data){
+			  if($relationships_user_data->requester_id == $user->uid){
+				  $relationships_user_data_request_to = $relationships_user_data->requestee_id;
+			  }else if($relationships_user_data->requestee_id == $user->uid){	
+				  $relationships_user_data_request_to = $relationships_user_data->requester_id;
+			  }
+			 
+			}
+		  
+			$form['user_connection_request_to'] = array(
+			'#type' => 'hidden',
+			'#default_value' => $relationships_user_data_request_to,
+			);
+		 }
+		  
+		//drupal_set_message('requestee_id'.$form_state['build_info']['args'][2]->requestee_id);
+		//drupal_set_message('requester_id'.$form_state['build_info']['args'][2]->requester_id);
+		//drupal_set_message(pre($relationships_user_data_request_to));
+		//drupal_set_message(pre($form_state));
+		
+		 $approve_markup = $form['description']['#markup'];
+		$approve_markup_new =  str_replace('Are you sure you want to approve the Connect relationship request from', 'Accept Connection Request from', $approve_markup);
+		 $form['description']['#markup'] = $approve_markup_new;
+		
+		 
+	   $query = db_select( 'node', 'n' );
+	   $query ->condition( 'type', 'connection_categories' )->condition( 'uid', $user->uid )
+			  ->fields( 'n' );
+	   $result = $query->execute();
+	   $customers = array();
+	   foreach( $result as $row ) {
+	   $customers[ $row->nid ] = $row;
+	   }
+	   $active=array();
+	   $active=array();
+       foreach($customers as $key=>$value){
+         $active[$value->nid]=$value->title;
+       }
+	   //$active = array(0 => t('Closed'), 1 => t('Active'));
+		 if($form['action']['#value']=='approve'){
+			 $form['select-group']['active'] = array(
+			'#type' => 'radios',
+			'#title' => t('Assign Connection to one of the following:'),
+			//'#default_value' => isset($node->active) ? $node->active : 1,
+			'#options' => $active,
+			//'#description' => t('Please select atleast one group to assign as connect.'),
+			//'#required' => TRUE,
+			 );
+		}
+	   $form['#submit'][] = 'm6connect_delegate_user_relationships_ui_pending_requested_submit';
+	   //print views_embed_view('copy_group_list', 'block_3');
+	   //drupal_set_message("<pre>".print_r($form_state,1));
+	}
+	
+	if($form_id == 'user_relationships_ui_remove'){
+		$relationships_user_datas = $form_state['build_info']['args'];
+		  if(isset($relationships_user_datas)){
+			foreach($relationships_user_datas as $relationships_user_data){
+			  if($relationships_user_data->requester_id == $user->uid){
+				  $relationships_user_data_request_to = $relationships_user_data->requestee_id;
+			  }else if($relationships_user_data->requestee_id == $user->uid){	
+				  $relationships_user_data_request_to = $relationships_user_data->requester_id;
+			  }
+			 
+			}
+		  drupal_set_message(pre($relationships_user_data_request_to));
+			$form['user_connection_request_to'] = array(
+			'#type' => 'hidden',
+			'#default_value' => $relationships_user_data_request_to,
+			);
+		 }	
+		$form['#submit'][] = 'user_relationships_ui_user_remove_submit';
+	}
+	if($form_id == 'onboarding_node_form'){
+		
+	  $form['#validate'][] = 'onboarding_node_form_license_field_validate';	
+	}
+ 
+  
+}
+/*function m6connect_delegate_user_login(&$edit, $account){
+
+  if (!isset($_POST['form_id']) || $_POST['form_id'] != 'user_pass_reset') {
+     $_GET['destination'] = 'dashboard';
+     //drupal_goto('dashboard');
+  }
+}*/
+
+function m6connect_delegate_user_relationships_ui_pending_requested_submit($form, &$form_state) {
+//	kpr($form_state);
+//pre($form_state,1);
+  //drupal_set_message('value'.$form_state['values']['active']);
+  global $user;   
+
+  if ($form_state['values']['active']) {
+	$rid = $form_state['values']['rid'];
+	$relationships = user_relationships_load(array('rid'=>$rid));
+	if(isset($relationships[$rid])){
+	  $account = user_load($relationships[$rid]->requestee_id);
+	  $values = array(
+		'entity_type' => 'user',
+		'entity' => $account,
+		'state' => OG_STATE_ACTIVE,
+		'membership type'   => OG_MEMBERSHIP_TYPE_DEFAULT,
+	  );
+	  og_group('node', $form_state['values']['active'], $values);  
+	}
+  }
+	
+	
+	
+  $m6connect_notification_table_exist = db_table_exists('m6connect_notification');
+  $user_connection_request_to = $form_state['values']['user_connection_request_to'];
+	if ($m6connect_notification_table_exist) {	
+		$m6connect_notification = array(
+		  'type' => 'relationship',
+		  'event' => NULL,
+		  'entity_id' => 0,
+		  'company_nid' => 0,
+		  'message' => NULL,
+		  'request_from' => $user->uid,
+		  'request_to' => $user_connection_request_to,
+		  'status' => 1,
+		  'timestamp' => time(),
+		  );
+			
+			if ($form_state['values']['action']=='disapprove') {
+				$m6connect_notification['event']= 'disapprove';
+			}else if ($form_state['values']['action']=='approve') {
+				$m6connect_notification['event']= 'approve';
+			}
+		  entity_save('m6connect_notification', (object) $m6connect_notification);
+	}
+
+
+}
+
+function m6connect_delegate_user_relationships_ui_request_submit($form, &$form_state) {
+ $user_requester = $form_state['values']['user-requester'];
+ $user_requestee = $form_state['values']['user-requestee'];
+   if(isset($user_requestee) && isset($user_requester)){
+	  $rel_results = user_relationships_load(array('requester_id' => $user_requester, 'requestee_id' => $user_requestee, 'rtid' => 5));
+		foreach($rel_results as $relationship){
+		 $m6connect_notification = array(
+			  'type'=>'relationship',
+			  'event' => 'request',
+			  'entity_id'=> $relationship->rid,
+			  'company_nid'=> 0, 
+			  'message'=> 0, 
+			  'request_from'=> $form_state['values']['user-requester'], 
+			  'request_to'=> $form_state['values']['user-requestee'],
+			  'status'=>1,
+			  'timestamp'=> time(),
+			);
+			
+			
+			if(db_table_exists('m6connect_notification')){
+			  entity_save('m6connect_notification',(object)$m6connect_notification);
+			}
+		}
+  			
+		if (db_table_exists('m6connect_connection_category_request')) {
+        $db_insert_category = array(
+            'category_id' => $form_state['values']['req_category'],
+            'requester' => $form_state['values']['user-requester'],
+            'requestee' => $form_state['values']['user-requestee'],
+            'status' => 0,
+        );
+        $returnedId = db_insert('m6connect_connection_category_request')->fields($db_insert_category)->execute();
+    }
+						
+   }
+}
+
+function user_relationships_ui_user_remove_submit($form, &$form_state) {
+  global $user;
+  $m6connect_notification_table_exist = db_table_exists('m6connect_notification');
+  $user_connection_request_to = $form_state['values']['user_connection_request_to'];
+	if (isset($user_connection_request_to) && $m6connect_notification_table_exist) {	
+		$m6connect_notification = array(
+		  'type' => 'relationship',
+		  'event' => 'remove',
+		  'entity_id' => 0,
+		  'company_nid' => 0,
+		  'message' => NULL,
+		  'request_from' => $user->uid,
+		  'request_to' => $user_connection_request_to,
+		  'status' => 1,
+		  'timestamp' => time(),
+		  );
+		  entity_save('m6connect_notification', (object) $m6connect_notification);
+	}
+
+}
+
+
+
+
+/**
+  * Implements hook_entity_info().
+  */
+function m6connect_delegate_entity_info() {
+  $info = array();
+  $info['delegate_user'] = array(
+    'label' => t('Delegate User'),
+    'base table' => 'm6connect_user_delegate',
+	'fieldable' => TRUE,
+	'controller class' => 'EntityAPIController',
+    'views controller class' => 'EntityDefaultViewsController',
+    'entity keys' => array(
+      'id' => 'id',
+      'label' => 'name',
+    ),
+	'bundles' => array(
+      'delegate_user' => array(
+        'label' => t('Delegate User'),
+       ),
+    ),
+  );
+  return $info;
+}
+
+/**
+  * Implements hook_entity_property_info_alter().
+  */
+function m6connect_delegate_entity_property_info_alter(&$info) {
+  $info['delegate_user']['properties']['uid_from']['type'] = 'user';
+  $info['delegate_user']['properties']['uid_to']['type'] = 'user';
+  $info['delegate_user']['properties']['start_date']['type'] = 'date';
+  $info['delegate_user']['properties']['end_date']['type'] = 'date';
+  $info['delegate_user']['properties']['revoke_date']['type'] = 'date';
+  $info['delegate_user']['properties']['last_login']['type'] = 'date';
+}
+
+/**
+ *Popup’s setings function.
+ */
+function delegation_user_ctools_popup_style() {
+  static $delegationAdded = FALSE;
+  if ($delegationAdded == FALSE) {
+    $delegationAdded = TRUE;
+    ctools_include('modal');
+    ctools_include('ajax');
+    ctools_modal_add_js();
+	$delegation_user_popup_style = array(
+	  'delegation-user-form-popup-style' => array(
+		 'modalSize' => array(
+			 'type' => 'fixed',
+			 'width' => 530,
+			 'height' => 'auto',
+		 ),
+		 'modalOptions' => array(
+			 'opacity' => (float) 0.85, 
+			 'background-color' => '#000000',
+		 ),
+		 'closeText' => '', 
+		 'loadingText' => '',
+		 'animation' => 'fadeIn', 
+		 'modalTheme' => 'DelegationUserPopup',
+		 'animationSpeed' => 'fast',
+	   ),
+	 );
+	 drupal_add_js($delegation_user_popup_style, 'setting');
+     ctools_add_js('m6connect_delegation_modal', 'm6connect_delegate');
+   }	
+}
+
+function delegation_user_callback($action,$uid_from,$ajax= FALSE,$delegationId=''){
+  if ($ajax) {
+    ctools_include('ajax');
+    ctools_include('modal');
+    $form_state = array(
+      'ajax' => TRUE,
+	  'action' => $action,
+	  'delegation_id' => $delegationId,
+	  'uid_from'=> $uid_from,
+    );
+    $output = ctools_modal_form_wrapper('delegation_user_entity_form', $form_state);
+    if (!empty($form_state['ajax_commands'])) {
+      $output = $form_state['ajax_commands'];
+    }
+    print ajax_render($output);
+    drupal_exit();
+  }
+  else {
+    return drupal_get_form('delegation_user_entity_form',$action,$uid_from,$delegationId);
+  }	
+}
+
+function delegation_user_entity_form($form, &$form_state, $action='',$uid_from='' ,$delegationId=''){
+  global $user;
+  $form['#attributes']['class'][] = 'delegation-user-entity-form';
+  $defaultStartDate='';
+  $defaultEndDate='';
+  $userName = '';
+  $delegatedDate ='';
+  $delegatedLogin ='';
+  $entity='';
+  if(isset($form_state['action'])){
+    $action = $form_state['action'];  
+  }
+  if(isset($form_state['uid_from'])){
+    $uid_from = $form_state['uid_from'];  
+  }
+  if(isset($form_state['delegation_id'])){
+	$delegationId = $form_state['delegation_id'];  
+  }
+  if($delegationId){
+	$entity = entity_load('delegate_user',array($delegationId));
+    if($entity && is_array($entity) && isset($entity[$delegationId])){
+	  $entity = $entity[$delegationId]; 
+	  $userName = _get_user_full_name($entity->uid_to);
+	  $delegatedDate = ($entity->start_date)?date('m/d/Y',$entity->start_date):'';
+	  $delegatedLogin =($entity->last_login)?date('m/d/Y h:i A',$entity->last_login):'';
+	}
+  }
+  $title = 'Delegated Access';
+  $title = ($action=='add')?'Add '.$title:'Edit '.$title.' - '.$userName;
+  $form['title-markup'] = array(
+    '#markup' => '<h4 class="delegation-user-entity-form-title"><strong>'.$title.'</strong></h4>',
+  );
+  if($action=='add'){
+	$query = db_select('m6connect_user_delegate','ds');
+    $query->fields('ds', array('uid_to'))
+          ->condition('uid_from',$uid_from,'=')
+	      ->condition('status',array(0,1),'IN');
+    $alreadyDelegated = $query->execute()->fetchCol();
+	$drupal_json =  array();
+        $drupal_json[] = array('label'=> $user->name, 'value'=>$user->uid);
+	$companyUsers = _get_current_company_users($uid_from);
+	$user_to_map = array(''=>'None');
+	if(!empty($companyUsers)){
+	  foreach($companyUsers as $index => $cmpUid){
+		if($cmpUid != $uid_from && !in_array($cmpUid, array_values($alreadyDelegated))){
+		  $cmpUserName = _get_user_full_name($cmpUid);
+		  $user_to_map[$cmpUid] =  $cmpUserName;
+		  $drupal_json[] = array('label'=> $cmpUserName, 'value'=>$cmpUid);
+	    }
+	  }
+	}  
+	$js_settings = array('delegate_autoresult' => json_encode($drupal_json));
+	
+	$form['delegation-desc']= array(
+	  '#markup'=>'Delegation access to a user allows them to access and use the M6Connect website as if they were you. This access can be given for a specific time period and can be revoked at any time.',
+	);  
+    $autocomplete_script_path = drupal_get_path('module', 'm6connect_delegate').'/js/autocomplete_delegation.js';
+	$form['user-name']= array(
+	  '#type'=> 'textfield',
+	  '#title' => 'User Name',
+	  '#required' => TRUE,
+	  '#attributes'=> array('id'=>'delegation-user-entity-username','class'=> array('delegation-user-entity-username','form-control'),'required'=>'required','placeholder'=>'Enter the name of the user you would like to delegate access to'),
+	  '#attached'=> array('library'=> array(array('system', 'ui.autocomplete'))),
+	  '#prefix'=> '<div>',
+	  '#suffix' => '<script src="/'.$autocomplete_script_path.'" type="text/javascript"></script></div>',
+	);
+	
+	$form['user-name']['#attached']['js'][] = array(
+      'data' => array('m6connect_delegate' => $js_settings),
+      'type' => 'setting'
+    );
+	
+	$form['uid_to'] = array(
+       '#type' => 'select',
+       '#options' => $user_to_map,
+	   '#attributes'=> array('class'=> array('delegation-user-entity-user-to'),'style'=> array('display:none;')),
+    );
+	
+  }else{
+	 $form['delegation-username']= array(
+	  '#markup'=>'<div class="delegation-username-markup delegation-markup"><strong>Name of User&nbsp;:&nbsp;</strong>'.$userName.'</div>',
+	 ); 
+	 $form['delegation-start-time']= array(
+	  '#markup'=>'<div class="delegation-date-markup delegation-markup"><strong>original Delegated Date&nbsp;:&nbsp;</strong>'.$delegatedDate.'</div>',
+	 ); 
+	 $form['delegation-login-time']= array(
+	  '#markup'=>'<div class="delegation-login-markup delegation-markup"><strong>Last Delegated Login&nbsp;:&nbsp;</strong>'.$delegatedLogin.'</div>',
+	 ); 
+	 $form['id']= array(
+	   '#type'=>'value',
+	   '#value' => $entity->id,
+	 );
+	 $defaultStartDate=date('Y-m-d',$entity->start_date);
+	 if($entity->end_date){
+	   $defaultEndDate=date('Y-m-d',$entity->end_date);
+	 }
+  }
+  
+  $form['start_date'] = array(
+    '#type' => 'date_popup',
+	'#title' => 'Start Date:',
+    '#default_value' => $defaultStartDate,
+    '#date_type' => DATE_UNIX,
+    '#date_format' => 'm/d/Y',
+	'#date_label_position' => 'none',
+    '#date_increment' => 1,
+    '#date_year_range' => 'now:+3',
+	'#datepicker_options' => array(
+      'minDate' => 0,
+    ),
+	'#required' => TRUE,
+	'#prefix'=> '<div class="delegation-user-entity-date-section clearfix"><div class="delegation-user-entity-start-date">',
+	'#suffix'=> '</div>',
+	'#after_build'=> array('remove_date_description_after_build'),
+	'#attributes'=> array('class'=> array('delegation-user-entity-startdate','form-control'),'required'=>'required','onkeydown'=>'return false;'),
+  );
+  
+  $form['end_date'] = array(
+    '#type' => 'date_popup',
+	'#title' => 'End Date:',
+    '#default_value' => $defaultEndDate,
+    '#date_type' => DATE_UNIX,
+    '#date_format' => 'm/d/Y',
+	'#date_label_position' => 'none',
+    '#date_increment' => 1,
+    '#date_year_range' => 'now:+3',
+	'#datepicker_options' => array(
+      'minDate' => 0,
+    ),
+	'#prefix'=> '<div class="delegation-user-entity-end-date">',
+	'#suffix'=> '</div></div>',
+	'#after_build'=> array('remove_date_description_after_build'),
+	'#attributes'=> array('class'=> array('delegation-user-entity-enddate','form-control'),'onkeydown'=>'return false;'),
+  );
+  
+  $form['#attached']['js'][] = array(
+    'data' => drupal_get_path('module', 'm6connect_delegate') . '/js/delegation_date_popup.js',
+	'type' => 'file',
+  );
+  
+  $form['action'] = array(
+    '#type'=> 'value',
+	'#value'=> $action,
+  );
+  
+  $form['uid_from'] = array(
+    '#type'=> 'value',
+	'#value'=> $uid_from,
+  );
+  
+  $form['submit']= array(
+   '#type' => 'submit',
+   '#value' => 'Save',
+   '#attributes'=> array('class'=> array('delegation-user-entity-submit','btn','btn-primary')),
+   '#prefix' => '<div class="form-action text-right">',
+  );
+  
+  $form['close']= array(
+   '#markup' => '&nbsp;&nbsp;'.l('<input type="button" class="btn btn primary form-submit" value="Cancel" />','javascript:void(0);', array('external'=> TRUE, 'html'=> TRUE, 'attributes'=> array('class'=> array('delegation-user-entity-popup-close'),'onclick'=>'jQuery("span.popups-close").click();'))),
+   '#suffix'=> '</div>',
+  );
+  return $form;	
+}
+
+function remove_date_description_after_build($element, &$form_state) { 
+  if(isset($element['date']['#description'])){
+    unset($element['date']['#description']);
+  }
+  return $element;
+}
+
+function delegation_user_entity_form_validate(&$form, &$form_state){
+  global $user;
+  if($form_state['values']['uid_from'] != $user->uid){
+    form_set_error('','you are not authorized to change delegation aceess of another user');  
+  }
+  if(isset($form_state['values']['uid_to']) && (empty($form_state['values']['uid_to'])|| !is_numeric($form_state['values']['uid_to']))){
+	form_set_error('user-name','please choose valid User Name from Autocomplete'); 
+  }
+}
+
+function delegation_user_entity_form_submit(&$form, &$form_state){
+  global $user, $company;
+  $values = $form_state['values'];
+  $delegate_user = array();
+  if(isset($values['id'])){
+    $entity = entity_load('delegate_user',array($values['id']));
+    $delegate_user = $entity[$values['id']];
+  }else{
+	$delegate_user = (object)array(
+	  'uid_from' => $values['uid_from'],'uid_to'=> $values['uid_to'],'start_date' => '','end_date'=> NULL,'revoke_date' =>NULL,'last_login'=> NULL,'status'=> 0,
+	);  
+  }
+  if($delegate_user->uid_from == $user->uid){
+    $today = date('Y-m-d');
+    $status = ($values['start_date'] <= $today)?1:0;
+    $status = ($status && $values['end_date'] && $values['end_date'] >= $today)?1:$status;
+    $delegate_user->uid_from = $values['uid_from'];
+    $delegate_user->start_date = strtotime($values['start_date'].' 00:00:00');
+    $delegate_user->end_date = ($values['end_date'])?strtotime($values['end_date'].' 00:00:00'):NULL;
+    $delegate_user->revoke_date = $delegate_user->end_date;
+    $delegate_user->status = $status;
+    $delegate_user->cid = $company->nid;
+    entity_save('delegate_user',$delegate_user);
+  }else{
+	 drupal_set_message('you are not authorized to change delegation aceess','error'); 
+  }
+  if((isset($form_state['ajax']))?(($form_state['ajax']==1)?true:false):false) {
+    $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+	$form_state['ajax_commands'][] = ctools_ajax_command_redirect('user/'.$delegate_user->uid_from.'/edit');
+  }else {
+	$form_state['redirect'] = 'user/'.$delegate_user->uid_from.'/edit';
+  }	
+}
+
+function delegation_user_access_revoke($delegationId){
+  global $user;
+  $entity = entity_load('delegate_user',array($delegationId));
+  $entity = $entity[$delegationId];
+  if($entity->uid_from == $user->uid){
+    $entity->revoke_date = time();
+	$entity->status =2;
+	entity_save('delegate_user',$entity);
+	drupal_set_message('Delegation Access revoked from '._get_user_full_name($entity->uid_to));
+  }else{
+	 drupal_set_message('you are not authorized to change delegation aceess','error'); 
+  }
+  drupal_goto('user/'.$entity->uid_from.'/edit');
+}
+
+function get_user_license_type($uid,$cid){
+  $licenseType ='';
+  $query = db_select('license_assign','la');
+  $query->join('license_master','lm','la.key_id=lm.id');
+  $query->leftjoin('field_data_taxonomy_catalog','fdtc','lm.product_id=fdtc.entity_id');
+  $query->leftjoin('taxonomy_term_data','ttd','ttd.tid=fdtc.taxonomy_catalog_tid');
+  $query->fields('ttd', array('name'));
+  $query->condition('la.assign_to',$uid,'=');
+  $query->condition('la.cid',$cid,'=');
+  $query->condition('la.is_active',1,'=');
+  $query->isNotNull('la.cid');
+  $result = $query->execute()->fetchColumn(0);
+  /*if(!empty($result)){
+	if($result == 'SilverPlan Licenses'){
+	  $licenseType='silver';
+	}else if($result == 'GoldPlan Licenses'){
+	  $licenseType='gold';
+	}else if($result == 'CorporatePlan Licenses'){
+	  $licenseType='corporate';
+	}
+  }*/
+  return $result;
+}
+
+function m6connect_delegate_token_info() {
+  $info['tokens']['user']['m6_custom_userlink'] = array(
+    'name' => t('user profile link'),
+    'description' => t('user profile link.'),
+  );
+  
+  
+  
+  return $info;
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function m6connect_delegate_tokens($type, $tokens, array $data = array(), array $options = array()) {
+  global $base_url;
+  $replacements = array();
+  if (isset($data['user'])) {
+    $replacements['[user:m6_custom_userlink]'] = l('View User Profile',$base_url.'/user/'.$data['user']->uid);
+  }
+  
+  return $replacements;
+}
+
+function m6connect_delegate_user_insert(&$edit, $account, $category){
+  global $user;
+
+
+/*
+  function create_cat_node($cat_name){
+  $node = new stdClass();
+  $node->title = $cat_name;
+  $node->type = "connection_categories";
+  node_object_prepare($node); // Sets some defaults. Invokes hook_prepare() and hook_node_prepare().
+  $node->language = LANGUAGE_NONE; // Or e.g. 'en' if locale is enabled
+  $node->uid = $user->uid; 
+  $node->status = 1; //(1 or 0): published or not
+  $node->promote = 0; //(1 or 0): promoted to front page
+  $node->comment = 0; // 0 = comments disabled, 1 = read only, 2 = read/write
+
+  // Term reference (taxonomy) field
+  //$node->field_product_tid[$node->language][]['tid'] = $form_state['values']['a taxonomy term id'];
+
+  // Entity reference field
+  $node->field_customer_nid[$node->language][] = array(
+    'target_id' => $form_state['values']['entity id'],
+    'target_type' => 'node',
+  );
+  // 'node' is default,
+  // Other possible values are "user" and  "taxonomy_term" 
+
+  $node = node_submit($node); // Prepare node for saving
+  node_save($node);
+  }
+  
+  create_cat_node("Aquintances");
+  create_cat_node("Business Aquitances");
+  create_cat_node("Favorite Friends");
+  create_cat_node("Prospects");
+  create_cat_node("Family");*/
+  
+ 
+}
+
+function custom_company_profile_change_form($form, &$form_state,$node) {  
+  // Attach User Picture upload
+   ctools_include('modal');
+   ctools_modal_add_js();
+   $form['cover_picture']['profile'] = array(
+    '#type' => 'file',
+    '#title' => t('Profile picture')
+   );
+   
+   $form['entity_id'] = array(
+     '#type' => 'value',
+     '#value' => $node->nid,
+   );
+
+   $form['submit'] = array(
+     '#type' => 'submit',
+     '#value' => 'Upload'
+   );
+   
+   $nodePath = drupal_lookup_path('alias','node/'.$node->nid);
+   
+   if ($form_state['submitted']){
+	$commands = array();
+	$commands[] = ctools_modal_command_dismiss();
+	$commands[] = ctools_ajax_command_redirect($nodePath);
+	print ajax_render($commands);
+	exit;
+   }
+   
+  
+   return $form;
+}
+
+
+function custom_company_profile_change_form_validate($form, &$form_state) {
+  $file = file_save_upload('profile', array(
+      'file_validate_is_image' => array(),
+      'file_validate_extensions' => array('png gif jpg jpeg'),
+  ));
+  if (!$file) {
+   form_set_error('profile', t('No file was uploaded.'));
+  }else{
+	$file1=file_move($file, 'private://', FILE_EXISTS_RENAME);
+	$form_state['values']['profile_pic']=$file1;  
+  }
+  
+}
+
+function custom_company_profile_change_form_submit($form, &$form_state) {
+  if(isset($form_state['values']['profile_pic'])){
+	//drup_msg($form_state['values']);
+    $profile = file_load($form_state['values']['profile_pic']->fid);
+    $node=node_load($form_state['values']['entity_id']);
+    $node->field_logo['und'][0] = (array)$profile;
+    node_save($node);
+  }
+  $form_state['rebuild'] =TRUE;
+}
+
+
+function custom_company_profile_remove_form($form, &$form_state,$node){
+	//$node=node_load($node->nid);
+	//$form='';
+	//pre($node);
+	unset($node->field_logo['und']);
+	node_save($node);
+	$nodePath = drupal_lookup_path('alias','node/'.$node->nid);
+	drupal_goto($nodePath);
+}
+
+/////////////edit and update cover image///////////////
+function custom_company_cover_change_form($form, &$form_state,$node) {  
+  // Attach User Picture upload
+   ctools_include('modal');
+   ctools_modal_add_js();
+   $form['cover_picture']['profile'] = array(
+    '#type' => 'file',
+    '#title' => t('Profile picture')
+   );
+   
+   $form['entity_id'] = array(
+     '#type' => 'value',
+     '#value' => $node->nid,
+   );
+
+   $form['submit'] = array(
+     '#type' => 'submit',
+     '#value' => 'Upload'
+   );
+   
+   $nodePath = drupal_lookup_path('alias','node/'.$node->nid);
+   
+   if ($form_state['submitted']){
+	$commands = array();
+	$commands[] = ctools_modal_command_dismiss();
+	$commands[] = ctools_ajax_command_redirect($nodePath);
+	print ajax_render($commands);
+	exit;
+   }
+   
+  
+   return $form;
+}
+
+
+function custom_company_cover_change_form_validate($form, &$form_state) {
+  $file = file_save_upload('profile', array(
+      'file_validate_is_image' => array(),
+      'file_validate_extensions' => array('png gif jpg jpeg'),
+  ));
+  if (!$file) {
+   form_set_error('profile', t('No file was uploaded.'));
+  }else{
+	$file1=file_move($file, 'private://', FILE_EXISTS_RENAME);
+	$form_state['values']['profile_pic']=$file1;  
+  }
+  
+}
+
+function custom_company_cover_change_form_submit($form, &$form_state) {
+  if(isset($form_state['values']['profile_pic'])){
+	//drup_msg($form_state['values']);
+    $profile = file_load($form_state['values']['profile_pic']->fid);
+    $node=node_load($form_state['values']['entity_id']);
+    $node->field_company_profile_cover_img['und'][0] = (array)$profile;
+    node_save($node);
+  }
+  $form_state['rebuild'] =TRUE;
+}
+
+
+function custom_company_cover_remove_form($form, &$form_state,$node){
+	//$node=node_load($node->nid);
+	//$form='';
+	//pre($node);
+	unset($node->field_company_profile_cover_img['und']);
+	node_save($node);
+	$nodePath = drupal_lookup_path('alias','node/'.$node->nid);
+	drupal_goto($nodePath);
+	
+	
+}
+
+function fn_get_own_shared_images($id, $limit=NULL){
+	//to fetch photos shared by the company or person
+      
+			  $nid=$id;
+			  $query = db_select('fbsmp', 'fb');
+			  $query->join('statuses', 'st', 'fb.sid = st.sid');
+			  $query->fields('fb')
+			   ->condition('st.recipient', $nid, '=');
+                          if($limit != NULL){
+                              $query->range(0,$limit);
+                          }
+			  $result = $query->execute()->fetchAll();
+			  $fids=array();
+			  
+			  foreach($result as $key=>$val){
+			  $us = unserialize($val->data);
+			  $fids[] = $us['fid'];
+			  }
+			  
+			  return $fids;
+
+}
+
+function m6_notification_remove_section_callback($noti_id,$ajax = NULL){
+	global $user;	
+	ctools_include('ajax');
+	$commands = array();
+	if (db_table_exists('m6connect_notification') && is_numeric($noti_id)) {
+		$m6_noti_update = db_update('m6connect_notification')
+				->fields(array('status' => 0,))
+				->condition('id', $noti_id, '=')
+				->execute();
+		$commands[] = ajax_command_remove('.user-notification-outer .notification-'.$noti_id);
+		$m6_noti_count = member_notification_status_count($user->uid);
+		if($m6_noti_count){
+			$commands[] = ajax_command_html('a#user-Notification span.notification-count', $m6_noti_count);
+		}else{
+			$commands[] = ajax_command_remove('a#user-Notification span.notification-count');
+		}
+	}
+	print ajax_render($commands);
+	exit;
+}
+
+function issuer_bidder_feedback_signature_form($form,&$form_state,$entity_id=0,$bidder_feedback_id=0,$package_id=0){
+  global $user;
+  $form = array();
+  $form['issuer-signature-pad'] = array(
+    '#title' => 'Test Form',
+    '#type' => 'signaturefield',
+    '#color' => '#0f0',
+  );
+  
+  $form['issuer-signature-upload'] = array(
+    '#title' => 'or upload signature',
+    '#type' => 'managed_file',
+    '#upload_location' => 'private://issue_bidder_feedback_signature/',
+	"#upload_validators"  => array(
+	  'file_validate_is_image' => array(),
+	  "file_validate_extensions" => array("png gif jpg"),
+	),
+  );
+  
+  $form['submit'] = array(
+    '#value' => 'Submit',
+    '#type' => 'submit',
+  );
+  $form['entity_id'] = array(
+    '#type' => 'value',
+	'#value' => $entity_id,
+  ); 
+  $form['bidder_feedback_id'] = array(
+    '#type' => 'value',
+	'#value' => $bidder_feedback_id,
+  ); 
+  $form['package_id'] = array(
+    '#type' => 'value',
+	'#value' => $package_id,
+  ); 
+  $form['user_uid'] = array(
+    '#type' => 'value',
+	'#value' => $user->uid,
+  );
+  return $form;
+ }
+ 
+ function issuer_bidder_feedback_signature_form_submit(&$form,&$form_state){
+    pre($form_state['values']);
+	pre($form_state['input'],1);
+	 
+ }
+ 
+ function company_member_roles_report(){
+
+  //global $user;
+  //$user = user_load($user->uid); 
+  //print "<pre>"; print_r($user);
+   
+  //return 'hello';
+  	 
+ }
+ function get_diversity_credentials_doc_by_comapny_nid($cmpNid){
+    
+	$result= '';
+	$query = db_select('node','dvnode');
+	$query->leftjoin('field_data_field_cred_for_company','dcmp','dcmp.entity_id=dvnode.nid');
+	$query->leftjoin('field_data_field_credential_doc','fcd','fcd.entity_id=dvnode.nid');
+	$query->leftjoin('field_data_field_cred_for_diversity','cfd','cfd.entity_id=dvnode.nid');
+	$query->join('node','cnode','cnode.nid=cfd.field_cred_for_diversity_target_id');
+	$query->addField('cnode','title','credential_title');
+	$query->addField('fcd','field_credential_doc_fid','credential_fid');
+	$query->condition('dcmp.field_cred_for_company_target_id',$cmpNid);
+	$query->condition('dvnode.type','credentials');
+	$result  = $query->execute()->fetchAll();
+	//print_r($result);
+	
+	return $result;
+
+}
+//**************** start Received Proposals Report for pdf ****************//
+
+function received_proposals_summary_report($nid){
+	
+	//echo $nid; die;
+	 
+	global $user, $base_url, $base_path;
+    $node = node_load($nid);
+	//print_r($node); die;
+	$content = theme('received_proposals_report_content', array('node' => $node));
+    include_once(libraries_get_path('mpdf') . '/mpdf.php');
+    $mpdf = new mPDF('c'); 
+	$mpdf->SetHTMLFooter('<table width="100%" style="vertical-align: bottom; font-size: 10pt; margin:60px 0 0 0px;"><tr><td width="33%"><img style="width:80px;" src="'.$base_url.'/sites/all/themes/m6connect/images/bidder_report_footer.png" alt="logo"/></td>
+<td width="33%" align="center" style="font-style: normal;">{PAGENO}/{nbpg}</td>
+<td width="33%" align="right"><span style="font-style: normal;">Print Date:{DATE j-m-Y}</span></td></tr></table>');
+
+$mpdf->SetHTMLFooter('<table width="100%" style="vertical-align: bottom; font-size: 10pt; margin:60px 0 0 0px;"><tr><td width="33%"><img style="width:80px;" src="'.$base_url.'/sites/all/themes/m6connect/images/bidder_report_footer.png" alt="logo"/></td>
+<td width="33%" align="center" style="font-style: normal;">{PAGENO}/{nbpg}</td>
+<td width="33%" align="right"><span style="font-style: normal;">Print Date:{DATE j-m-Y}</span></td></tr></table>', 'E'); 
+    $mpdf->WriteHTML($content);
+	
+    $file_content = $mpdf->Output('report.pdf', 'I');
+	//print $content;
+	
+}
+//**************** end Received Proposals Report for pdf ****************//
+//**************** start Rfp Proposals Report  ****************//
+
+function get_received_proposals_content_alldata($ComNid){
+	
+	$result= '';
+	$query = db_select('node','n');  
+	$query->leftjoin('users','u','u.uid=n.uid');
+	$query->leftjoin('field_data_field_submit_proposal_in_respons','pis','pis.entity_id=n.nid');
+	$query->addField('n', 'nid');
+	$query->addField('n', 'title');
+	$query->addField('n', 'created');
+	$query->addField('pis', 'field_submit_proposal_in_respons_target_id');
+	$query->leftjoin('field_data_field_proposal_bid_amount','pam','pam.entity_id=n.nid');
+	$query->leftjoin('field_data_field_proposoal_bid_types','pbt','pbt.entity_id=pam.entity_id'); 
+	$query->addField('pam', 'field_proposal_bid_amount_value');
+	$query->addField('pbt', 'field_proposoal_bid_types_value');  
+	$query->condition('n.type','my_proposal');
+	$query->condition('pis.field_submit_proposal_in_respons_target_id',$ComNid);
+	$result  = $query->execute()->fetchAll();
+	
+	return $result; 
+}
+//**************** end Rfp Proposals Report  ****************//
+//**************** start Rfp Proposals Report Count  ****************//
+
+function get_rfp_proposals_all_content_count($ComNid){
+	$count = '';
+	$query = db_select('node','n');  
+	$query->leftjoin('users','u','u.uid=n.uid');
+	$query->leftjoin('field_data_field_submit_proposal_in_respons','pis','pis.entity_id=n.nid');
+	$query->addField('n', 'nid'); 
+	$query->condition('n.type','my_proposal');
+	$query->condition('pis.field_submit_proposal_in_respons_target_id',$ComNid);
+	$count  = $query->execute()->rowCount();
+	
+	return $count; 
+}
+//**************** End Rfp Proposals Report Count  ****************//
+function custom_proposal_form_popover_after_build(&$form,&$form_state){
+	
+ return $form;
+ 
+}
+function m6connect_delegate_form_my_proposal_node_form_alter(&$form,&$form_state){
+	
+  $form['#after_build'][] = 'custom_proposal_form_popover_after_build';
+
+  $form['field_proposal_scope_of_work']['und'][0]['value']['#attributes']['class'][] = 'textarea-ckeditor-popover';
+  //kpr($form);
+  
+  	$form['#prefix'] = '<div class="row margin-5"><div class="col-md-8 col-sm-8 padding-5 custom-proposal-popover-left">';
+	     
+	$form['#suffix'] = '</div><div class="col-md-4 col-sm-4 padding-5 custom-proposal-popover-right">     
+				   <div class="popover popover-gray-cust right margin-bottom-25" id="custom-pop-choose-options-li">
+                       <div class="arrow" style="top: 50%;"></div>
+                       <div class="popover-content">Select the option that you were invited to. If not invited then select Project or Company.</div>
+                    </div>
+                    <div class="popover popover-gray-cust right margin-bottom-25" id="custom-pop-scope-of-work">
+                      <div class="arrow" style="top: 50%;"></div>
+                      <div class="popover-content">Provide a description of your proposal. We suggest copying your cover page and pasting here.</div>
+                   </div>   
+					   
+          </div>
+</div>';
+
+   $form['field_choose_from_the_options_li']['und']['#title'] .='<span class="tooltip-main-custom">
+     <i class="fa fa-question-circle custom-tooltip" aria-hidden="true">
+        <span class="tooltip" data-tooltip-content="#tooltip_options_li">&nbsp;</span>
+        <div class="tooltip_templates">
+          <span id="tooltip_options_li">
+           <p>Select the option that you were invited<br/> to. If not invited then select Project or<br/> Company.</p>
+         </span>
+	    </div>
+	 </i>
+ </span>';
+ $form['field_proposal_scope_of_work']['und'][0]['value']['#title'] .='<span class="tooltip-main-custom">
+     <i class="fa fa-question-circle custom-tooltip" aria-hidden="true">
+        <span class="tooltip" data-tooltip-content="#tooltip_scope_of_work">&nbsp;</span>
+        <div class="tooltip_templates">
+          <span id="tooltip_scope_of_work">
+           <p>Provide a description of your proposal.<br/> We suggest copying your cover page<br/> and pasting here.</p>
+         </span>
+	    </div>
+	 </i>
+ </span>';
+ 
+}
+function custom_project_form_popover_after_build(&$form,&$form_state){
+	
+	$title_attributes	= array('data-toggle'=>'popover','data-trigger'=>'manual','data-placement'=>'top','data-content'=>'"Save as Draft" saves to your Drafts tab on the left menu. "Next" Moves to the Timeline tab.');
+ $attributes = isset($form['actions']['next']['#attributes'])?$form['actions']['next']['#attributes']:array();
+  //$form['actions']['next']['#attributes'] = array_merge($attributes, $title_attributes);
+  
+  $form['actions']['next']['#suffix'] .= '<span data-toggle="popover" data-trigger="hover" data-placement="top" data-content="&quot;Save as Draft&quot; saves to your Drafts tab on the left menu. &quot;Next&quot; Moves to the Timeline tab."></span>';
+  
+  //$form['actions']['op']['#suffix'] .= '<span class="edit-cust-draft-tooltip" data-toggle="popover" data-trigger="hover" data-placement="top" data-content="&quot;Save as Draft&quot; saves to your Drafts tab on the left menu. &quot;Next&quot; Moves to the Timeline tab."></span>';
+  
+	
+  /*$form['actions']['next']['#suffix'] .= '<span class="tooltip-main-custom">
+     <i class="fa fa-question-circle custom-tooltip" aria-hidden="true">
+        <span class="tooltip" data-tooltip-content="#tooltip_next_btn">&nbsp;</span>
+        <div class="tooltip_templates">
+          <span id="tooltip_next_btn">
+           <p>&quot;Save as Draft&quot; saves to your Drafts<br/> tab on the left menu. &quot;Next&quot; Moves to<br/> the Timeline tab.</p>
+         </span>
+	    </div>
+	 </i>
+ </span>';*/	
+ 
+ $form['field_complete_description']['und'][0]['value']['#title'] .= '<span class="tooltip-main-custom">
+     <i class="fa fa-question-circle custom-tooltip" aria-hidden="true">
+        <span class="tooltip" data-tooltip-content="#tooltip_complete_description">&nbsp;</span>
+        <div class="tooltip_templates">
+          <span id="tooltip_complete_description">
+           <p>Consider including things like<br/> anticipated total cost, size fo the<br/> project, work conditions, specific<br/>material, craftman and any other<br/> infomation relevant to potential<br/> bidders.</p>
+         </span>
+	    </div>
+	 </i>
+ </span>';
+   
+	//kpr($form);
+    return $form;
+}
+function m6connect_delegate_form_project_node_form_alter(&$form,&$form_state){
+	
+	//['field_project_public']['und']
+	 $form['#after_build'][] = 'custom_project_form_popover_after_build';
+	$form['#prefix'] = '<div class="row margin-5"><div class="col-md-8 col-sm-8 padding-5 custom-project-popover-left">';
+	     
+	$form['#suffix'] = '</div><div class="col-md-4 col-sm-4 padding-5 custom-project-popover-right">
+  <div class="popover popover-gray-cust right margin-bottom-25" id="custom-pro-publicaly">
+    <div class="arrow" style="top: 50%;"></div>
+     <div class="popover-content">Posts publicaly for all M6 members to see.</div>
+    </div>
+  <div class="popover popover-gray-cust right margin-bottom-25" id="custom-pro-complete-des">
+    <div class="arrow" style="top: 50%;"></div>
+    <div class="popover-content">Consider including things like anticipated total cost, size fo the project, work conditions, specific material, craftman and any other infomation relevant to potential bidders.</div></div>
+  <div class="popover popover-gray-cust right margin-bottom-25" id="custom-pro-anticipated-bid">
+    <div class="arrow" style="top: 50%;"></div>
+     <div class="popover-content">Think of these as anticipated bid packages that would be issued when the RFP(s) are sent out.</div></div>
+  <div class="popover popover-gray-cust right margin-bottom-25" id="custom-pro-issue-date">
+    <div class="arrow" style="top: 50%;"></div>
+     <div class="popover-content">Estimated issue date for the RFP (Bid packages).</div></div>
+	
+  <div class="popover popover-gray-cust right margin-bottom-25" id="custom-pro-bid-due-date">
+    <div class="arrow" style="top: 50%;"></div>
+     <div class="popover-content">Estimated Bid Due date for the RFP.</div></div>
+	 	 
+  <div class="popover popover-gray-cust right margin-bottom-25" id="custom-pro-expected-date">
+    <div class="arrow" style="top: 50%;"></div>
+     <div class="popover-content">Estimated  date when work is expected to begin.</div></div>
+	 
+  <div class="popover popover-gray-cust right margin-bottom-25" id="custom-pro-completed-date">
+    <div class="arrow" style="top: 50%;"></div>
+     <div class="popover-content">Estimated  date when work is to be completed.</div></div>
+  <div class="popover popover-gray-cust right margin-bottom-25" id="custom-pro-project-image">
+    <div class="arrow" style="top: 50%;"></div>
+     <div class="popover-content">Add a Project Image improve the look of the posted page.</div></div>
+  <div class="popover popover-gray-cust right margin-bottom-25" id="custom-pro-banner-image">
+    <div class="arrow" style="top: 50%;"></div>
+     <div class="popover-content">Add a banner image to improve the look of the posted page.</div></div>
+  <div class="popover popover-gray-cust right margin-bottom-25" id="custom-pro-address">
+    <div class="arrow" style="top: 50%;"></div>
+     <div class="popover-content">Provide the best address closet to the job site. If this is virtual project then add your location.</div></div>
+</div>
+</div>';
+	
+	$form['field_complete_description']['und'][0]['#attributes']['class'][] = 'textarea-ckeditor-popover';
+	
+	$form['field_complete_description']['#prefix'] = '<div class="complete_description_project">';
+	$form['field_complete_description']['#suffix'] = '</div>';
+ 
+ $form['field_project_public']['und']['#title'] = ''.$form['field_project_public']['und']['#title'].'<span class="tooltip-main-custom padding-5">
+   <i class="fa fa-question-circle custom-tooltip" aria-hidden="true">
+    <span class="tooltip" data-tooltip-content="#tooltip_content">&nbsp;</span>
+	  <div class="tooltip_templates">
+		<span id="tooltip_content">
+			<p>Posts publicaly for all M6 members to see.</p>
+		</span>
+	  </div>
+ </i></span>';
+ 
+ $form['field_pro_bidding_info']['und'][0]['field_proj_bid_name']['und'][0]['value']['#title'] .= '<span class="tooltip-main-custom padding-5"><i class="fa fa-question-circle custom-tooltip" aria-hidden="true">
+ <span class="tooltip" data-tooltip-content="#tooltip_proj_bid">&nbsp;</span>
+ <div class="tooltip_templates">
+    <span id="tooltip_proj_bid">
+        <p>Think of these as anticipated bid <br/>packages that would be issued when<br/> the RFP(s) are sent out.</p>
+    </span>
+</div>
+ </i></span>';
+ 
+ //['field_proj_rpf_issue_date']['und'][0]
+  $form['field_pro_bidding_info']['und'][0]['field_proj_rpf_issue_date']['und'][0]['value']['#title']['#suffix'] = '<span class="tooltip-main-custom padding-5"><i class="fa fa-question-circle custom-tooltip" aria-hidden="true">
+ <span class="tooltip" data-tooltip-content="#tooltip_issue_date">&nbsp;</span>
+ <div class="tooltip_templates">
+    <span id="tooltip_issue_date">
+        <p>Estimated issue date for the RFP (Bid packages).</p>
+    </span>
+</div>
+ </i></span>';
+  $form['field_images']['und'][0]['#title'] .= '<span class="tooltip-main-custom padding-5"><i class="fa fa-question-circle custom-tooltip" aria-hidden="true">
+ <span class="tooltip" data-tooltip-content="#tooltip_images">&nbsp;</span>
+ <div class="tooltip_templates">
+    <span id="tooltip_images">
+        <p>Add a Project Image improve the look<br/> of the posted page.</p>
+    </span>
+</div>
+ </i></span>';
+ 
+	$form['field_project_cover_image']['und'][0]['#title'] .= '<span class="tooltip-main-custom padding-5"><i class="fa fa-question-circle custom-tooltip" aria-hidden="true">
+ <span class="tooltip" data-tooltip-content="#tooltip_banner_images">&nbsp;</span>
+ <div class="tooltip_templates">
+    <span id="tooltip_banner_images">
+        <p>Add a banner image to improve the look<br/> of the posted page.</p>
+    </span>
+</div>
+ </i></span>';
+ 
+ $form['field_project_address_new']['und'][0]['#title'] .= '<span class="tooltip-main-custom padding-5"><i class="fa fa-question-circle custom-tooltip" aria-hidden="true">
+ <span class="tooltip" data-tooltip-content="#tooltip_address_new">&nbsp;</span>
+ <div class="tooltip_templates">
+    <span id="tooltip_address_new">
+        <p>Provide the best address closet to the<br/> job site. If this is virtual project then<br/> add your location.</p>
+    </span>
+</div>
+ </i></span>';
+
+
+}
+
+//**************** Display Duplicate Companiest Listing****************//
+
+function display_duplicate_companies(){ 
+  global $base_url, $user;
+  
+  $query = db_select('node', 'fnode');
+  $query->join('node', 'snode', 'snode.title = fnode.title AND snode.nid!=fnode.nid');
+  $query->join('field_data_field_type_of_company', 'ind', 'ind.entity_id=fnode.nid');
+  $query->join('field_data_field_type_of_company', 'sind', 'sind.entity_id=snode.nid');
+  $query->distinct();
+  $query->fields('fnode',array('nid','title'));
+  $query->condition('ind.field_type_of_company_value', 'individual', '!=');
+  $query->condition('sind.field_type_of_company_value', 'individual', '!=');
+  //$query->fields('ind',array('field_type_of_company_value'));
+  $query->condition('fnode.type','organization');
+  $query->condition('snode.type','organization');
+  $query->orderBy('fnode.title');
+  $record = $query->execute()->fetchAll();
+  
+  //return $record; die;
+    $output .= '<div id="cust-dup-company-listings" class="col-md-9 col-sm-12 col-xs-12 padding-5">';
+   
+    //$i = 0;
+    foreach($record as $result) {
+        $node = node_load($result->nid); 
+		
+		$country = $node->field_org_address['und'][0]['country'];
+		$countrynew = _addressfield_country_options_list();
+		$countryvalue = $countrynew[$country];
+		
+		$address1 = $node->field_org_address['und'][0]['thoroughfare'];
+		$address2 = $node->field_org_address['und'][0]['premise'];
+		
+		$city = $node->field_org_address['und'][0]['locality'];
+		$state = $node->field_org_address['und'][0]['administrative_area'];
+		
+		$postal_code = $node->field_org_address['und'][0]['postal_code'];
+		$phone_number = $node->field_org_phone['und'][0]['value'];	 		 	 
+		
+		 
+        /*if($counter % 2 == 0) {
+            $cls = 'even';
+        } else {
+            $cls = 'odd';
+        }*/
+		
+        $output .='<div class="company-item project-box project-dragable">';
+        $output .='<div class="clearfix row">';
+        $output .= '<div class="col-md-6 col-sm-5 col-xs-12 company-summary">';
+        $output .='<h2>' . l($node->title, 'node/' . $node->nid, array('attributes' => array('class' => array('cust-proj-title')))) . '</h2>';
+        $output .='<span class="company-nid" style="display:none;">' . $node->nid . '</span>';
+        $output .= '<div class="company-meta"><span>'.$countryvalue.'</span></div>';
+		$output .= '<div class="company-meta"><span>'.$address1.' '.$address2.' '.$postal_code.'</span></div>';
+		$output .= '<div class="company-meta"><span>'.$city.', '.$state.'</span></div>';
+		$output .= '<div class="company-meta"><span>'.$phone_number.'</span></div>';  
+        $output .='</div>';
+        $output .= '</div>';
+        $output .='</div>';
+       
+        //$counter++;
+    }
+	$output .='</div>';
+    $output .='<div class="clear"></div>';
+    return $output;
+	
+}
+//**************** Display Duplicate Users Listing ****************//
+
+function display_duplicate_users_list(){
+  global $base_url;
+  $query = db_select('users', 'u');
+  $query->join('realname', 'frn', 'frn.uid = u.uid');
+  $query->join('realname', 'srn', 'srn.realname = frn.realname AND srn.uid!=frn.uid');
+  $query->join('field_data_field_phone', 'pn', 'pn.entity_id = u.uid');
+  $query->distinct();
+  $query->fields('frn', array('realname'));
+  $query->fields('u',array('uid','name','mail'));
+  $query->fields('pn',array('field_phone_value'));
+  $query->orderBy('frn.realname');
+  $record = $query->execute()->fetchAll();
+  
+  
+   $output .= '<div id="cust-dup-users-listings" class="col-md-9 col-sm-12 col-xs-12 padding-5">';
+    foreach($record as $result) {
+        $user = user_load($result->uid); 
+		//$userfirstname = $user->field_last_name['und'][0]['value']; 
+		//$userlastname = $user->field_first_name['und'][0]['value'];  
+		$state = $user->field_address['und'][0]['administrative_area'];
+		$address1 = $user->field_address['und'][0]['thoroughfare'];
+		$address2 = $user->field_address['und'][0]['premise'];
+		
+		$postalcode = $user->field_address['und'][0]['postal_code'];
+		
+		$companies_detail = m6connect_misc_get_user_all_companies($user->uid);
+		$countrynew = _addressfield_country_options_list();
+		  
+		  $city = '';
+		  $country ='';
+		  $countryvalue = '';
+          if(!empty($user->field_address['und'][0]['locality'])) {
+          $city = $user->field_address['und'][0]['locality'].', ';
+          }
+          if(!empty($user->field_address['und'][0]['country'])) {
+          $country = $user->field_address['und'][0]['country'];
+		  $countryvalue =$countrynew[$country];
+          }
+
+        
+		
+        $output .='<div class="company-item project-box project-dragable">';
+		$output .='<fieldset>';
+        $output .='<div class="clearfix row">';
+        $output .= '<div class="col-md-6 col-sm-5 col-xs-12 company-summary">';
+        $output .='<h2>' . l(($result->realname), 'user/'.$user->uid,   array('html' => TRUE, 'attributes' => array('title' => $result->realname,'class'=>'cust-proj-title'))) . '</h2>';
+        $output .='<span class="company-nid" style="display:none;">' . $result->uid . '</span>';
+        $output .= '<div class="company-meta"><strong>Email: </strong><span>'.$result->mail.'</span></div>';
+		$output .= '<div class="company-meta"><strong>Phone: </strong><span>'.$result->field_phone_value.'</span></div>';
+		$output .= '<div class="company-meta"><span>'.$address1.' '.$address2.' '.$postalcode.'</span></div>'; 
+		$output .= '<div class="company-meta"><span>'.$city.' '.$state.' '.$countryvalue.'</span></div>';
+		$output .= '<div class="company-meta"><strong>Company</strong></div>';
+		foreach($companies_detail as $com_val){
+		$output .= '<div class="company-meta"><span>' . l($com_val->title, 'node/' . $com_val->nid, array('attributes' => array('class' => array('')))) . '</span></div>';
+		}
+        $output .='</div>';
+        $output .= '</div>';
+		$output .='</fieldset>';
+        $output .='</div>';
+		
+       
+    }
+	$output .='</div>';
+    $output .='<div class="clear"></div>';
+    return $output;
+}
+//**************** start Rfp proposal summary Report new****************//
+
+function rfp_proposal_summary_report_new($nid){
+
+  //echo $nid; die;
+	 
+	global $user, $base_url, $base_path;
+    $node = node_load($nid);
+	//print_r($node); die;
+	$content = theme('proposals_report_content_new', array('node' => $node));
+	//print $content;
+	//drupal_exit(0); 
+	
+    include_once(libraries_get_path('mpdf') . '/mpdf.php');
+    $mpdf = new mPDF('c'); 
+	$mpdf->SetHTMLFooter('<table width="100%" style="vertical-align: bottom; font-size: 10pt; margin:0px 0 0 0px;"><tr><td width="33%"><img style="width:150px;" src="'.$base_url.'/sites/all/themes/m6connect/images/bidder_report_footer.png" alt="logo"/></td>
+<td width="33%" align="center" style="font-style: normal;">{PAGENO}/{nbpg}</td>
+<td width="33%" align="right"><span style="font-style: normal;">Print Date:{DATE j-m-Y}</span></td></tr></table>');
+
+$mpdf->SetHTMLFooter('<table width="100%" style="vertical-align: bottom; font-size: 10pt; margin:0px 0 0 0px;"><tr><td width="33%"><img style="width:150px;" src="'.$base_url.'/sites/all/themes/m6connect/images/bidder_report_footer.png" alt="logo"/></td>
+<td width="33%" align="center" style="font-style: normal;">{PAGENO}/{nbpg}</td>
+<td width="33%" align="right"><span style="font-style: normal;">Print Date:{DATE j-m-Y}</span></td></tr></table>', 'E'); 
+
+    $mpdf->setAutoTopMargin = 'stretch';
+    $mpdf->setAutoBottomMargin = 'stretch';
+    $mpdf->WriteHTML($content);
+    $file_content = $mpdf->Output('report.pdf', 'I');
+	
+}
+//****************  Rfp proposal summary Report new ****************//
+function _get_international_phone_number_format($phoneNumber) {
+  $processNo = str_replace('+', '',$phoneNumber);	
+  $sid = variable_get('twilio_account');
+  $authToken = variable_get('twilio_token');
+  $output = '';
+  if(!empty($sid) && !empty($authToken) && $phoneNumber) {
+    $url = 'https://lookups.twilio.com/v1/PhoneNumbers/'.$processNo;
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_USERPWD, $sid.":".$authToken);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $response  = curl_exec($ch);
+    $response_json = json_decode($response, true);	
+	if(!empty($response_json) && isset($response_json['national_format'])) {
+	  $output = $response_json['national_format'];	  
+	}
+    curl_close($ch);	
+  }
+  return $output;
+}
+function get_international_formatPhoneNumber($phoneNumber) {
+	
+    $phoneNumber = preg_replace('/[^0-9]/','',$phoneNumber);
+    if(strlen($phoneNumber) > 10) {
+        $countryCode = substr($phoneNumber, 0, strlen($phoneNumber)-10);
+        $areaCode = substr($phoneNumber, -10, 3);
+        $nextThree = substr($phoneNumber, -7, 3);
+        $lastFour = substr($phoneNumber, -4, 4);
+
+        $phoneNumber = '+'.$countryCode.' ('.$areaCode.') '.$nextThree.'-'.$lastFour;
+    }
+    else if(strlen($phoneNumber) == 10) {
+        $areaCode = substr($phoneNumber, 0, 3);
+        $nextThree = substr($phoneNumber, 3, 3);
+        $lastFour = substr($phoneNumber, 6, 4);
+
+        $phoneNumber = '('.$areaCode.') '.$nextThree.'-'.$lastFour;
+    }
+    else if(strlen($phoneNumber) == 7) {
+        $nextThree = substr($phoneNumber, 0, 3);
+        $lastFour = substr($phoneNumber, 3, 4);
+
+        $phoneNumber = $nextThree.'-'.$lastFour;
+    }
+
+    return $phoneNumber;
+}
+function m6connect_delegate_node_view($node, $view_mode, $langcode) {
+	
+ if($node->type =="onboarding" && $view_mode == 'full'){
+		
+	  
+	  if(!empty($node->field_emergency_phone_number['und'][0]['value'])){  
+	  	$emergencyphone = $node->field_emergency_phone_number['und'][0]['value'];	
+	  	$emergencyphone_value = get_international_formatPhoneNumber($emergencyphone);
+	  	$node->content['field_emergency_phone_number'][0]['#markup'] = $emergencyphone_value; 
+	  }
+	  if(!empty($node->field_phone['und'][0]['value'])){  
+	  	$phone = $node->field_phone['und'][0]['value'];	
+	  	$phone_value = get_international_formatPhoneNumber($phone);
+	  	$node->content['field_phone'][0]['#markup'] = $phone_value; 
+	  }
+	  if(!empty($node->field_home_phone['und'][0]['value'])){  
+	  	$homephone = $node->field_home_phone['und'][0]['value'];	
+	  	$homephone_value = get_international_formatPhoneNumber($homephone);
+	  	$node->content['field_home_phone'][0]['#markup'] = $homephone_value; 
+	  }
+	  
+	  if(!empty($node->field_cellular_phone['und'][0]['value'])){  
+	  	$cellularphone = $node->field_cellular_phone['und'][0]['value'];	
+	  	$cellularphone_value = get_international_formatPhoneNumber($cellularphone);
+	  	$node->content['field_cellular_phone'][0]['#markup'] = $cellularphone_value; 
+	  }
+	  if(!empty($node->field_alt_phone['und'][0]['value'])){  
+	  	$altphone = $node->field_alt_phone['und'][0]['value'];	
+	  	$altphone_value = get_international_formatPhoneNumber($altphone);
+	  	$node->content['field_alt_phone'][0]['#markup'] = $altphone_value; 
+	  }
+  }	 
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function m6connect_delegate_block_view($delta = '') {
+  global $user;
+  $block = array();
+  $content = '';
+  switch ($delta) {
+    case 'user-skill-set-data':
+	  $block['subject'] = t('');
+      $block['content'] = '<div class="cust-users-skill-set-outer">'.user_skill_set_content_view().'</div>';
+    break;
+	 case 'user-nom6id-Profile-view':
+	  $block['subject'] = t('');
+      $block['content'] = user_m6id_Profile_content();
+    break;
+  }
+  return $block;
+}
+
+ //////// For M6ID Personal Profile Update///// 
+/*function user_m6id_personal_profile_form($form, $form_state){
+  global $user;
+  $tempform = array();
+  $entity = node_load(11476);
+  $entityUser = user_load($entity->uid);
+  field_attach_form('user', $entityUser, $tempform, $form_state, array('field_name' => 'field_first_name'));
+  field_attach_form('user', $entityUser, $tempform, $form_state, array('field_name' => 'field_middle_name'));
+  field_attach_form('user', $entityUser, $tempform, $form_state, array('field_name' => 'field_last_name'));
+  field_attach_form('user', $entityUser, $tempform, $form_state, array('field_name' => 'field_job_titles'));
+  //field_attach_form('user', $entityUser, $tempform, $form_state, array('field_name' => 'field_date_of_birth'));
+  field_attach_form('user', $entityUser, $tempform, $form_state, array('field_name' => 'field_phone'));
+  field_attach_form('user', $entityUser, $tempform, $form_state, array('field_name' => 'field_mobile_phone
+'));
+  field_attach_form('user', $entityUser, $tempform, $form_state, array('field_name' => 'field_address'));
+  field_attach_form('user', $entityUser, $tempform, $form_state, array('field_name' => 'field_alt_phone'));
+  
+  //field_attach_form('node', $entity, $tempform, $form_state, array('field_name' => 'field_confirm_your_email_address'));
+ field_attach_form('node', $entity, $tempform, $form_state, array('field_name' => 'field_are_you_a_us_citizen'));
+ field_attach_form('node', $entity, $tempform, $form_state, array('field_name' => 'field_home_phone'));
+ field_attach_form('node', $entity, $tempform, $form_state, array('field_name' => 'field_cellular_phone'));
+ 
+   
+   //--------------For user Edit-------//
+  $tempform['field_first_name']['#weight'] = '0';
+  $tempform['field_middle_name']['#weight'] = '1';
+  $tempform['field_last_name']['#weight'] = '2';
+  $tempform['field_job_titles']['#weight'] = '3';
+  $tempform['field_address']['#weight'] = '5';
+  $tempform['field_phone']['#weight'] = '6';
+  $tempform['field_mobile_phone']['#weight'] = '7';
+  $tempform['field_alt_phone']['#weight'] = '8';
+  
+   
+  $form['field_first_name'] = $tempform['field_first_name'];
+  $form['field_middle_name'] = $tempform['field_middle_name'];
+  $form['field_last_name'] = $tempform['field_last_name'];
+  $form['field_job_titles'] = $tempform['field_job_titles'];
+  //$form['field_date_of_birth'] = $tempform['field_date_of_birth'];
+  $form['field_address'] = $tempform['field_address'];
+  $form['field_phone'] = $tempform['field_phone'];
+  $form['field_mobile_phone'] = $tempform['field_mobile_phone'];
+  $form['field_alt_phone'] = $tempform['field_alt_phone'];
+ 
+  //$dateyear = date('Y', strtotime($entityUser->field_date_of_birth['und'][0]['value']));
+  //$datemonth = date('n', strtotime($entityUser->field_date_of_birth['und'][0]['value']));
+  //$dateday = date('j', strtotime($entityUser->field_date_of_birth['und'][0]['value']));
+  
+   $dobdefaultvalue = $entityUser->field_date_of_birth['und'][0]['value'];
+ $form['field_date_of_birth'] = array(
+  '#title' => t('Date of Birth'),
+  '#type' => 'date_popup',
+  '#weight' =>4,
+  '#required' => TRUE,
+  '#default_value' =>$dobdefaultvalue,
+  '#date_format' => "m-d-Y",
+  '#date_label_position' => '',
+  '#date_year_range' => '-90:+0',
+ );
+  //----------for M6ID Field------------//
+  
+  $tempform['field_are_you_a_us_citizen']['#weight'] = '9';
+  $tempform['field_home_phone']['#weight'] = '10';
+  $tempform['field_cellular_phone']['#weight'] = '11';
+  
+  
+  $form['field_are_you_a_us_citizen'] = $tempform['field_are_you_a_us_citizen'];
+  //$form['field_confirm_your_email_address'] = $tempform['field_confirm_your_email_address'];
+  $form['field_home_phone'] = $tempform['field_home_phone'];
+  $form['field_cellular_phone'] = $tempform['field_cellular_phone'];
+ 
+  
+   //print "<pre>"; print_r($tempform['field_cellular_phone']); die;
+  
+  $form['user_uid']= array(
+    '#type' => 'value',
+	'#value' => $entity->uid,
+  );
+  $form['user_m6nid']= array(
+    '#type' => 'value',
+	'#value' => $entity->nid,
+  );
+  $form['node_type']= array(
+    '#type' => 'value',
+	'#value' => $entity->type,
+  );
+  $form['action_container'] = array(
+   '#type' => 'actions',
+  );
+  
+  $form['action_container']['submit'] = array(
+   '#type' => 'submit',
+   '#value' => t('Save'),
+   '#weight' =>12,
+   '#submit' => array('user_m6id_personal_profile_submit_handler'),
+  ); 
+	
+	return $form; 	
+}*/
+/*function user_m6id_personal_profile_submit_handler(&$form, &$form_state){
+  
+   //print "<pre>"; print_r($form_state['values']); die;
+   
+    $values = $form_state['values'];
+    $userm6nid = $values['user_m6nid'];
+	$useruid = $values['user_uid'];
+    $account = user_load($values['user_uid']);
+  if(!empty($values['user_uid']) && is_numeric($values['user_uid'])){ 
+   
+    $account->field_first_name['und'][0]['value'] = $values['field_first_name']['und'][0]['value']; 
+	$account->field_middle_name['und'][0]['value'] = $values['field_middle_name']['und'][0]['value'];
+	$account->field_last_name['und'][0]['value'] = $values['field_last_name']['und'][0]['value'];
+	$account->field_job_titles['und'][0]['target_id'] = $values['field_job_titles']['und'][0]['target_id'];
+	
+	$account->field_address['und'][0] = $values['field_address']['und'][0];
+	$account->field_phone['und'][0]['value'] = $values['field_phone']['und'][0]['value'];
+	$account->field_mobile_phone['und'][0]['value']= $values['field_mobile_phone']['und'][0]['value'];
+	$account->field_date_of_birth['und'][0]['value'] = $values['field_date_of_birth'];
+	$account->field_alt_phone['und'][0]['value'] = $values['field_alt_phone']['und'][0]['value'];
+	user_save($account);
+  }
+	/// for node m6ID ////
+  if(!empty($values['user_m6nid']) && is_numeric($values['user_m6nid']) && $values['node_type'] == 'onboarding'){    $node = node_load($values['user_m6nid']);
+	$node->field_are_you_a_us_citizen['und'][0]['value'] = $values['field_are_you_a_us_citizen']['und'][0]['value'];
+	$node->field_home_phone['und'][0]['value'] = $values['field_home_phone']['und'][0]['value'];
+	$node->field_cellular_phone['und'][0]['value'] = $values['field_cellular_phone']['und'][0]['value'];
+	 node_save($node);
+   }
+	
+}*/
+
+/*function user_m6id_edit_trade_categories_form($form, $form_state){
+ global $user;
+  $tempform = array();
+  //$entity = node_load(11476);
+  $entity = node_load(30636);
+  //$entityUser = user_load($entity->uid);
+ field_attach_form('node', $entity, $tempform, $form_state, array('field_name' => 'field_facilities_construction'));
+
+
+  $tempform['field_facilities_construction']['#weight'] = '0';
+  $form['field_facilities_construction'] = $tempform['field_facilities_construction'];
+  
+  
+  $form['user_uid']= array(
+    '#type' => 'value',
+	'#value' => $entity->uid,
+  );
+  $form['user_m6nid']= array(
+    '#type' => 'value',
+	'#value' => $entity->nid,
+  );
+  $form['node_type']= array(
+    '#type' => 'value',
+	'#value' => $entity->type,
+  );
+  $form['action_container'] = array(
+   '#type' => 'actions',
+  );
+  
+  $form['action_container']['submit'] = array(
+   '#type' => 'submit',
+   '#value' => t('Save'),
+   '#weight' =>1,
+   '#submit' => array('user_m6id_edittrade_categories_submit_handler'),
+  ); 
+	
+	return $form;  
+ 	
+}*/
+/*function user_m6id_edittrade_categories_submit_handler(&$form, &$form_state){
+	
+  //print "<pre>"; print_r($form_state['values']); die;
+   
+    $values = $form_state['values'];
+    $userm6nid = $values['user_m6nid'];
+	$useruid = $values['user_uid'];
+	$facilities = '';
+	$isSave =0;
+	$m6node = array();
+ if(!empty($values['user_m6nid']) && is_numeric($values['user_m6nid']) && $values['node_type'] == 'onboarding'){ 
+	$node = node_load($values['user_m6nid']);
+    foreach($values['field_facilities_construction'] as $facilities){
+	  if($facilities['tid']){ 
+        $m6node[]['tid'] = $facilities['tid'];
+	  }
+	}
+	if(empty($m6node) && isset($node->field_facilities_construction['und'])){
+	  unset($node->field_facilities_construction['und']);	
+	  $isSave =1;
+	}else{
+	  $node->field_facilities_construction['und'] = $m6node;
+	  $isSave =1;
+	}
+	if($isSave){
+	  node_save($node);	
+	}
+  }
+
+}*/
+
+//////// start m6id edit drivers license form ////////
+/*function user_m6id_edit_drivers_license_form($form, $form_state){
+global $user;
+ $tempform = array();
+ $entity = node_load(11476);
+	
+field_attach_form('node', $entity, $tempform, $form_state, array('field_name' => 'field_drivers_license_number'));
+field_attach_form('node', $entity, $tempform, $form_state, array('field_name' => '	field_drivers_license_issuance'));
+field_attach_form('node', $entity, $tempform, $form_state, array('field_name' => 'field_attach_driving_licence'));
+  $tempform['field_drivers_license_number']['#weight'] = '0';
+  $tempform['field_drivers_license_issuance']['#weight'] = '1';
+  $tempform['field_attach_driving_licence']['#weight'] = '2';
+  
+  $form['field_drivers_license_number'] = $tempform['field_drivers_license_number'];
+  $form['field_drivers_license_issuance'] = $tempform['field_drivers_license_issuance'];
+  $form['field_attach_driving_licence'] = $tempform['field_attach_driving_licence'];
+
+  $form['user_uid']= array(
+    '#type' => 'value',
+	'#value' => $entity->uid,
+  );
+  $form['user_m6nid']= array(
+    '#type' => 'value',
+	'#value' => $entity->nid,
+  );
+  $form['node_type']= array(
+    '#type' => 'value',
+	'#value' => $entity->type,
+  );
+  $form['action_container'] = array(
+   '#type' => 'actions',
+  );
+  
+  $form['action_container']['submit'] = array(
+   '#type' => 'submit',
+   '#value' => t('Save'),
+   '#weight' =>12,
+   //'#submit' => array('user_m6id_personal_profile_submit_handler'),
+  ); 
+	
+  return $form;  
+}*/
+
+function add_your_skill_custom_form($form, &$form_state){
+   global $user;
+  
+   $form['skill_uid']= array(
+    '#type' => 'value',
+	'#value' => $user->uid,
+   );
+   $form['#attached']['css'][] = drupal_get_path('module', 'halfstar') . '/css/halfstar.css';
+   $form['#attached']['css'][] = drupal_get_path('module', 'halfstar') . '/css/halfstar-craft.css';
+   if(empty($form_state['skill_set_storage_inilialize'])){
+	 $form_state['skill_set_storage'] = array();
+	 $form_state['skill_set_storage_inilialize']=1; 
+	 $query = db_select('m6connect_user_skill_set', 'uss');
+   $query->fields('uss',array('Id','skill_uid','skill_title','skill_year','skill_rating'));
+   $query->condition('uss.skill_uid',$user->uid);
+   $result = $query->execute()->fetchAll();
+	 if($result && !empty($result)){
+	   foreach($result as $index => $dataObj){
+	     $identifer = uniqid();
+	     $form_state['skill_set_storage'][$identifer] = (array)$dataObj;  
+	   }
+	 }
+   }
+   
+   if(empty($form_state['skill_set_storage'])){
+	$form_state['skill_set_storage'] = array();
+	$identifer = uniqid();
+	$form_state['skill_set_storage'][$identifer] = array();  
+   }
+  
+   $form['user-skill-container'] = array(
+    '#type' => 'container',
+	'#attributes' => array('class'=> array('skill-set-main-container')),
+	'#prefix' => '<div id="skill-set-container-section" class="clearfix">',
+	'#suffix' => '</div>',
+	'#process' => array('skill_set_container_process'),
+	//'#theme' => 'm6id_worker_to_project_template',
+   );
+   return $form;
+}
+
+function skill_set_container_process($elements, &$form_state){
+			
+  $storage = $form_state['skill_set_storage'];
+  //kpr($storage);
+  $elements['#skill_set_storage'] = $storage;
+   foreach($storage as $uniqueId => $defaultValue){
+	   
+	 //print "<pre>"; print_r($defaultValue);
+	 
+	 if(isset($defaultValue['Id']) && !empty($defaultValue['Id'])){
+	    $defaultValueId = $defaultValue['Id'];
+	 }else{
+	    $defaultValueId = '';
+	 }
+	 if(isset($defaultValue['skill_title']) && !empty($defaultValue['skill_title'])){
+	    $defaultValuetitle = $defaultValue['skill_title'];
+	 }else{
+		$defaultValuetitle = '';
+	 }
+	 if(isset($defaultValue['skill_year']) && !empty($defaultValue['skill_year'])){
+	    $defaultValueyear = $defaultValue['skill_year']; 
+	 }else{
+		$defaultValueyear = '';
+	 }
+	 if(isset($defaultValue['skill_rating']) && !empty($defaultValue['skill_rating'])){
+	    $defaultValuerating = $defaultValue['skill_rating'];
+	 }else{
+	    $defaultValuerating = '';
+	 }
+	  
+	$elements[$uniqueId] = array(
+	  '#type' => 'container',
+	  '#attributes' => array('class'=> array('skill-set-container')),
+	  '#prefix' => '<div class="skill-set-inner-container margin-bottom-10">',
+	  '#suffix' => '</div>',
+	 );
+	$elements[$uniqueId]['skill_Id'] = array(
+       '#type' => 'value',
+	   '#value' =>  $defaultValueId,
+	   '#parents' => array('skill-data',$uniqueId,'skill_id'),
+	 );
+	$elements[$uniqueId]['skill_title'] = array(
+	  '#type' => 'textfield',
+	  '#title' => t('Skill'),
+	  '#prefix' => '<div class="skill-set-skill-title margin-bottom-10">',
+	  '#suffix' => '</div>',
+	  '#attributes' => array('class'=>array('user-skill-title'),'placeholder'=>'Examples: Tiling, Painting, Marketing, Sales, Social Media.
+'),
+	  '#parents' => array('skill-data',$uniqueId,'skill_title'),
+	  '#default_value' => $defaultValuetitle,
+	);
+	
+	$elements[$uniqueId]['skill-set-year-rating'] = array(
+	  '#type' => 'container',
+	  '#attributes' => array('class'=> array('skill-set-year-rating','row','margin-5')),
+	 );
+	 
+	 $elements[$uniqueId]['skill-set-year-rating']['left-section'] = array(
+	  '#type' => 'container',
+	  '#attributes' => array('class'=> array('row','margin-5')),
+	  '#prefix' => '<div class="skill-set-year-rating-left margin-bottom-10 padding-5 col-md-8 col-sm-8 col-xs-12">',
+	  '#suffix' => '</div>',
+	 );
+	 
+	 $elements[$uniqueId]['skill-set-year-rating']['right-section'] = array(
+	  '#type' => 'container',
+	  '#attributes' => array('class'=> array('skill-set-year-rating-right','margin-bottom-10', 'padding-5', 'col-md-4','col-sm-4','col-xs-12','text-right')),
+	  //'#prefix' => '<div class="skill-set-year-rating-right margin-bottom-10 padding-5 col-md-4 col-sm-4 col-xs-12">',
+	  //'#suffix' => '</div>',
+	 );
+	$elements[$uniqueId]['skill-set-year-rating']['left-section']['skill_year'] = array(
+	  '#type' => 'textfield',
+	  '#title' => t('Years'),
+	  '#prefix'=>'<div class="skill-set-date col-md-4 col-sm-4 padding-5">',
+	  '#suffix'=>'</div>',
+  	  //'#date_format' => "m-d-Y",
+  	  //'#date_label_position' => '',
+  	  //'#date_year_range' => '-90:+0',
+	  '#attributes' => array('class'=>array('user-skill-year')),
+	  '#parents' => array('skill-data',$uniqueId,'skill_year'),
+	  '#default_value' =>$defaultValueyear,
+	   
+	);
+	
+	$elements[$uniqueId]['skill-set-year-rating']['left-section']['rating-section'] = array(
+	  '#type' => 'container',
+	  '#attributes' => array('class'=> array('skill-set-rating','col-md-4','col-sm-4','padding-5')),
+	);
+	 
+	$elements[$uniqueId]['skill-set-year-rating']['left-section']['rating-section']['skill_rating'] = array(
+	  '#title' => t('Rating'),
+  	  //'#type' => 'textfield',
+	  '#type' => 'halfstar',
+      '#stars' => 10,
+	  '#widget' => array('name' => 'oxygen', 'css' => drupal_get_path('module', 'fivestar') . '/widgets/oxygen/oxygen.css'),
+	  //'#attributes' => array('class'=>array('user-skill-rating'),'placeholder'=>''),
+	  '#parents' => array('skill-data',$uniqueId,'skill_rating'),
+	  '#default_value' =>$defaultValuerating,
+	);
+	$elements[$uniqueId]['skill-set-year-rating']['right-section']['remove'] = array(
+	  '#type' => 'submit',
+	  '#value' => decode_entities('&#xf014;'),
+	  '#name' => $uniqueId,
+	  '#indx' => $defaultValueId, // index for deletion
+	  '#prefix'=>'<div>&nbsp;</div>',
+	  //'#suffix'=>'</div>',
+	  '#attributes'=> array('style'=> array('font-family:FontAwesome;'),'class'=>array('skill-remove-submit')),
+	  '#parents' => array('skill-employees-remove',$uniqueId,'remove'),
+	  '#limit_validation_errors' => array(),
+	  '#submit'=> array('skill_remove_submit_handler'),
+	  '#ajax' => array(
+		'callback' => 'custom_skill_remove_callback',
+		'wrapper' => 'skill-set-container-section',
+		'method' => 'replace',
+		'effect' => 'fade',
+		'progress' => array('type'=> 'throbber', 'message'=> NULL),
+	   ),
+	);
+  }
+    $elements['add-more'] = array(
+	  '#type' => 'submit',
+	  '#value' => 'Add Another Skill',
+	  '#name' => 'add_more_skill',
+	  '#attributes'=> array('class'=>array('routing-workflow-action'),'title'=>'Add M6 User by Company'),
+	  '#limit_validation_errors' => array(),
+	  '#submit'=> array('add_more_skill_submit_handler'),
+	  '#ajax' => array(
+	    'callback' => 'add_more_skill_action_callback',
+	    'wrapper' => 'skill-set-container-section',
+	    'method' => 'replace',
+	    'effect' => 'fade',
+	    'progress' => array('type'=> 'throbber', 'message'=> NULL),
+	 ),
+
+	);
+	 $elements['submit'] = array(
+	  '#type' => 'submit',
+	  '#value' => 'Save',
+	  '#name' => 'skill_save',
+	  '#submit'=> array('add_your_skill_custom_submit_handler'),
+	 );
+  return $elements; 			
+}
+
+function add_more_skill_action_callback($form, &$form_state){
+  return $form['user-skill-container'];
+}
+
+function add_more_skill_submit_handler(&$form, &$form_state){
+  $identifer = uniqid();
+  $form_state['skill_set_storage'][$identifer] = array(); 
+  $form_state['rebuild'] = TRUE;
+}
+
+function skill_remove_submit_handler(&$form,&$form_state){
+  global $user;
+  $commands = array();
+  $triggering_element = $form_state['triggering_element'];
+  $identifier = $triggering_element['#parents'][1];
+  $form_state['deleted_skill_id'] = '';
+  
+  $Ids = $form_state['triggering_element']['#indx'];
+  if(!empty($Ids)){
+	  
+    db_delete('m6connect_user_skill_set')
+     ->condition('Id', $Ids)
+	 ->condition('skill_uid', $user->uid)
+     ->execute();
+    $form_state['deleted_skill_id'] = $Ids; 
+  }
+  if(isset($form_state['skill_set_storage'][$identifier])){
+    unset($form_state['skill_set_storage'][$identifier]); 
+  }
+  $form_state['rebuild'] = TRUE;  
+}
+function custom_skill_remove_callback($form,&$form_state){
+  $commands = array();
+  $commands[] = ajax_command_replace("#skill-set-container-section", render($form['user-skill-container']));
+  if(!empty($form_state['deleted_skill_id'])){
+	$commands[] = ajax_command_remove('.skill-id-'.$form_state['deleted_skill_id']);  
+  }
+  return array('#type' => 'ajax', '#commands' => $commands);
+}
+function add_your_skill_custom_submit_handler(&$form, &$form_state){
+  $values = $form_state['values'];
+  $skill_uid =  $values['skill_uid'];
+  
+  $skillDatauUdatevalue = array();
+  $skillDataOldvale = array();
+  $skillNotDelete = array();
+  //print "<pre>"; print_r($values); die;
+   foreach($values['skill-data'] as $skilldata){
+	  $skilltitle = $skilldata['skill_title'];
+	  $skillyear = $skilldata['skill_year'];
+      $skillrating = $skilldata['skill_rating'];
+	  $skillid = $skilldata['skill_id'];
+	  
+	  if(!empty($skilltitle) && !empty($skillyear)){
+		  
+			if(!empty($skillid)){  
+			 $skillDatauUdatevalue[] = $skillid;
+			  
+			  //print "<pre>"; print_r($skillDatauUdatevalue);
+			  //$skillDatauUdatevale = array_diff($skillDataOldvale, $skillDataupdatevale);
+			db_update('m6connect_user_skill_set')
+				->fields(array(
+				'skill_uid'=> $skill_uid,
+				'skill_title' => $skilltitle,
+				'skill_year' =>  $skillyear,
+				'skill_rating' =>$skillrating,
+					))
+			 ->condition('Id', $skillid)
+			 ->condition('skill_uid',$skill_uid)
+			 ->execute();
+			 
+			 $skillNotDelete[] = $skillid;
+			
+			 /*db_delete('m6connect_user_skill_set')
+				 ->condition('Id', $skillid)
+				 ->condition('skill_uid',$skill_uid)
+				 ->execute();*/
+			
+			  }else{ 
+		   
+				 $skillNotDelete[] = db_insert('m6connect_user_skill_set')
+				->fields(array(
+					'skill_uid'=> $skill_uid,
+					'skill_title' => $skilltitle,
+					'skill_year' =>  $skillyear,
+					'skill_rating' =>$skillrating,
+				))->execute();  
+	         }     
+	   }  	
+   } 
+   $deleteSkill = db_delete('m6connect_user_skill_set');
+   if(!empty($skillNotDelete)){
+	 $deleteSkill->condition('Id',$skillNotDelete,'NOT IN');  
+   }
+   $deleteSkill->condition('skill_uid',$skill_uid,'=');
+   $deleteSkill->execute();
+}
+//--------End Skill set Form here---------//
+//--------start M6ID view page on user profile view page--//
+function user_m6id_Profile_content($cuid){  
+  // global $user;
+   
+	//$user = menu_get_object('user',1);
+	//$cuid = $user->uid ;
+    $node = user_load($cuid);
+	//print "<pre>"; print_r($m6user); die;
+	$content = theme('onboarding_profile_view_page', array('node' =>$node));
+	return $content;
+		
+}
+
+function user_skill_set_content_view(){
+  global $user;
+  global $base_url;
+  $cuser = menu_get_object('user',1);
+ 
+  //$cuser = user_load($cuser->uid); 
+  //print "<pre>"; print_r($cuser); die;
+  
+ if(isset($cuser->uid) && is_numeric( $cuser->uid)){
+	 
+  $query = db_select('m6connect_user_skill_set', 'ssd');
+  $query->fields('ssd',array('Id','skill_uid','skill_title','skill_year','skill_rating'));
+  $query->condition('ssd.skill_uid', $cuser->uid);
+  $record = $query->execute()->fetchAll();
+  
+   $output .= '<div class="cust-users-skill-set clearfix">';
+    if(!empty($record)) {
+	  foreach($record as $result) {
+	    $skillyear = '';
+		$skillstar = '';
+		$skillpath = '';
+		$string_skill_title = '';
+		$skill_titlevalue = '';
+		if($result->skill_year){
+		  $skillyear = $result->skill_year.'yrs';
+		}
+		if(!empty($result->skill_title)){
+		  $string_skill_title = $result->skill_title;
+		  $skill_titlevalue = (strlen($string_skill_title) > 17) ? substr($string_skill_title, 0, 14) . '...' : $string_skill_title;
+		}
+		if(!empty($result->skill_rating)){
+		  $skillData =$result->skill_rating;	
+          $skillpath = drupal_get_path('module', 'fivestar');
+          $skillstar = theme('fivestar_static', array('rating' => $skillData, 'widget' => array('name' => 'oxygen', 'css' => $skillpath . '/widgets/oxygen/oxygen.css')));
+		}
+		$output .='<div class="margin-bottom-10 cust-users-skill-set-item clearfix skill-id-'.$result->Id.'">';
+		$output .='<span class="skill-id-'.$result->Id.'" style="display:none;">'.$result->Id.'</span>';
+        $output .= '<div class="col-md-5 col-sm-5 padding-5 text-white custom-user-skill custom-user-rating text-center"><span>'. $skillstar.'</span></div>';
+		$output .= '<div class="col-md-2 col-sm-2 padding-5 text-white custom-user-skill custom-user-year text-center"><span>'.$skillyear.'</span></div>';
+		$output .= '<div class="col-md-5 col-sm-5 padding-5 custom-user-skill custom-user-title"><span>'.$skill_titlevalue.'</span></div>';
+        $output .='</div>';
+	  }
+	}
+	else {
+	  $output .='<div class="margin-bottom-10 clearfix skill-id-'.$result->Id.'">';
+	  $output .= '<a aria-controls="skillset" style="text-decoration:none; font-style:italic;" class="profile-tab-open" data-toggle="tab" href="#skillset" role="tab" aria-expanded="true">Share your skills set and be more visible for potential opportunities</a>';
+	  $output .='</div>';
+	}
+	$output .='</div>';
+    $output .='<div class="clear"></div>';
+    return $output;
+ }
+}
+
+function onboarding_node_form_license_field_validate($form, &$form_state){
+		
+  //print "<pre>"; print_r($form_state['values']); die; 
+  //kpr($form_state['values']);
+    //$item = array();
+    $i = 0;
+   foreach($form_state['values']['field_onbarding_credentials']['und'] as $item){
+	    //print "<pre>"; print "<pre>"; print_r($item); 
+  		 if($item['field_ob_credential_type']['und'][0]['value'] == 'License' && $item['field_ob_expires']['und'][0]['value'] == ''){
+		   form_set_error('field_ob_expires', t('Expires field is required.'));
+  		 }
+		 else if($item['field_ob_credential_type']['und'][0]['value'] == 'License' && $item['field_ob_received']['und'][0]['value'] == ''){
+		   form_set_error('field_ob_received', t('Received field is required.'));
+  		 }
+    
+   } $i++;
+   
+}
+function user_Profile_credentials_viewmore($onBoardingNid){
+
+    $node = node_load($onBoardingNid);
+	$content = theme('user_Profile_credentials_viewmore', array('node' =>$node));
+	return $content;
+		
+}
+function user_profile_credentials_view_more($fcid, $ajax=NULL){
+	
+    $item_id = arg(2);
+    $output = array();
+    $user = user_load(arg(1));
+	$collection = field_collection_item_load($item_id);
+	$m6id = $user->field_m6id['und'][0]['value'];
+	$profile_photo = $user->field_user_profile_photo['und'][0]['uri'];
+	
+	$credential = $collection->field_title_name_of_credential['und'][0]['value']; 
+    $attach_image = $collection->field_ob_attach_image['und']['0']['uri'];
+	
+	if(!empty($collection->field_ob_expires['und'][0]['value'])){	
+	$ob_expires = date('d/m/Y',$collection->field_ob_expires['und'][0]['value']); 
+	$obexpires = date('Y-m-d', $collection->field_ob_expires['und'][0]['value']);  
+    $curdate = date('Y-m-d');
+	$curdateval =  strtotime($curdate);
+	$obexpiresval = strtotime($obexpires);
+	
+	  if($obexpiresval < $curdateval){
+		$expclass = 'bg-red';
+	  }else{
+  		$expclass = 'bg-success';
+	   }
+	}
+	
+	$credentialLogo = (!empty($attach_image)) ? theme('image_style', array('style_name' => 'user_image_default', 'path' => $attach_image, 'getsize' => TRUE)) : '<img src="/sites/all/themes/m6connect/images/no_images_available.png" style="height:100px; width:100px"/>';
+	 
+	$user_picture = (!empty($profile_photo))?theme_image_style(array('style_name'=>'user_image_default','path'=>$profile_photo)):theme('image', array('path' => 'sites/default/files/images_13_0.png','attributes'=> array('style'=>'width:100px;height:100px;')));
+	
+	$credentialContent = '<div class="user-credentials-popup">
+	                 <div class="dashboard-block-heading text-center margin-bottom-10 clearfix">
+				       <div class="m6certified" style="font-size:25px;">
+				         <span class="m6id-number">M6ID: '.$m6id.'</span>
+				       </div>
+			         </div>
+					 
+				     <div class="row margin-5">
+				         <div class="col-md-6 padding-5 margin-bottom-10">'.$user_picture.'		</div>
+						 <div class="col-md-6 padding-5 margin-bottom-10 credential-border text-right">'.$credentialLogo.'</div>
+				     </div>
+				    
+					 <div class="clearfix margin-bottom-10 text-white m6id-company-info-section text-center '.$expclass.'">
+					   <div class="">
+					     <span class="text-center">Expires: '. $ob_expires.'</span>
+					   </div>
+					 </div>
+		            <div class="clearfix margin-bottom-10 m6id-company-info-section text-center">
+					 <div class="">
+				      <div class="text-center"><strong>Title / Name of Credential</strong>: '.$credential.'</div>
+					 </div>
+				     </div>
+					 <div class="onboarding-message-popup-close pull-right padding-top-10">
+					 <a onclick="jQuery(&quot;span.popups-close&quot;).click();" class="ob-msg-popup-close-link" href="javascript:void(0);"><input type="button" value="Close" class="btn cancel-button"></a>
+					 </div>
+			    </div>';
+  
+  if(!$ajax){
+    return $credentialContent;
+	
+  }	
+  ctools_include('modal');
+  ctools_include('ajax');
+  $output[] = ctools_modal_command_display('', $credentialContent);
+  print ajax_render($output);
+  drupal_exit();
+}
+//--For User Management work-------//
+
+//--------Manage Licenses---------//
+
+function manage1_user_licenses_callback($ajax = NULL, $account, $companyNid) {
+ 
+    if ($ajax) {
+        ctools_include('ajax');
+        ctools_include('modal');
+        $form_state = array(
+            'ajax' => TRUE,
+            'user_id' => $account->uid,
+			'company_nid' => $companyNid,
+        );
+        $output = ctools_modal_form_wrapper('manage1_user_licenses_form', $form_state);
+        if (!empty($form_state['ajax_commands'])) {
+            $output = $form_state['ajax_commands'];
+        }
+        print ajax_render($output);
+        drupal_exit();
+    }
+    return drupal_get_form('manage1_user_licenses_form', $account->uid,$companyNid);
+}
+function manage1_user_licenses_form($form, &$form_state, $user_id = '',$company_nid='') {
+	
+    global $user, $company;
+    $form = array();
+    $user_id = (isset($form_state['user_id']) && is_numeric($form_state['user_id'])) ? $form_state['user_id'] : $user_id;
+	 $company_nid = (isset($form_state['company_nid']) && is_numeric($form_state['company_nid'])) ? $form_state['company_nid'] : $company_nid;
+	 
+	$form_state['user_id']= $user_id; 
+    $form_state['company_nid']= $company_nid; 
+	
+    $query = db_query('SELECT lp.user_id AS owner_id,lp.key_id AS key_id,
+
+	 lp.purchased_date AS purchased_date,la.is_active as is_active, lm.license_key AS l_key,
+lm.valid_from AS valid_from, lm.valid_till AS valid_till, la.assign_by AS assign_by, la.assign_to AS assign_to, lm.product_id as product_id
+FROM license_purchased AS lp JOIN license_master AS lm ON(lp.key_id=lm.id) 
+LEFT JOIN license_assign AS la ON(lp.key_id=la.key_id and la.is_active=1) where lp.user_id = ' . $user->uid . ' and lp.cid = ' . $company_nid . ';
+');
+    $i = array();
+    $default_key = 0;
+    $disabled = array();
+    $total_license;
+    foreach ($query as $row) {
+        $total_license[$row->key_id] = $row;
+        if (is_numeric($row->assign_to) && $row->is_active == 1) {
+            $i[$row->key_id] = $row->assign_to;
+        } else {
+            
+        }
+    }
+//    $og_nodes = og_get_groups_by_user();
+//    $og_nodes = implode('+', $og_nodes['node']);
+    $og_nodes = $company_nid;
+    $select_member_query = "SELECT users.uid AS uid, users.mail AS users_mail,la.is_active as is_active,
+		last_name.field_last_name_value AS last_name_value,
+ first_name.field_first_name_value AS first_name_value,
+	 users.login AS users_login, users.name AS users_name, users.created AS users_created, 'user' AS field_data_field_licensed_user_entity_type, 'user' AS field_data_field_last_name_user_entity_type, 'user' AS field_data_field_first_name_user_entity_type,
+la.assign_to as assign_to
+FROM 
+users users
+LEFT JOIN og_membership og_membership ON (users.uid = og_membership.etid AND og_membership.entity_type = 'user')
+
+LEFT JOIN field_data_field_last_name AS last_name ON (users.uid=last_name.entity_id)
+LEFT JOIN field_data_field_first_name AS first_name ON (users.uid=first_name.entity_id)
+LEFT JOIN license_assign AS la ON (la.assign_to=users.uid)
+WHERE (( (og_membership.gid = '" . $og_nodes . "' ) )AND(( (users.status <> '0') )))
+ORDER BY users_created DESC, is_active asc;
+";
+    $select_memeber_result = db_query($select_member_query);
+    $existing_user_data = array();
+    foreach ($select_memeber_result as $select_memeber_row) {
+        $existing_user = '<span> No </span>';
+        if (is_numeric($select_memeber_row->assign_to) && $select_memeber_row->is_active == 1) {
+            $existing_user = '<span>Yes</span>';
+            $existing_user_data[] = $select_memeber_row->assign_to;
+        }
+        $data[$select_memeber_row->uid] = $existing_user . '<span>' . $select_memeber_row->first_name_value . ' ' . $select_memeber_row->last_name_value . '</span>';
+    }
+    $form['#attributes'] = array('class' => array('manage_user_licenses_form'), 'id' => 'manage_user_licenses_form');
+    $form['heading-text'] = array(
+        '#markup' => '<div class="user_licenses-header-title"><h4>Assign/Transfer Licenses</h4></div>',
+        '#prefix' => '<div class="assign-bid-header">',
+        '#suffix' => '</div>',
+    );
+    $form['heading-text'] = array(
+        '#markup' => '<div class="user-licenses-header-title"><h4>Assign/Transfer Licenses</h4>
+        </div><div class="user-licenses-header-desc">You can reassign licenses to other users below:</div>
+        <label class="total-label">Total License:</label><span class="total-value">' . count($total_license) . '</span>
+        <label class="total-label">Available License:</label><span class="total-value">' . (count($total_license) - (count($i))) . '</span>'
+        ,
+        '#prefix' => '<div class="user_licenses-header">',
+        '#suffix' => ' </div>',
+    );
+
+    $form['key'] = array(
+        '#type' => 'checkboxes',
+        '#prefix' => '<div id="key_" class="action_container"> <div class="header-data clearfix"><span>Select</span> <span>License</span> <span>Name</span> </div>',
+        '#suffix' => '</div>',
+        '#title' => '',
+        '#element_validate' => array('_field1_max_value_selected_options'),
+        '#options' => $data,
+        '#default_value' => $existing_user_data,
+    );
+    if ($default_key != 0) {
+        $form['custom_action'] = array(
+            '#type' => 'hidden',
+            '#value' => 'edit',
+        );
+    }
+    $form['cid'] = array(
+        '#type' => 'hidden',
+        '#value' => $company_nid,
+    );
+    $form['action_container'] = array(
+        '#type' => 'container',
+        '#prefix' => '<div id="action_container" class="action_container clearfix"> <div class="pull-left"><a href="/upgrade-your-membership-subscription" class="btn btn-primary form-submit pull-left" >Add licenses</a></div> <div class="pull-right">',
+        '#suffix' => '</div></div>',
+    );
+
+    $form['user_id'] = array('#type' => 'hidden', '#value' => $select_member_query);
+    $form['action_container']['submit'] = array(
+        '#type' => 'submit',
+        '#value' => 'Save'
+    );
+
+    $form['action_container']['close'] = array(
+        '#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="CANCEL" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('manage-user-licenses-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+    );
+
+
+    return $form;
+}
+function _field1_max_value_selected_options($element, &$form_state) {
+	
+    global $user, $company;
+	$user_id = $form_state['user_id']; 
+    $company_nid = $form_state['company_nid'];
+	
+    $query = db_query('SELECT lp.user_id AS owner_id, lp.key_id AS key_id, lp.purchased_date AS purchased_date,la.is_active as is_active, lm.license_key AS l_key,
+lm.valid_from AS valid_from, lm.valid_till AS valid_till, la.assign_by AS assign_by, la.assign_to AS assign_to, lm.product_id as product_id
+FROM license_purchased AS lp JOIN license_master AS lm ON(lp.key_id=lm.id) LEFT JOIN license_assign AS la ON(lp.key_id=la.key_id) where lp.user_id = ' .$user->uid . ' and lp.cid = ' . $company_nid . ' ;
+');
+    $i = 0;
+    $default_key = 0;
+    $disabled = array();
+    $total_license;
+    foreach ($query as $row) {
+        $total_license[$row->key_id] = $row;
+        if (is_numeric($row->assign_to) && $row->is_active == 1) {
+            $i++;
+        } else {
+            
+        }
+    }
+    if (count($total_license) < count($element['#value'])) {
+        form_error($element, 'You must have available licenses to assign. Uncheck current license holder first or upgrade and add additional licenses.');
+    }
+}
+
+function manage1_user_licenses_form_submit(&$form, &$form_state) {
+    global $user, $company;
+	$user_id = $form_state['user_id'];
+    $company_nid = $form_state['company_nid'];
+	
+    if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+
+        $query = db_query('SELECT lp.user_id AS owner_id,lp.key_id AS key_id, lp.purchased_date AS purchased_date,la.is_active as is_active,  lm.license_key AS l_key,
+                        lm.valid_from AS valid_from, lm.valid_till AS valid_till, la.assign_by AS assign_by, la.assign_to AS assign_to, lm.product_id as product_id
+                        FROM license_purchased AS lp JOIN license_master AS lm ON(lp.key_id=lm.id) LEFT JOIN license_assign AS la ON(lp.key_id=la.key_id) where lp.user_id = ' .$user->uid . ' and lp.cid=' . $company_nid. ';
+                        ');
+        $i = 0;
+        $default_key = 0;
+        $disabled = array();
+        $total_license;
+        $existing_user_license = array();
+        $key_id_data = array();
+        foreach ($query as $row) {
+            $total_license[] = $row;
+            if (is_numeric($row->assign_to) && $row->is_active == 1) {
+                $existing_user_license[$row->assign_to] = $row->assign_to;
+                $key_id_data[$row->assign_to] = $row->key_id;
+                $i++;
+            } else {
+                $key_id_data[] = $row->key_id;
+            }
+        }
+        $new_use_list = $form_state['values']['key'];
+
+        $old_user = array();
+        $need_delete = array();
+        $new_user = array();
+        foreach ($new_use_list as $userkey => $uservalue) {
+            if ($uservalue != 0) {
+                if (in_array($uservalue, $existing_user_license)) {
+                    $old_user[$userkey] = $uservalue;
+                    unset($existing_user_license[$userkey]);
+                } else {
+                    $new_user[$userkey] = $uservalue;
+                }
+            }
+        }
+        foreach ($old_user as $k => $v) {
+            unset($key_id_data[$v]);
+        }
+        $new_key_id_data = array_values($key_id_data);
+        $need_delete = $existing_user_license;
+//        form_set_error($form['key'], '<pre>' . print_r($form_state, 1) . '</pre>');
+        $i = 0;
+//        drupal_set_message('<pre>old' . print_r($old_user, 1) . 'new' . print_r($new_user, 1) . 'delete' . print_r($need_delete, 1) . '</pre>');
+//        exit();
+        if (count($need_delete) > 0) {
+            foreach ($need_delete as $old_key => $old_value) {
+                $num_updated = db_update('license_assign') // Table name no longer needs {}
+                        ->fields(array(
+                            'deactivate_date' => time(),
+                            'is_active' => 0,
+                            'assign_by' => $user->uid,
+                        ))
+                        ->condition('assign_to', $old_value, '=')
+                        ->execute();
+                $account = user_load($old_value); // Loading account
+                $edit = array(
+                    'field_licensed' => array(
+                        'und' => array(
+                            0 => array(
+                                'value' => 0,
+                            ),
+                        ),
+                    ),
+                );
+                user_save($account, $edit);
+            }
+        }
+        if (count($new_user) > 0) {
+            foreach ($new_user as $key => $value) {
+                $store_datas = db_insert('license_assign')
+                        ->fields(array('assign_by', 'assign_to', 'key_id', 'assign_date', 'cid'))
+                        ->values(array(
+                            'assign_by' => $user->uid,
+                            'assign_to' => $value,
+                            'key_id' => $new_key_id_data[$i],
+                            'assign_date' => time(),
+                            'cid' =>  $company_nid
+                        ))
+                        ->execute();
+                $i++;
+                $account = user_load($value); // Loading account
+                $edit = array(
+                    'field_licensed' => array(
+                        'und' => array(
+                            0 => array(
+                                'value' => 1,
+                            ),
+                        ),
+                    ),
+                );
+                user_save($account, $edit);
+            }
+        }
+    }
+//    exit();
+    /* if (isset($form_state['values']['custom_action']) && $form_state['values']['custom_action'] == 'edit') {
+      $num_updated = db_update('license_assign') // Table name no longer needs {}
+      ->fields(array(
+      'key_id' => $form_state['values']['key'],
+      'assign_by' => $user->uid,
+      ))
+      ->condition('assign_to', $form_state['values']['user_id'], '=')
+      ->execute();
+      } else {
+      $store_datas = db_insert('license_assign')
+      ->fields(array('assign_by', 'assign_to', 'key_id', 'assign_date'))
+      ->values(array(
+      'assign_by' => $user->uid,
+      'assign_to' => $form_state['values']['user_id'],
+      'key_id' => $form_state['values']['key'],
+      'assign_date' => time()
+      ))
+      ->execute();
+      }
+     */
+    /*
+      $account = user_load($form_state['values']['user_id']); // Loading account
+      $edit = array(
+      'field_licensed' => array(
+      'und' => array(
+      0 => array(
+      'value' => 1,
+      ),
+      ),
+      ),
+      );
+      user_save($account, $edit);
+     */
+    $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+    $form_state['ajax_commands'][] = ctools_ajax_command_reload();
+}
+
+//***************  End User Licenses Work  ***************//
+//----------Remove user---------//
+function people_member_remove_user_callback($ajax = NULL, $account, $companyNid){
+   if ($ajax) {
+        ctools_include('ajax');
+        ctools_include('modal');
+        $form_state = array(
+            'ajax' => TRUE,
+            'user_id' => $account->uid,
+			'company_nid' => $companyNid,
+        );
+        $output = ctools_modal_form_wrapper('people_member_remove_user_form', $form_state);
+        if (!empty($form_state['ajax_commands'])) {
+            $output = $form_state['ajax_commands'];
+        }
+        print ajax_render($output);
+        drupal_exit();
+    }
+    return drupal_get_form('people_member_remove_user_form', $account->uid,$companyNid);
+ }
+function people_member_remove_user_form($form, &$form_state, $user_id = '',$company_nid='') {
+	$user_id = (isset($form_state['user_id']) && is_numeric($form_state['user_id'])) ? $form_state['user_id'] : $user_id;
+	$company_nid = (isset($form_state['company_nid']) && is_numeric($form_state['company_nid'])) ? $form_state['company_nid'] : $company_nid;
+	$form_state['user_id'] = $user_id; 
+    $form_state['company_nid'] = $company_nid; 
+	
+	if(!empty($user_id)){
+	$userealname = _get_user_full_name($user_id); 
+	}
+	// Get all the node posted by this user 
+	// And assing these nodes to company admin
+	/*$query= db_select('node','n');
+	$query->join('users','u','u.uid=n.uid');
+	$query->fields('n', array('nid'));
+	$query->condition('u.uid', $user_id, '=');
+	$query->condition('n.status',0,'>');
+	$query->condition('n.type','organization','!=');
+	$getUserNode = $query->execute()->fetchCol();*/
+	
+	$form['people_remove_action_title'] = array(
+		'#type' => 'markup',
+		'#title' => t('status'),
+		'#markup' => '<div class="group-action-status dialog-confirm-box"><div class="col-md-3 cross-icons"><i class="fa fa-times"></i></div><div class="col-md-9 remove-member" style="font-size:16px;"> <p>Are you sure you would like to remove <span id="user-full-name">'.$userealname.'</span>, from your company? </p><p>This user have 25 Content posted on the site assign these node to company admin from below drop down:</p></div ></div>',
+	);			
+	$form['submit_action_remove'] = array(
+		'#type' => 'submit',
+		'#value' => t('Confirm')
+	);
+	$form['submit_action_cancel']['close'] = array(
+		'#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('template-delete-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+		'#weight' => 10,
+	);
+	return $form;
+}
+function people_member_remove_user_form_submit($form, &$form_state) {
+	
+	$user_id = $form_state['user_id'];
+    $company_nid = $form_state['company_nid'];
+	if(!empty($user_id) && !empty($company_nid)){	
+		
+		og_ungroup('node', $company_nid, 'user', $user_id);
+		
+		drupal_set_message('User removed successfully', 'status');			
+		if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+	 		$form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+	 		$form_state['ajax_commands'][] = ctools_ajax_command_redirect('/people/member');  
+	  	}
+	}
+}
+//***************  invite manage role ***************//
+function people_invite_managerole_callback($ajax = NULL, $account, $companyNid){
+	
+	if ($ajax) {
+        ctools_include('ajax');
+        ctools_include('modal');
+        $form_state = array(
+            'ajax' => TRUE,
+            'user_id' => $account->uid,
+			'company_nid' => $companyNid,
+        );
+        $output = ctools_modal_form_wrapper('people_invite_managerole_user_form', $form_state);
+        if (!empty($form_state['ajax_commands'])) {
+            $output = $form_state['ajax_commands'];
+        }
+        print ajax_render($output);
+        drupal_exit();
+    }
+    return drupal_get_form('people_invite_managerole_user_form', $account->uid,$companyNid);	
+}
+function people_invite_managerole_user_form($form, &$form_state, $user_id = '',$company_nid=''){
+	
+	$user_id = (isset($form_state['user_id']) && is_numeric($form_state['user_id'])) ? $form_state['user_id'] : $user_id;
+	$company_nid = (isset($form_state['company_nid']) && is_numeric($form_state['company_nid'])) ? $form_state['company_nid'] : $company_nid;
+	 
+	$form_state['user_id'] = $user_id; 
+    $form_state['company_nid'] = $company_nid; 
+	
+	if(!empty($user_id)){
+	$userealname = _get_user_full_name($user_id); 
+	}
+	
+}
+/**
+ * function for active member on our site or asign staff role to user
+ */
+function m6connect1_misc_invite($action, $uid, $companyNid) {
+	
+    global $user, $company;
+    $account = user_load($uid);
+    $m6connect_notification_table_exist = db_table_exists('m6connect_notification');
+    if ($action == 'accept') {
+		
+        $edit['roles'] = $account->roles; 
+        $edit['og_group_ref'] = $account->og_group_ref;
+        $LocationAdmin = 0;
+        unset($edit['roles'][11]);
+        $company_node = node_load($account->field_user_company['und'][0]['target_id']);
+        $comapny_users = m6connect_misc_get_company_users_by_cnid($company_node->nid); 
+       
+        //print "<pre>"; print_r($company_node); die;
+		
+        $edit['og_group_ref']['und'][]['target_id'] = $account->field_user_company['und'][0]['target_id'];
+        $companyTargetId = $account->field_user_company['und'][0]['target_id'];
+        $values = array(
+            'entity_type' => 'user',
+            'entity' => $account,
+            'state' => OG_STATE_ACTIVE,
+        );
+        $og_membership = og_group('node', $account->field_user_company['und'][0]['target_id'], $values);
+        $ogrolesk = og_roles('node', 'organization');
+        $ogroles = array_flip($ogrolesk);
+        if (count($comapny_users) == 1 && (isset($company_node->field_main_location_grp['und'][0]['target_id']) && is_numeric($company_node->field_main_location_grp['und'][0]['target_id']))) {
+            $user_role = $ogrolesk[$ogroles['company admin']];
+            og_role_grant('node', $account->field_user_company['und'][0]['target_id'], $account->uid, $ogroles['company admin']);
+        } else {
+            $user_role = $ogrolesk[$ogroles['staff']];
+            og_role_grant('node', $account->field_user_company['und'][0]['target_id'], $account->uid, $ogroles['staff']);
+        }
+
+        $edit['field_user_company']['und'] = array();
+        $edit['field_organization_mail']['und'] = array();
+        user_save($account, $edit);
+
+        if (db_table_exists('m6connect_company_join_request')) {
+            db_update('m6connect_company_join_request')
+                    ->fields(array('status' => 1))
+                    ->condition('entity_id', $companyTargetId, '=')
+                    ->condition('user_uid', $account->uid, '=')
+                    ->condition('status', 0, '=')
+                    ->execute();
+        }
+        if ($m6connect_notification_table_exist) {
+            $m6connect_notification = array(
+                'type' => 'company_status',
+                'event' => 'approve',
+                'entity_id' => 0,
+                'company_nid' => $companyNid,
+                'message' => NULL,
+                'request_from' => $user->uid,
+                'request_to' => $uid,
+                'status' => 1,
+                'timestamp' => time(),
+            );
+            entity_save('m6connect_notification', (object) $m6connect_notification);
+        }
+        echo $user_role;
+    } else if ($action == 'deny') {
+        $edit['field_user_company'] = array();
+        user_save($account, $edit);
+
+        if ($m6connect_notification_table_exist) {
+            $m6connect_notification = array(
+                'type' => 'company_status',
+                'event' => 'deny',
+                'entity_id' => 0,
+                'company_nid' => $companyNid,
+                'message' => NULL,
+                'request_from' => $user->uid,
+                'request_to' => $uid,
+                'status' => 1,
+                'timestamp' => time(),
+            );
+            entity_save('m6connect_notification', (object) $m6connect_notification);
+        }
+
+
+        echo 'denied';
+        exit();
+    } else if ($action == 'deny_remove') {
+        $edit['field_user_company'] = array();
+        user_save($account, $edit);
+        echo 'denied';
+        exit();
+    } else if ($action == 'role') {
+		
+        $fullname = _get_user_full_name($uid);
+        $ogrolesk = og_roles('node', 'organization');
+        $ogroles = array_flip($ogrolesk);
+        $user_gid = $companyNid;
+        $user_og_roles = og_get_user_roles('node', $user_gid, $uid);
+//        $cmpReletedRoles = array(5, 12, 13);
+        $cmpReletedRoles = array($ogroles['company admin'], $ogroles['staff'],$ogroles['Insurance Certificate Manager'],$ogroles['M6ID Manager'],$ogroles['Site Manager'],$ogroles['Alert Manager'],$ogroles['Program manager'],$ogroles['project manager']);
+        if (isset($_POST['newrols']) && !empty($_POST['newrols'])) {
+            $applyUserRoles = array_values($_POST['newrols']);
+            foreach ($cmpReletedRoles as $delta => $roleId) {
+//                $role_details = user_role_load($roleId);
+                if (in_array($roleId, $applyUserRoles)) {
+                    if (!isset($user_og_roles[$roleId])) {
+//                        user_multiple_role_edit(array($account->uid), 'add_role', $roleId);     //Add Role
+                        og_role_grant('node', $companyNid, $uid, $roleId);
+                    }
+                } else {
+                    if (isset($user_og_roles[$roleId])) {
+//                        user_multiple_role_edit(array($account->uid), 'remove_role', $roleId);    //Remove Role
+                        og_role_revoke('node', $companyNid, $uid, $roleId);
+                    }
+                }
+            }
+        } else {
+            foreach ($cmpReletedRoles as $delta => $roleId) {
+                if (isset($user_og_roles[$roleId])) {
+//                    user_multiple_role_edit(array($account->uid), 'remove_role', $roleId);    //Remove Role
+                    og_role_revoke('node', $companyNid, $uid, $roleId);
+                }
+            }
+        }
+        echo $message = $fullname . ' roles has been updated.';
+
+        exit();
+    } else if ($action == 'remove') {
+		
+		og_ungroup('node', $companyNid, 'user', $account->uid);
+		
+    }
+}
+////////add company gpo form
+function add_new_company_gpo_form($form, &$form_state){
+  global $user;
+  $currentNode = menu_get_object('node', 1);
+  $companygponid = $currentNode->nid;
+   $form['companygpo_nid']= array(
+    '#type' => 'value',
+	'#value' => $companygponid,
+   );
+   /*if(empty($form_state['company_gpo_set_storage_inilialize'])){
+	 $form_state['company_gpo_storage'] = array();
+	 $form_state['company_gpo_storage_inilialize']=1; 
+	 $query = db_select('m6connect_user_skill_set', 'uss');
+     $query->fields('uss',array('Id','skill_uid','skill_title','skill_year','skill_rating'));
+     $query->condition('uss.skill_uid',$user->uid);
+     $result = $query->execute()->fetchAll();
+	 if($result && !empty($result)){
+	   foreach($result as $index => $dataObj){
+	     $identifer = uniqid();
+	     $form_state['company_gpo_storage'][$identifer] = (array)$dataObj;  
+	   }
+	 }
+   }*/
+   
+   if(empty($form_state['company_gpo_storage'])){
+	$form_state['company_gpo_storage'] = array();
+	$identifer = uniqid();
+	$form_state['company_gpo_storage'][$identifer] = array();  
+   }
+  
+   $form['company-gpo-container'] = array(
+    '#type' => 'container',
+  	'#attributes' => array('class'=> array('company-gpo-main-container')),
+  	'#prefix' => '<div id="company-gpo-container-section" class="clearfix">',
+  	'#suffix' => '</div>',
+  	'#process' => array('company_gpo_container_process'),
+   );
+   return $form;
+}
+
+function company_gpo_container_process($elements, &$form_state){
+	
+  module_load_include('inc', 'hierarchical_select', 'includes/common');  
+  $storage = $form_state['company_gpo_storage'];
+  //kpr($storage);
+  $elements['#company_gpo_storage'] = $storage;
+   foreach($storage as $uniqueId => $defaultValue){
+	$vocabulary = taxonomy_vocabulary_machine_name_load('products_services_unspsc');
+    $element_info = element_info('hierarchical_select');
+	
+  	$elements[$uniqueId]['companygpo_id'] = array(
+       '#type' => 'value',
+	   //'#value' =>  $defaultValueId,
+	   '#parents' => array('company-gpo-data',$uniqueId,'companygpo_id'),
+	 );
+	$elements[$uniqueId] = array(
+	  '#type' => 'container',
+	  '#attributes' => array('class'=> array('company-gpo-container')),
+	  '#prefix' => '<div class="company-gpo-inner-container margin-bottom-10"><div class="row margin-5">',
+	  '#suffix' => '</div></div>',
+	 );
+	$elements[$uniqueId]['companygpo-unspsc-main'] = array(
+	  '#type' => 'container',
+	  '#prefix' => '<div class="padding-5 col-md-12 col-sm-12 col-xs-12">',
+	  '#suffix' => '</div>',
+	 );
+	$elements[$uniqueId]['companygpo-unspsc-main']['select_gpo_unspsc'] = array(
+	 '#type'=>'hierarchical_select',
+	 '#title' => 'Select UNSPSC :',
+	 '#default_value' => 0,
+	 //'#prefix'=>'<div class="padding-5 col-md-12 col-sm-12 col-xs-12 select_companygpo_unspsc">',
+	 //'#suffix'=>'</div>',
+	 '#parents' => array('company-gpo-data',$uniqueId,'select_gpo_unspsc'),
+	 //'#required' => TRUE,
+	 '#process' => array_merge($element_info['#process'], array('hs_taxonomy_widget_process')),
+	 '#config' => array(
+       'module' => 'hs_taxonomy',
+       'params' => array(
+		'vid' => (int) $vocabulary->vid,
+		'exclude_tid' => NULL,
+		'root_term' => NULL,
+		'entity_count_for_node_type' => NULL,
+	    ),
+      ),
+    );
+	
+	$elements[$uniqueId]['company_manufacture'] = array(
+	 '#type'=>'select',
+	 '#title' => 'Company/Manufacture :',
+	 '#prefix'=>'<div class="padding-5 col-md-6 col-sm-6 col-xs-12 companygpo-manufacture">',
+	 '#suffix'=>'</div>',
+	 '#parents' => array('company-gpo-data',$uniqueId,'company_manufacture'),
+	 '#options' => array(
+       'company' => t('Company'),
+       'manufacture' => t('Manufacture')
+	  ),
+     );
+	$elements[$uniqueId]['category_name']= array(
+	 '#type'=>'textfield',
+	 '#title' => 'Add Category Name :',
+	 '#parents' => array('company-gpo-data',$uniqueId,'category_name'),
+	 '#prefix'=>'<div class="padding-5 col-md-6 col-sm-6 col-xs-12 gpo-category-name">',
+	 '#suffix'=>'</div>',
+     );
+    $elements[$uniqueId]['add_product']= array(
+	 '#type'=>'textfield',
+	 '#title' => 'Add Product Name :',
+	 '#parents' => array('company-gpo-data',$uniqueId,'add_product'),
+	 '#prefix'=>'<div class="padding-5 col-md-6 col-sm-6 col-xs-12 gpo-add-product">',
+	 '#suffix'=>'</div>',
+    );
+    $elements[$uniqueId]['add_model']= array(
+	 '#type'=>'textfield',
+	 '#title' => 'Add Model#:',
+	 '#parents' => array('company-gpo-data',$uniqueId,'add_model'),
+	 '#prefix'=>'<div class="padding-5 col-md-6 col-sm-6 col-xs-12 gpo-add-model">',
+	 '#suffix'=>'</div>',
+    ); 
+	$elements[$uniqueId]['companygpo-image-main'] = array(
+	  '#type' => 'container',
+	  '#prefix' => '<div class="padding-5 col-md-12 col-sm-12 col-xs-12">',
+	  '#suffix' => '</div>',
+	 );
+	$elements[$uniqueId]['companygpo-image-main']['companygpo_image'] = array(
+	'#title' => 'File Upload:',
+	'#type' => 'managed_file',
+	'#parents' => array('company-gpo-data',$uniqueId,'companygpo_image'),
+	'#upload_location' => 'private://',
+	   
+	);
+  }
+    $elements['add-more'] = array(
+	  '#type' => 'submit',
+	  '#value' => 'Add another UNSPSC',
+	  '#name' => 'add_companygpo_more',
+	  '#limit_validation_errors' => array(),
+	  '#submit'=> array('add_more_companygpo_submit_handler'),
+	  '#ajax' => array(
+	    'callback' => 'add_more_companygpo_action_callback',
+	    'wrapper' => 'company-gpo-container-section',
+	    'method' => 'replace',
+	    'effect' => 'fade',
+	    'progress' => array('type'=> 'throbber', 'message'=> NULL),
+	 ),
+
+	);
+	$elements['submit'] = array(
+	  '#type' => 'submit',
+	  '#value' => 'Save',
+	  '#name' => 'company_gpo_save',
+	  '#submit'=> array('company_gpo_custom_submit_handler'),
+	 );
+  return $elements; 			
+}
+
+function add_more_companygpo_action_callback($form, &$form_state){
+  return $form['company-gpo-container'];
+}
+function add_more_companygpo_submit_handler(&$form, &$form_state){
+  $identifer = uniqid();
+  $form_state['company_gpo_storage'][$identifer] = array(); 
+  $form_state['rebuild'] = TRUE;
+}
+function company_gpo_custom_submit_handler(&$form, &$form_state){
+  global $user;
+  //$values = $form_state['values'];
+  //$companygpo_nid =  $values['companygpo_nid'];
+  /*foreach($values['company-gpo-data'] as $companygpodata){
+	  $gpounspsc = $companygpodata['select_gpo_unspsc']['0']['tid'];
+	  $company_manufacture = $companygpodata['company_manufacture'];
+      $category_name = $companygpodata['category_name'];
+	  $add_product = $companygpodata['add_product'];
+	  $add_model = $companygpodata['add_model'];
+	  //$companygpo_image = $companygpodata['companygpo_image'];
+	 
+	  $node = node_load($companygpo_nid);  
+	  $node->field_company_gpo_unspsc[0]['tid'] = $gpounspsc; 
+	  $node->field_company_gpo_image['und'][0]['uri'] = $companygpo_image;   
+	  $node->field_gpo_category_name['und'][0]['value'] = $category_name; 
+	  $node->field_gpo_company_manufacture['und'][0]['value'] = 
+	  $node->field_gpo_product_name['und'][0]['value'] = $add_product;
+	  $node->field_gpo_model_number['und'][0]['value'] = $add_model;
+	  
+	  //node_save($node);
+     
+   }*/
+  
+}
+////////End company gpo form here////////////////////
+
+function customwebservice_callback(){
+ //global $user, $company;
+    //===========query get project =======================//
+ $result = array();
+  $CuurCompNid = 645;
+  $companyAdminRoleUsers = _get_company_users_by_og_roles($CuurCompNid,'company admin');
+  $isCompanyIndividual = is_company_individual_flag($CuurCompNid);
+  $userid = 2;
+
+  $type = array('project'); 
+  $or = db_or();
+  $and = db_and();
+  $query = db_select('node', 'n')->extend('PagerDefault');
+  $query->fields('n', array('nid'));
+  $query->leftJoin('og_membership', 'ogm', 'ogm.etid=n.nid');
+ 
+  if(in_array(2, $companyAdminRoleUsers)){
+        $company_emails_users = db_select('m6connect_og_membership_email', 'om')->fields('om', array('user_uid','company_email'))->condition('om.entity_id', $CuurCompNid, '=')->execute()->fetchAllKeyed(0,1);
+        $company_email = array_map('strtolower',array_values($company_emails_users));
+        $company_user = array_keys($company_emails_users);
+        
+        $query->leftJoin('field_data_field_project_invite_comapnies', 'pic', 'pic.entity_id=n.nid');
+        $query->leftJoin('field_data_field_company_nid_mail', 'pcne', 'pcne.entity_id = pic.field_project_invite_comapnies_value');
+        $query->leftJoin('field_data_field_comapny_manager', 'pcimu', 'pcimu.entity_id = pic.field_project_invite_comapnies_value');
+        //Invited Company Access
+        $query->leftJoin('field_data_field_rfp_invite_comapnies', 'ric', 'ric.entity_id=n.nid');
+        $query->leftJoin('field_data_field_rfp_company_nid_email', 'rcne', 'ric.field_rfp_invite_comapnies_value = rcne.entity_id');
+        $query->leftJoin('field_data_field_co_invite_manager_uid', 'rcimu', 'ric.field_rfp_invite_comapnies_value = rcimu.entity_id');
+        
+        $query->where('((n.uid IN(:UserUid) and ogm.gid=:ogmid) or (n.status=1 AND (rcne.field_rfp_company_nid_email_value IS NOT NULL) AND
+((rcne.field_rfp_company_nid_email_value=:companyNid) or(LOWER(rcne.field_rfp_company_nid_email_value) IN(:companyMail)))))', 
+array(':UserUid' => $company_user, ':ogmid' => $CuurCompNid, ':companyNid' => $CuurCompNid, ':companyMail' => $company_email));
+  
+  }else{
+        $company_email = db_select('m6connect_og_membership_email', 'om')->fields('om', array('company_email'))->condition('om.entity_id', 645, '=')->condition('om.user_uid', $userid, '=')->execute()->fetchColumn(0);
+        $company_email = (!empty($company_email)) ? $company_email : '';
+        $company_email = strtolower($company_email);
+        //$company_users = _get_current_company_users($user->uid);
+        $company_users = _get_company_users_by_group_company($company);
+        $userCmpNid = _get_user_company_nid();
+        $query->leftJoin('field_data_field_project_invite_comapnies', 'pic', 'pic.entity_id=n.nid');
+        $query->leftJoin('field_data_field_company_nid_mail', 'pcne', 'pcne.entity_id = pic.field_project_invite_comapnies_value');
+        $query->leftJoin('field_data_field_comapny_manager', 'pcimu', 'pcimu.entity_id = pic.field_project_invite_comapnies_value');
+        //Invited Company Access
+        $query->leftJoin('field_data_field_rfp_invite_comapnies', 'ric', 'ric.entity_id=n.nid');
+        $query->leftJoin('field_data_field_rfp_company_nid_email', 'rcne', 'ric.field_rfp_invite_comapnies_value = rcne.entity_id');
+        $query->leftJoin('field_data_field_co_invite_manager_uid', 'rcimu', 'ric.field_rfp_invite_comapnies_value = rcimu.entity_id');
+        $query->where('((n.uid=:UserUid AND ogm.gid=:ogmid) OR (n.status=1 AND ((pcne.field_company_nid_mail_value=:companyNid OR pcne.field_company_nid_mail_value=:companyMail) AND 
+ ((pcimu.field_comapny_manager_value IS NULL) OR FIND_IN_SET(:UserUid,pcimu.field_comapny_manager_value)>0))  OR              
+((rcne.field_rfp_company_nid_email_value=:companyNid) AND FIND_IN_SET(:UserUid,rcimu.field_co_invite_manager_uid_value)>0) OR
+((rcne.field_rfp_company_nid_email_value IS NOT NULL) AND LOWER(rcne.field_rfp_company_nid_email_value)=:companyMail) OR
+((pcne.field_company_nid_mail_value=:companyNid) AND FIND_IN_SET(:UserUid,pcimu.field_comapny_manager_value)>0)))', array(':UserUid' => $userid, ':ogmid' => $CuurCompNid, ':companyNid' => $CuurCompNid, ':companyMail' => $company_email));
+
+}
+$query->condition('n.status', 1, '=');
+$query->condition('n.type', $type, 'IN');
+$query->orderBy('n.created', 'DESC'); 
+$query->groupBy('n.nid');
+$query->limit(15);
+$myproject = $query->execute()->fetchAll();
+  if(!empty($CuurCompNid)){
+      $collaborationproject = get_collaboration_project_for_project_m6drive(2, $CuurCompNid);
+      $result = array_merge($myproject, $collaborationproject);
+
+  } 
+
+  
+    $return = array();
+    $count = 0;
+    foreach($result as $item){  
+      $node = node_load($item->nid);
+      $return[$count]['Project_nid'] = $item->nid;
+      $return[$count]['Project_title'] = $node->title;
+       $count ++;
+      } 
+    echo json_encode($return);      
+  
+}
+function customwebservice_project_users_callback($project_nid = FALSE, $uid = FALSE, $return_back = FALSE){
+   
+   if (isset($_GET['Project_nid'])) {
+    $CurrProjectNid = $_GET['Project_nid'];
+   }
+   if ($project_nid) {
+    $CurrProjectNid = $project_nid;
+   }
+
+   $query = db_select('invite_users_rfp_project', 'p');
+   $query->fields('p', array('bundle','entity_id','invited_by','emails'));
+   $query->condition('p.bundle', 'project', '=');
+   $query->condition('p.entity_id',  $CurrProjectNid);
+   $query->condition('p.invited_by',$uid);
+   $result = $query->execute()->fetchAll();
+   $ResultuserUid = array();
+  foreach($result as $item){   
+
+    $unserializeData =  unserialize($item->emails); 
+    foreach($unserializeData as  $ckey=>$cvalue){
+       if(is_numeric($ckey)){ 
+          $ResultuserUid[] = explode(',',$cvalue);   
+        } 
+    }
+  } 
+  $count = 0;
+  $return = array();
+  //print "<pre>"; print_r($ResultuserUid); die;
+    foreach($ResultuserUid as $key1 => $valuenew) {
+       //if(!empty($valuenew[0])){
+        $UserFnameLname =_get_user_data_by_uid($valuenew[0]);
+       //}
+      
+    if(!empty($UserFnameLname['realname'])){
+      $return[$count]['user_uid'] =  $valuenew[0];
+      $return[$count]['realname'] =  $UserFnameLname['realname']; 
+    }
+      $count++;
+    }
+    if(!empty($return)){
+      $msg = 1;
+    }else{
+      $msg = 0;
+    }
+    //echo json_encode($return);
+    if ($return_back) {
+      return $return;
+    }
+    else {
+      echo json_encode(array('success'=>$msg,'data'=>$return)); exit;
+    }
+}

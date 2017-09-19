@@ -1,0 +1,4 @@
+name = M6Connect Drive Sub Module
+description = M6Connect Drive programe for stroing the data in drive.
+package = CUSTOM
+core = 7.x

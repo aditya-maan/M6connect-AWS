@@ -1,0 +1,451 @@
+<?php
+/**
+ * Implements hook_menu().
+ */
+function m6connect_contract_menu() {
+  $items['contract-manager/initiation/new'] = array(
+    'page callback'   => 'contract_initiation',
+    //'page arguments'  => array('contract'),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'm6connect.contract.initiation.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_contract') . '/includes',
+    'type'            => MENU_NORMAL_ITEM,
+  );
+  $items['contract-manager/thread/new'] = array(
+    'page callback'   => 'contract_thread',
+    //'page arguments'  => array('contract'),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'm6connect.contract.thread.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_contract') . '/includes',
+    'type'            => MENU_NORMAL_ITEM,
+  );
+  $items['contract-manager/settings'] = array(
+    'page callback'   => 'contract_manager_configure_container',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'settings/contract_manager_settings.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_contract') . '/includes',
+    'type'            => MENU_NORMAL_ITEM,
+  );
+  $items['contract-manager/pricing-key/new'] = array(
+    'page callback'   => 'pricing_key',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'm6connect.contract.pricing-key.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_contract') . '/includes',
+    'type'            => MENU_NORMAL_ITEM,
+  );
+  $items['contract-manager/review/new'] = array(
+    'page callback'   => 'contract_review',
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'm6connect.contract.review.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_contract') . '/includes',
+    'type'            => MENU_NORMAL_ITEM,
+  );
+  $items['remove-contract-setting-options'] = array(
+    'title'             => '',
+    'page callback'     => 'remove_contract_setting_options_ajax',
+    //'access callback' => TRUE,
+    'access callback'   => '_is_m6_user_logged_in',
+  );
+  return $items;
+}
+
+
+function remove_contract_setting_options_ajax() {
+  if (isset($_POST['setting']) && isset($_POST['name'])) {
+    
+    $name = strtolower(trim($_POST['name']));
+    $deleted = FALSE;
+
+    
+    $deleted = _delete_contract_settings_attribute($_POST['setting'], $name);
+    
+    if ($deleted) {
+      print 'Success';
+      exit();
+    }
+  }
+
+  print 'Failure';
+  exit();
+}
+
+function _delete_contract_settings_attribute($type = NULL, $setting = NULL) {
+  if (isset($type,$setting)&& !empty($type) && !empty($setting)) {
+    global $company, $user;
+    // If we have enough data to proceed.
+    
+    if (!empty($setting)) {
+      // If we get setting, then finding the requested rating and deleting it.
+      if($type == 'contract_type'){
+        $num_deleted = db_delete('m6connect_contract_type_setting')
+        //->condition('uid', $user->uid)
+        ->condition('nid', $company->nid)
+        ->condition('type', 'contract_type')
+        ->condition('title', $setting)
+        ->execute();
+        return TRUE;
+      }
+    if($type == 'contract_category'){
+    $num_deleted = db_delete('m6connect_contract_category_setting')
+        //->condition('uid', $user->uid)
+        ->condition('nid', $company->nid)
+        ->condition('type', 'contract_category')
+        ->condition('title', $setting)
+        ->execute();
+        return TRUE;
+    }
+  if($type == 'contract_products_services'){
+      $num_deleted = db_delete('m6connect_contract_products_services_setting')
+        //->condition('uid', $user->uid)
+        ->condition('nid', $company->nid)
+        ->condition('type', 'contract_products_services')
+        ->condition('title', $setting)
+        ->execute();
+        return TRUE;
+      }
+    else if($type == 'document_type'){
+        $num_deleted = db_delete('m6connect_contract_document_type_setting')
+        //->condition('uid', $user->uid)
+        ->condition('nid', $company->nid)
+        ->condition('type', 'document_type')
+        ->condition('title', $setting)
+        ->execute();
+        return TRUE;
+      }else if($type == 'effort'){
+        $num_deleted = db_delete('m6connect_contract_effort_setting')
+        //->condition('uid', $user->uid)
+        ->condition('nid', $company->nid)
+        ->condition('type', 'effort')
+        ->condition('title', $setting)
+        ->execute();
+        return TRUE;
+      }else{
+        $num_deleted = db_delete('m6connect_scm_'.$type.'_setting')
+        //->condition('uid', $user->uid)
+        ->condition('nid', $company->nid)
+        ->condition('title', $setting)
+        ->execute();
+        return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
+
+/*
+contract manager menu items
+*/
+function m6connect_contract_list_menu() {
+  $scmList = array(
+    'contract-manager/initiation/new'     => 'Contract Initiation',
+    'contract-manager/thread/new'         => 'Thread',
+    'contract-manager/pricing-key/new'     => 'Pricing & Key Dates',
+    'contract-manager/review/new'     => 'Review Contract',
+    'contract-manager/approvals/new'     => 'Approvals',
+    'contract-manager/attachments/new'     => 'Attachments',
+
+  );
+
+  //$getNodesNids = _fetching_contract_information_active('scm_scorecard');
+
+  $currentPath = current_path();
+
+  if($currentPath == 'contract-manager/initiation/new'){    
+    $_SESSION['activeContractNid'] = ''; 
+  }
+
+  $output = '<ul class="list-unstyled list-inline custom-list scm-menu-links clearfix padding-10">';
+  
+  $sccount = 1;
+  $newlebalclass = '';
+
+  foreach ($scmList as $menuPath => $label) {
+    $class = ($currentPath == $menuPath) ? ' active' : '';
+    $link_class = ($currentPath == $menuPath) ? 'active' : '';
+    
+    
+    if($menuPath == 'contract-manager/initiation/new') {
+
+      $newlebalclass = _new_contract_menu_lable($menuPath);
+      
+      $output .= '<li class="menu-item' . $class . '" style="width:20%;">' . l($label, 'javascript:void(0)', array('attributes' => array('class' => array($link_class,$newlebalclass)), 'html' => TRUE, 'external' => TRUE)) . '</li>';
+    } else {
+      $newlebalclass = _new_contract_menu_lable($menuPath);
+      
+      $output .= '<li class="menu-item' . $class . '">' . l($label, 'javascript:void(0)', array('attributes' => array('class' => array($link_class,$newlebalclass)), 'html' => TRUE, 'external' => TRUE)) . '</li>';
+    }
+   
+  }
+
+  $output .= '</ul>';
+  return $output;
+}
+
+
+/*function _fetching_contract_information_active($type) {
+  global $company;  
+  $query = db_select('node','n');
+  $query->join('og_membership','om','om.etid=n.nid AND om.entity_type=:entityType', array(':entityType'=>'node'));  
+  if($type == 'scm_scorecard') {
+    $query->join('field_data_field_scorecard_status','si','si.entity_id = n.nid');
+    $query->condition('si.field_scorecard_status_value','Active','=');
+  }
+  $query->fields('n', array('nid'));
+  $query->condition('n.type',$type,'=');  
+  $query->condition('om.gid', $company->nid, '=');
+  $query->orderBy('n.nid', 'DESC');
+  $getNodesNids = $query->execute()->fetchField();
+  return $getNodesNids;
+}*/
+
+
+function _new_contract_menu_lable($delta){
+
+  //$getNodesNids = _fetching_contract_information_active('scm_scorecard');
+
+  $scmList = array(
+    'contract-manager/initiation/new'   => 'scm-gray',
+    'contract-manager/thread/new'       => 'scm-gray',
+    'contract-manager/pricing-key/new'      => 'scm-gray',
+    'contract-manager/review/new'       => 'scm-gray',
+    'contract-manager/approvals/new'    => 'scm-gray',
+    'contract-manager/attachments/new'  => 'scm-gray',
+  );
+
+  if(!empty($delta) && !empty($_SESSION['activeContractNid'])){
+    $link_class = (current_path() == $delta) ? ' active' : '';
+    if($delta == 'contract-manager/initiation/new'){
+      if(!empty($_SESSION['activeContractNid']) && $_SESSION['activeContractNid'] == $getNodesNids){        
+        $scmList[$delta] = (current_path() == $delta) ? ' ' : 'bg-green';//($link_class == 'active') ? '' : 'bg-green';
+      }else{
+        $scmList[$delta] = 'bg-gray';
+      }
+    }
+    if($delta == 'contract-manager/thread/new'){
+      
+        $scmList[$delta] = (current_path() == $delta) ? 'bg-green' : 'bg-gray';//($link_class == 'active') ? '' : 'bg-green';
+     
+    }
+    if($delta == 'contract-manager/pricing-key/new'){
+      $scmList[$delta] = (current_path() == $delta) ? 'bg-green' : 'bg-gray';
+    }
+
+    if($delta == 'contract-manager/review/new'){
+      $scmList[$delta] = (current_path() == $delta) ? 'bg-green' : 'bg-gray';
+    }
+
+    if($delta == 'contract-manager/approvals/new'){
+      $scmList[$delta] = (current_path() == $delta) ? 'bg-green' : 'bg-gray';
+    }
+
+    if($delta == 'contract-manager/attachments/new'){
+      $scmList[$delta] = (current_path() == $delta) ? 'bg-green' : 'bg-gray';
+    }
+
+  }
+  return $scmList[$delta];
+}
+
+/*
+Contract manager setting menu items
+*/
+
+function contract_setting_menu_links_content(){
+  $scmList = array(
+    'contract-manager/settings'                   => 'Contract Initiation',
+    'contract-manager/settings/thread'            => 'Thread',
+    'contract-manager/settings/price_key'         => 'Pricing & Key Dates',
+    'contract-manager/settings/review_contract'   => 'Review Contract',
+    'contract-manager/settings/approvals'         => 'Approvals',
+    'contract-manager/settings/attachments'       => 'Attachments',
+  );
+
+  $currentPath = current_path();
+
+  $output = '<ul class="list-unstyled list-inline custom-list scm-menu-links clearfix">';
+  foreach($scmList as $menuPath => $label){
+    $class = ($currentPath == $menuPath)?' active':'';
+  $output .= '<li class="menu-item'.$class.'">'.l($label,$menuPath).'</li>';    
+  }    
+  $output .= '</ul>';
+  
+  return $output; 
+}
+
+/***
+get contract type settings data and insert
+***/
+function _get_or_insert_contract_settings($type= NULL, $action=NULL, $getMainType=NULL) {
+  global $user, $company;
+  $output = '';
+  if(isset($type) && !empty($type)){
+
+    //contract type insert and select
+
+    if (db_table_exists('m6connect_contract_type_setting')){
+      $table_name = 'm6connect_contract_type_setting';
+      if($type == 'contract_type' && empty($action)){
+        $query = db_select($table_name, 'cns');
+        $query->fields('cns',array('title'));
+        //$query->condition('cns.uid',$user->uid,'=');
+        $query->condition('cns.nid',$company->nid,'=');
+        $output = $query->execute()->fetchCol();
+      }
+      if($type == 'contract_type' && isset($action) && !empty($action)){
+        $setting_insert = array (
+          'uid' => $user->uid,
+          'nid' => $company->nid,
+          'type' => $type,
+          'title' => $action['contract_type_new'],
+          'status' => 1,
+          'timestamp' => time(),
+        );
+
+        db_insert($table_name)->fields($setting_insert)->execute();
+        $query = db_select($table_name, 'cns');
+        $query->fields('cns',array('title'));
+        //$query->condition('cns.uid',$user->uid,'=');
+        $query->condition('cns.nid',$company->nid,'=');
+        $output = $query->execute()->fetchCol();
+      }
+    }
+
+    //category insert and select
+
+    if (db_table_exists('m6connect_contract_category_setting')){
+      $table_name = 'm6connect_contract_category_setting';
+      if($type == 'contract_category' && empty($action)){
+        $query = db_select($table_name, 'cnc');
+        $query->fields('cnc',array('title'));
+        //$query->condition('cnc.uid',$user->uid,'=');
+        $query->condition('cnc.nid',$company->nid,'=');
+        $output = $query->execute()->fetchCol();
+      }
+      if($type == 'contract_category' && isset($action) && !empty($action)){
+        $setting_insert = array (
+          'uid' => $user->uid,
+          'nid' => $company->nid,
+          'type' => $type,
+          'title' => $action['contract_category_new'],
+          'status' => 1,
+          'timestamp' => time(),
+        );
+        db_insert($table_name)->fields($setting_insert)->execute();
+        $query = db_select($table_name, 'cnc');
+        $query->fields('cnc',array('title'));
+        //$query->condition('cnc.uid',$user->uid,'=');
+        $query->condition('cnc.nid',$company->nid,'=');
+        $output = $query->execute()->fetchCol();
+      }
+    }
+
+    //products or services insert and select
+
+    if (db_table_exists('m6connect_contract_products_services_setting')){
+      $table_name = 'm6connect_contract_products_services_setting';
+      if($type == 'contract_products_services' && empty($action)){
+        $query = db_select($table_name, 'cnp');
+        $query->fields('cnp',array('title'));
+        //$query->condition('cnp.uid',$user->uid,'=');
+        $query->condition('cnp.nid',$company->nid,'=');
+        $output = $query->execute()->fetchCol();
+      }
+      if($type == 'contract_products_services' && isset($action) && !empty($action)){
+        $setting_insert = array (
+          'uid' => $user->uid,
+          'nid' => $company->nid,
+          'type' => $type,
+          'title' => $action['contract_products_services_new'],
+          'status' => 1,
+          'timestamp' => time(),
+        );
+        db_insert($table_name)->fields($setting_insert)->execute();
+        $query = db_select($table_name, 'cnp');
+        $query->fields('cnp',array('title'));
+        //$query->condition('cnp.uid',$user->uid,'=');
+        $query->condition('cnp.nid',$company->nid,'=');
+        $output = $query->execute()->fetchCol();
+      }
+    }
+    
+    //document type insert and select
+    if (db_table_exists('m6connect_contract_document_type_setting')){
+      $table_name = 'm6connect_contract_document_type_setting';
+      if($type == 'document_type' && empty($action)){
+        $query = db_select($table_name, 'cnd');
+        $query->fields('cnd',array('title'));
+        //$query->condition('cnd.uid',$user->uid,'=');
+        $query->condition('cnd.nid',$company->nid,'=');
+        $output = $query->execute()->fetchCol();
+      }
+      if($type == 'document_type' && isset($action) && !empty($action)){
+        $setting_insert = array (
+          'uid' => $user->uid,
+          'nid' => $company->nid,
+          'type' => $type,
+          'title' => $action['contract_document_type_new'],
+          'status' => 1,
+          'timestamp' => time(),
+        );
+        db_insert($table_name)->fields($setting_insert)->execute();
+        $query = db_select($table_name, 'cnd');
+        $query->fields('cnd',array('title'));
+        //$query->condition('cnd.uid',$user->uid,'=');
+        $query->condition('cnd.nid',$company->nid,'=');
+        $output = $query->execute()->fetchCol();
+      }
+    }
+  
+  //effort insert and select
+  if (db_table_exists('m6connect_contract_effort_setting')){
+      $table_name = 'm6connect_contract_effort_setting';
+      if($type == 'effort' && empty($action)){
+        $query = db_select($table_name, 'cne');
+        $query->fields('cne',array('title'));
+        //$query->condition('cne.uid',$user->uid,'=');
+        $query->condition('cne.nid',$company->nid,'=');
+        $output = $query->execute()->fetchCol();
+      }
+      if($type == 'effort' && isset($action) && !empty($action)){
+        $setting_insert = array (
+          'uid' => $user->uid,
+          'nid' => $company->nid,
+          'type' => $type,
+          'title' => $action['contract_effort_new'],
+          'status' => 1,
+          'timestamp' => time(),
+        );
+        db_insert($table_name)->fields($setting_insert)->execute();
+        $query = db_select($table_name, 'cne');
+        $query->fields('cne',array('title'));
+        //$query->condition('cne.uid',$user->uid,'=');
+        $query->condition('cne.nid',$company->nid,'=');
+        $output = $query->execute()->fetchCol();
+      }
+    }
+ 
+}
+  return $output;
+}
+
+function m6connect_contract_theme(){
+  $path = drupal_get_path('modules', 'm6connect_contract');
+  return array(
+    'outer_contact_review_first_theme'=> array(
+      'render element' => 'form',
+    ),
+    'notification_container_theme'=> array(
+      'render element' => 'form',
+    ),
+  );
+}
+
+/*get Contract Type list*/
+function getContractOptions($table){
+  global $company;
+  $depquery = db_select($table, 'n');
+  $depquery->fields('n',array('id','title'));
+  $depquery->condition('n.nid', $company->nid, '=');
+  return array_map('ucwords', $depquery->execute()->fetchAllKeyed(0,1));
+}
+

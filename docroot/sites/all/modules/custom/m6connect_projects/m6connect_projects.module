@@ -1,0 +1,2892 @@
+<?php
+/**
+ * Implements hook_menu()
+ */
+function m6connect_projects_menu() {
+  $items['projects'] = array(
+    'title'            => t('Projects'),
+    'page callback'    => 'projects_view',
+    'access arguments' => array('m6connect_authenticate_user'),
+    'access callback'  => 'user_access', //user_is_logged_in()
+    'type'             => MENU_CALLBACK,
+    'weight'           => '1',
+    'file'             => 'projects.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['projects/cr'] = array(
+    'title'            => t('Projects'),
+    'page callback'    => 'projects_view',
+    'access arguments' => array('m6connect_authenticate_user'),
+    'access callback'  => 'user_access', //user_is_logged_in()
+    'type'             => MENU_CALLBACK,
+    'weight'           => '1',
+    'file'             => 'projects.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['projects/cpm'] = array(
+    'title'            => t('Projects'),
+    'page callback'    => 'projects_view',
+    'access arguments' => array('m6connect_authenticate_user'),
+    'access callback'  => 'user_access', //user_is_logged_in()
+    'type'             => MENU_CALLBACK,
+    'weight'           => '1',
+    'file'             => 'projects.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['sendinvite'] = array(
+    'title'            => t(''),
+    'page callback'    => 'test_projects_view',
+    'access arguments' => array('access content'),
+    'type'             => MENU_CALLBACK,
+    'weight'           => '1',
+  );
+  $items['filterselection/%'] = array(
+    'title'           => t(''),
+    'page callback'   => 'get_filter_selection_data',
+    'page arguments'  => array(1),
+    'access callback' => TRUE,
+    'type'            => MENU_CALLBACK,
+    'file'            => 'projects.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['rfpinboxdelete/%'] = array(
+    'title'           => t(''),
+    'page callback'   => 'rfp_inbox_delete',
+    'page arguments'  => array(1),
+    'access callback' => TRUE,
+    'type'            => MENU_CALLBACK,
+    'file'            => 'projects.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['copyproject/%'] = array(
+    'title'           => 'Copy RFP',
+    'page callback'   => 'copy_project_node',
+    'page arguments'  => array(1),
+    'access callback' => TRUE,
+    'type'            => MENU_CALLBACK,
+    'file'            => 'projects.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['peoplebookmark/delete/%/%'] = array(
+    'title'           => 'delete people bookmark',
+    'page callback'   => 'peoplebookmark_delete',
+    'page arguments'  => array(2, 3),
+    'access callback' => TRUE,
+    'type'            => MENU_CALLBACK,
+    'file'            => 'projects.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['favorite-content-new'] = array(
+    'title'            => t('Company  Favorite Content Callback'),
+    'page callback'    => '_generate_bookmark_fav_block_content_ajax_new',
+    'page arguments'   => array(),
+    'access arguments' => array('m6connect_authenticate_user'),
+    'type'             => MENU_CALLBACK,
+    'file'             => 'projects.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['favorite-content-new-people'] = array(
+    'title'            => t('People  Favorite Content Callback'),
+    'page callback'    => '_generate_bookmark_fav_block_content_ajax_new_people',
+    'page arguments'   => array(),
+    'access arguments' => array('m6connect_authenticate_user'),
+    'type'             => MENU_CALLBACK,
+    'file'             => 'projects.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['project-interested-bidders/%'] = array(
+    'title'            => 'Interested bidders',
+    'page callback'    => 'project_interested_bidders',
+    'access arguments' => array('m6connect_authenticate_user'),
+    'file'             => 'projects.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+
+  $items['interested-bidders/%node'] = array(
+    'title'            => 'Interested Bidders',
+    'page callback'    => 'project_interested_bidders_tab',
+    'page arguments'   => array(1),
+    'access arguments' => array('m6connect_authenticate_user'),
+    'type'             => MENU_CALLBACK,
+    'file'             => 'projects.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['project-collaboration/%node'] = array(
+    'title'            => 'Collaboration',
+    'page callback'    => 'project_collaboration_tab',
+    'page arguments'   => array(1),
+    'access arguments' => array('m6connect_authenticate_user'),
+    'type'             => MENU_CALLBACK,
+    'file'             => 'projects.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['project-rfps/%node'] = array(
+    'title'            => 'RFPs',
+    'page callback'    => 'project_rfps_tab',
+    'page arguments'   => array(1),
+    'access arguments' => array('m6connect_authenticate_user'),
+    'type'             => MENU_CALLBACK,
+    'file'             => 'projects.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['project-interested-companies/%node'] = array(
+    'title'            => 'interested companies',
+    'page callback'    => 'project_interested_companies_tab',
+    'page arguments'   => array(1),
+    'access arguments' => array('m6connect_authenticate_user'),
+    'type'             => MENU_CALLBACK,
+    'file'             => 'projects.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['customaction/node/%/delete/%ctools_js'] = array(
+    'title'           => 'Delete status',
+    'page callback'   => 'custom_node_delete_pupup_form',
+    'page arguments'  => array(2,3,4),
+    'access callback' => '_is_m6_user_logged_in',
+    'modal'           => TRUE,
+    'file'            => 'projects.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['prochat'] = array(
+    'title'           => 'Prochat',
+    'page callback'   => 'custom_prochat_section_layout',
+    'page arguments'  => array(),
+    'access callback' => '_is_m6_user_logged_in',
+    'file'            => 'prochat.inc',
+    'file path'       => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['prochat/group/create/%ctools_js'] = array(
+    'page callback'    => 'prochat_multiple_section',
+    'page arguments'   => array(1,2,3),
+    'access arguments' => array('access content'),
+    'access callback'  => '_is_m6_user_logged_in',
+    'file'             => 'prochat.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['prochat/groupinvite/%/%ctools_js'] = array(
+    'page callback'    => 'prochat_multiple_section',
+    'page arguments'   => array(1,2,3),
+    'access arguments' => array('access content'),
+    'access callback'  => '_is_m6_user_logged_in',
+    'file'             => 'prochat.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['prochat/groupdelete/%/%ctools_js'] = array(
+    'page callback'    => 'prochat_multiple_section',
+    'page arguments'   => array(1,2,3),
+    'access arguments' => array('access content'),
+    'access callback'  => '_is_m6_user_logged_in',
+    'file'             => 'prochat.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['prochat/groupleave/%/%ctools_js'] = array(
+    'page callback'    => 'prochat_groupsection_action_callback',
+    'page arguments'   => array(1,2,3),
+    'access arguments' => array('access content'),
+    'access callback'  => '_is_m6_user_logged_in',
+    'file'             => 'prochat.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['prochat/switch/clear/%ctools_js'] = array(
+    'page callback'    => 'prochat_multiple_section',
+    'page arguments'   => array(1,2,3),
+    'access arguments' => array('access content'),
+    'access callback'  => '_is_m6_user_logged_in',
+    'file'             => 'prochat.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['prochat/chatroomclear/%/%ctools_js'] = array(
+    'page callback'    => 'prochat_multiple_section',
+    'page arguments'   => array(1,2,3),
+    'access arguments' => array('access content'),
+    'access callback'  => '_is_m6_user_logged_in',
+    'file'             => 'prochat.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['prochat/switch/home/%ctools_js'] = array(
+    'page callback'    => 'prochat_multiple_section',
+    'page arguments'   => array(1,2,3),
+    'access arguments' => array('access content'),
+    'access callback'  => '_is_m6_user_logged_in',
+    'file'             => 'prochat.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['prochat/chat/refresh/%ctools_js'] = array(
+    'page callback'    => 'prochat_multiple_section',
+    'page arguments'   => array(1,2,3),
+    'access arguments' => array('access content'),
+    'access callback'  => '_is_m6_user_logged_in',
+    'file'             => 'prochat.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['prochat/chatdeletemsg/%/%/%ctools_js'] = array(
+    'page callback'    => 'prochat_multiple_section_two',
+    'page arguments'   => array(1,2,3,4),
+    'access arguments' => array('access content'),
+    'access callback'  => '_is_m6_user_logged_in',
+    'file'             => 'prochat.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['prochat/chatswitch/%/%ctools_js'] = array(    
+    'page callback'    => 'prochat_multiple_section',
+    'page arguments'   => array(1,2,3),
+    'access arguments' => array('access content'),
+    'access callback'  => '_is_m6_user_logged_in',
+    'file'             => 'prochat.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  $items['prochat/settings/deletemsg/%ctools_js'] = array(    
+    'page callback'    => 'prochat_multiple_section',
+    'page arguments'   => array(1,2,3),
+    'access arguments' => array('access content'),
+    'access callback'  => '_is_m6_user_logged_in',
+    'file'             => 'prochat.inc',
+    'file path'        => drupal_get_path('module', 'm6connect_projects') . '/includes',
+  );
+  return $items;
+}
+
+function m6connect_projects_form_alter(&$form, &$form_state, $form_id) {
+  global $user, $base_url;
+  if ($form_id == 'project_node_form') {
+    if(empty($form['nid']['#value']) && isset($_GET['cm'])){
+      $form['field_cm_type']['und'][0]['value']['#default_value'] = $_GET['cm'];
+      $form['field_cm_type']['und'][0]['#default_value'] = $_GET['cm'];
+    }    
+    if(!isset($_GET['issue']) && $_GET['issue'] != 'true') {  
+     //$tuser = user_load(191); pre($tuser,1);  
+      $form['#attached']['library'][] = array('system', 'ui.dialog');
+      $form['#after_build'][] = 'custom_project_step_after_build';
+      if ($form_state['storage']['step'] == 'step_pro_summary') {
+        //drupal_add_library('system', 'ui.dialog');
+        //drupal_add_js(array('m6connect_projects' => array('custom_pubpic_dialog_js' => 1)), 'setting');
+        $form['#attached']['js'][] = array(
+          'data' => array('m6connect_projects' => array('custom_pubpic_dialog_js'=>1)),
+          'type' => 'setting',
+        );
+      }
+      //$form['#validate'][] = 'custom_project_form_validate';
+      global $project_active_tab;
+      $project_active_tab = $form_state['storage']['step'];
+      if (isset($form_state['input']) && is_array($form_state['input']) && (isset($form_state['input']['next']) || isset($form_state['input']['previous']))) {
+        $project_active_tab = $form_state['storage']['step'];
+      } else if (isset($_REQUEST['prostep']) && !empty($_REQUEST['prostep'])) {
+        $form_state['storage']['step'] = $project_active_tab = $_REQUEST['prostep'];
+      }
+      if (arg(0) == 'node' && is_numeric(arg(1)) && arg(2) == 'edit') { 
+        //  pre($form['field_pro_bidding_info'],1);   
+        //drupal_add_css('#edit-submit {display:none;}',$option['type'] = 'inline');
+        drupal_add_css('#edit-skip {display:none;}', $option['type'] = 'inline');
+        drupal_add_css('#edit-draft {display:none;}', $option['type'] = 'inline');
+        drupal_add_css('#edit-next {display:none;}', $option['type'] = 'inline');
+        drupal_add_css('#edit-previous {display:none;}', $option['type'] = 'inline');
+        //drupal_add_css('#edit-delete {display:none;}', $option['type'] = 'inline');
+        /* $pNid = arg(1);
+        $result = _get_associated_rfp_with_project($pNid);
+        if ($result && is_array($result) && !empty($result) && count($result) > 0) {
+        $copycls = 'ProjectWithRFP';
+        $data = $pNid;
+        } else {
+        $copycls = '';
+        $data = '';
+        } */
+        $form['actions']['copy'] = array(
+          '#type' => 'submit',
+          '#value' => 'Copy',
+          '#weight' => 99,
+          '#submit' => array('custom_project_copy_submit'),
+          //'#attributes' => array('class'=>array($copycls),'data'=>array($data)),
+        );
+      } 
+      else {
+        $form['actions']['submit']['#value'] = 'Save as Draft';
+        if ($form_state['storage']['step'] == 'step_pro_summary' || $form_state['storage']['step'] == 'step_pro_invite_companies' || $form_state['storage']['step'] == 'step_pro_documents')
+        {
+          drupal_add_css('#edit-submit {display:none;}', $option['type'] = 'inline');
+          drupal_add_css('#edit-skip {display:none;}', $option['type'] = 'inline');
+          //drupal_add_css('#edit-draft {display:none;}', $option['type'] = 'inline');
+        }
+        if ($form_state['storage']['step'] == 'step_pro_supplier_diversity') {
+          drupal_add_css('#edit-next {display:none;}', $option['type'] = 'inline');
+          drupal_add_css('#edit-skip {display:none;}', $option['type'] = 'inline');
+          $form['actions']['submit']['#value'] = 'Next';
+          $_SESSION['referrer'] = 'node/add/rfp';
+        }
+      }
+      if (arg(0) == 'node' && arg(1) == 'add' && arg(2) == 'project') {
+        if (in_array($form_state['storage']['step'],array('step_pro_summary','step_pro_supplier_diversity'))) {
+          $form['actions']['cust-draft'] = array(
+            '#type' => 'submit',
+            '#value' => 'Save as Draft',
+            '#weight' => 99,
+            '#submit' => array('custom_project_draft_hendler', 'node_form_submit'),
+          );
+          if ($form_state['storage']['step'] == 'step_pro_supplier_diversity') {
+            drupal_add_css('#edit-submit {display:none;}', $option['type'] = 'inline');
+            $form['actions']['new3'] = array(
+              '#type' => 'submit',
+              '#value' => 'Next',
+              '#weight' => 100,
+              '#submit' => array('node_form_submit', 'custom_project_redrict_hendler'),
+            );
+          }       
+        }
+      }
+      /*$is_step_url = array('project-interested-companies');
+      if (arg(0)=='project-interested-companies' && is_numeric(arg(1))) {
+        $form['actions']['new3'] = array(
+        '#type' => 'submit',
+        '#value' => 'Next',
+        '#weight' => 99,
+        '#submit' => array('node_form_submit'),
+        );
+      } */
+      /* $form['field_pro_invite_companies']['#prefix'] = '<div class="cust-invite-link"><a href="http://dev-m6connect.pantheon.io/sendinvite" rel="lightframe"><i class="glyphicon glyphicon-plus"></i> Invite Companies</a>'; */
+      $form['field_pro_invite_companies']['#prefix'] = '<div class="cust-invite-link"><a href="' . $base_url . '/sendinvite" rel="lightframe"><i class="glyphicon glyphicon-plus"></i> Next</a>';
+        /* $myprojectstep = isset($_REQUEST ['prostep'] ) ? $_REQUEST ['prostep'] : '';
+          if(!empty($myprojectstep)){
+          //$form_state['storage']['step'] = 'step_pro_supplier_diversity';
+          $form_state['storage']['step'] = $myprojectstep;
+          }
+          $form['field_pro_bidding_info']['und']['#title'] = 'Add Bid Information';
+          //$form['#after_build'][] = 'pro_nodeform_after_build'; */
+      $form['public-confirm-dialog'] = array(
+        '#markup' => '<div class="text-center"><strong>Are you sure you want to make this project available for everyone to see?</strong></div>',
+        '#prefix' => '<div id="publice-confirm">',
+        '#suffix' => '</div>',
+      );
+      $form['#step_children']['public-confirm-dialog'] = 'step_pro_summary';    
+    }
+    else {
+      $form['field_available_for_free_proj']['#access'] = FALSE;    
+      $form['field_project_public']['#access'] = FALSE;
+      $form['field_create_confidential_bid']['#access'] = FALSE;    
+      $form['field_status']['#access'] = FALSE;
+      $form['field_pro_bidding_info']['#access'] = FALSE;
+      $form['field_images']['#access'] = FALSE;
+      $form['field_project_cover_image']['#access'] = FALSE;
+      $form['field_project_address_new']['#access'] = FALSE;
+      $form['field_project_address']['#access'] = FALSE;        
+    }
+  }
+  if($form_id == 'project_issue_node_form') {
+    $form['body']['#after_build'][] = 'description_field_remove_format_filter_after_build';   
+  }
+  $proposalPagePath = array('proposals/inbox', 'proposals/sent', 'proposals/all', 'proposals/awarded');
+  if ($form_id == 'views_exposed_form' && in_array(current_path(), $proposalPagePath)) {
+    $form['#attributes']['class'][] = 'rpf-exposed-filter';
+    $form['sort_by']['#title_display'] = 'invisible';
+  }
+  if ($form_id == 'rfp_node_form') {
+    if ($form_state['storage']['step'] == 'step_basic_information') {
+      drupal_add_library('system', 'ui.dialog');
+      drupal_add_js(array('m6connect_projects' => array('custom_pubpic_dialog_js' => 1)), 'setting');
+    }
+    $form['public-confirm-dialog'] = array(
+      '#markup' => '<div class="text-center"><strong>Are you sure you want this RFP to be available for all M6Connect members?</strong></div>',
+      '#prefix' => '<div id="publice-confirm">',
+      '#suffix' => '</div>',
+    );
+    $form['#step_children']['public-confirm-dialog'] = 'step_basic_information';
+    /////////////////////////////
+    if (arg(0) == 'node' && is_numeric(arg(1)) && arg(2) == 'edit') { //pre($form);
+      $cnode = menu_get_object();
+      $acc = user_load($cnode->uid);
+      $assigned_project = '';
+      if (isset($cnode->field_project['und']) && isset($cnode->field_project['und'][0]['target_id']) && !empty($cnode->field_project['und'][0]['target_id'])) {
+          $assigned_project = $cnode->field_project['und'][0]['target_id'];
+      } //pre($assigned_project);
+      //$usergroup = og_get_groups_by_user($acc = NULL, $group_type = NULL); //pre($usergroup);
+      /* $groups = og_get_entity_groups('node', $cnode); //pre($groups);
+        $gids = array();
+        foreach($groups as $k=>$v){
+        foreach ($v as $membership_id => $entity_id) {
+        $gid[] = $entity_id;
+        }
+        } */
+      if ($user->uid != $cnode->uid) {
+        //$gid = $gid[0];
+        $gid = _get_company_nid_by_group_content($cnode);
+
+        //$node->og_group_ref['und'][0]['target_id'] = $fnid; 
+        $query = db_select('node', 'n');
+        $query->leftJoin('og_membership', 'om', 'om.etid = n.nid');
+        $query->fields('n');
+        $query->condition('om.gid', $gid, '=');
+        $query->condition('n.type', 'project', '=');
+        $query->condition('n.status', '1', '=');
+        $query->orderBy('n.created', 'DESC', '=');
+        $query->orderBy('n.title', 'ASC', '=');
+        $result = $query->execute();
+        $arr = array('_none' => 'Not associated with a project');
+        $nids = array();
+        while ($record = $result->fetchAssoc()) {
+          $title = $record['title'];
+          $arr[$record['nid']] = $record['title'];
+          $nids[] = $record['nid'];
+        }
+        $form['field_project']['und']['#options'] = $arr;
+        $form['field_project']['und']['#default_value'] = array($assigned_project);
+      }
+      //kpr($form); 
+    }
+    /////////////////////////////
+  }
+  if (in_array($form_id, array('article_node_form', 'page_node_form', 'clarification_node_form', 'diversity_node_form', 'credentials_node_form', 'proposal_node_form', 'project_node_form',))) {  // 'rfp_node_form'
+    drupal_add_js('jQuery(document).ready(function(){ jQuery(".node-form").prepend(`<div class="cust-nform-req"><span style="color:red;">* Indicates a Required Field</span></div>`); });', 'inline');
+  }
+  if (in_array($form_id, array('organization_node_form'))) {
+    if (($form_state['storage']['step'] != 'step_co_supplier_diversity') && ($form_state['storage']['step'] != 'step_co_diversity_needs')) {
+      drupal_add_js('jQuery(document).ready(function(){ jQuery(".node-form").prepend(`<div class="cust-nform-req"><span style="color:red;">* Indicates a Required Field</span></div>`); });', 'inline');
+    }
+  } //pre($form_id);
+  if (strpos($form_id, 'fbss_comments_box_') !== FALSE) { //pre($form);  
+    //$form['comment_sid'] = array('#type'=>'value','#value'=>$form['#sid']);
+    //$form['save-'.$form['#sid']]['#submit'][] = 'custom_fbss_comments_box_submit_handler_for_close';
+    //$form['save-'.$form['#sid']]['#attributes'] = array('onclick' => 'jQuery("span.popups-close").click();');
+    /* $form['close-'.$form['#sid']] = array(
+      '#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('assign-bid-packages-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+      //'#weight' => 10,
+      ); */
+  }
+  /* if (in_array($form_id, array('bookmarkorganizer_user_bookmarks_form'))) { pre($form);
+  } */
+}
+
+function custom_project_redrict_hendler(&$form, &$form_state) {
+    $form_state['redirect'] = array('invite-companies/' . $form_state['nid'], array('query' => array('action' => 'create')));
+}
+
+function custom_fbss_comments_box_submit_handler_for_close(&$form, &$form_state) {
+    drupal_add_js('jQuery(document).ready(function(){ jQuery("span.popups-close").click(); });', 'inline');
+}
+
+function pro_nodeform_after_build($form, $form_state) {
+    if (arg(0) == 'node' && is_numeric(arg(1)) && arg(2) == 'edit') { //pre($form['field_pro_bidding_info'],1);
+        //drupal_add_css('#edit-submit {display:none;}',$option['type'] = 'inline');
+        drupal_add_css('#edit-skip {display:none;}', $option['type'] = 'inline');
+        drupal_add_css('#edit-draft {display:none;}', $option['type'] = 'inline');
+        drupal_add_css('#edit-next {display:none;}', $option['type'] = 'inline');
+        drupal_add_css('#edit-previous {display:none;}', $option['type'] = 'inline');
+        drupal_add_css('#edit-delete {display:none;}', $option['type'] = 'inline');
+    } else {
+        if ($form_state['storage']['step'] == 'step_pro_summary' || $form_state['storage']['step'] == 'step_pro_invite_companies') {
+            drupal_add_css('#edit-submit {display:none;}', $option['type'] = 'inline');
+            drupal_add_css('#edit-skip {display:none;}', $option['type'] = 'inline');
+            drupal_add_css('#edit-draft {display:none;}', $option['type'] = 'inline');
+        }
+
+
+        if ($form_state['storage']['step'] == 'step_pro_supplier_diversity') {
+            drupal_add_css('#edit-next {display:none;}', $option['type'] = 'inline');
+            drupal_add_css('#edit-skip {display:none;}', $option['type'] = 'inline');
+            $form['actions']['submit']['#value'] = 'Next';
+            $_SESSION['referrer'] = 'node/add/rfp';
+        }
+    }
+    return $form;
+}
+
+function m6connect_projects_node_view($node, $view_mode, $langcode) {  //pre($node->content['field_pro_bidding_info']);//kpr($node);
+    global $user, $base_url, $company;
+    /*     * ***Changed**** */
+    $CurrCompNid = isset($_SESSION['company']) ? $_SESSION['company'] : '';
+    $CompNode = node_load($CurrCompNid);
+    /* if ($view_mode == 'full' && $node->type == 'project' && ($_SERVER["HTTP_REFERER"] == $base_url . '/node/add/project')) {
+      drupal_goto('invite-companies/' . $node->nid,array('query'=>array('action'=>'create')));
+      } */
+    $AllowCollaborationTab = '';
+  if(isset($CurrCompNid) && isset($CompNode)){
+       if(isset($CompNode->field_multi_company_collaboratio) && $CompNode->field_multi_company_collaboratio['und'][0]['value']  !=1){
+       $AllowCollaborationTab = $CompNode->field_multi_company_collaboratio['und'][0]['value'];
+     unset($node->content['#fieldgroups']['group_full_pro_collaborte']);
+       }
+  }
+
+    if ($view_mode == 'full' && $node->type == 'project') {
+        $parsr = parse_url($_SERVER["HTTP_REFERER"], PHP_URL_QUERY); //pre($_REQUEST);pre($parsr);
+        $parsr2 = parse_url($_SERVER["REQUEST_URI"], PHP_URL_QUERY);
+        if (!empty($parsr2) && strpos($parsr2, 'invitetab=1&page=') !== FALSE) {
+            /*             * **** changed ****** */
+            //drupal_add_js('jQuery(document).ready(function(){ jQuery(".group-full-invite-co").data("horizontalTab").focus(); });', 'inline');
+            drupal_add_js(array('m6connect_projects' => array('project_page_invite_tab' => 1)), 'setting');
+        } else if (!empty($parsr2) && strpos($parsr2, 'clbrtetab=1&page=') !== FALSE) {
+             drupal_add_js('jQuery(document).ready(function(){ jQuery(".group-full-pro-collaborte").data("horizontalTab").focus(); });', 'inline');
+        } else if ((isset($_REQUEST['page']) && isset($_REQUEST['invitetab'])) || isset($_REQUEST['favorite']) || (!empty($parsr) && strpos($parsr, 'favorite=') !== FALSE) || isset($_REQUEST['co_name'])) {
+            drupal_add_js('jQuery(document).ready(function(){ jQuery(".group-full-invite-co").data("horizontalTab").focus(); });', 'inline');
+        } else if ((isset($_REQUEST['page']) && isset($_REQUEST['clbrtetab'])) || isset($_REQUEST['favorite_clbrte']) || (!empty($parsr) && strpos($parsr, 'favorite_clbrte=') !== FALSE) || isset($_REQUEST['co_name_clbrte'])) {
+            drupal_add_js('jQuery(document).ready(function(){ jQuery(".group-full-pro-collaborte").data("horizontalTab").focus(); });', 'inline');
+        } //co_name_clbrte
+    }
+    if ($view_mode == 'full' && $node->type == 'project') { //pre($node);
+        //kpr($node);
+        $pnode_bidflag_hide = 0;
+        $aditional_user = m6connect_projects_uids_from_list($node);
+        //drupal_set_message('<pre>'.print_r($aditional_user,1).'</pre>');
+        $aditional_user[] = $node->uid;
+        //$aditional_user = array_merge($aditional_user, _get_current_company_users($node->uid));
+//        $aditional_user = array_merge($aditional_user, _get_company_users_by_group_company($CompNode));
+        $aditional_user = array_merge($aditional_user, _get_company_users_by_group_content($node));
+        if (!in_array($user->uid, $aditional_user)) {
+//            unset($node->content['#fieldgroups']['group_full_pro_collaborte']);
+            unset($node->content['#fieldgroups']['group_full_invite_co']);
+        }
+        if (in_array($user->uid, $aditional_user)) {
+            if (isset($node->content['field_pro_bidding_info'])) {
+                foreach ($node->content['field_pro_bidding_info']['#items'] as $k => $v) {
+                    $fcid = $v['value']; //pre($v['value']); 
+                    //unset($node->content['field_pro_bidding_info'][$k]['entity']['field_collection_item'][$fcid]['links']['flag']);
+                    unset($node->content['field_pro_bidding_info'][$k]['entity']['field_collection_item'][$fcid]['flag_project_bidding']);
+                    $pnode_bidflag_hide = 1;
+                }
+            }
+            // remove flage from collabrated user
+            unset($node->content['interested_flag_field']);
+        }
+        if ($node->field_project_public['und'][0]['value'] == 0) {
+            $cnodeUid = $node->uid;
+            $companyusers = array();
+            $companyusers = get_company_users_list_by_uid($cnodeUid);
+            $companyusers = array_merge($companyusers, $aditional_user);
+            $cmpyUserUids = array();
+            $items = field_get_items('node', $node, 'field_rfp_invite_comapnies');
+            foreach ($items as $item) {
+                $fc = field_collection_field_get_entity($item);
+                $inviteddata = (isset($fc->field_rfp_company_nid_email['und'])) ? $fc->field_rfp_company_nid_email['und'][0]['value'] : '';
+                if (!empty($inviteddata) && is_numeric($inviteddata)) {
+                    $companyNode = node_load($inviteddata);
+                    $temp = og_get_group_members_properties($companyNode, array(), 'members__' . OG_STATE_ACTIVE, 'node');
+                    $cmpyUserUids = array_merge((array) $cmpyUserUids, (array) $temp);
+                } else if (!empty($inviteddata)) {
+                    $temp = user_load_by_mail($inviteddata);
+                    if ($temp && isset($temp->uid)) {
+                        $cmpyUserUids = array_merge((array) $cmpyUserUids, array($temp->uid));
+                    }
+                }
+            }
+            if (!((array_key_exists(3, $user->roles)) || (array_key_exists(6, $user->roles)))) { //pre('fff',1);
+                if ((!in_array($user->uid, $companyusers)) && (!in_array($user->uid, $cmpyUserUids))) {
+                    $data = field_info_instances("node", 'project');
+
+                    /*foreach ($data as $fieldname => $fieldval) { //pre($fieldname); 
+                        if (!in_array($fieldname, array('field_public_description', 'og_group_ref', 'field_project_diversity_type'))) {
+                            $node->content[$fieldname]['#access'] = false;
+                        }
+                    }*/
+          
+          
+                    //unset($node->content['#fieldgroups']['group_full_diversity_grp_tab']);
+
+                    if (!in_array($user->uid, $aditional_user)) {
+                        unset($node->content['#fieldgroups']['group_full_int_comp']);
+                        unset($node->content['#fieldgroups']['group_full_invite_co']);
+                        unset($node->content['#fieldgroups']['group_full_pro_bid_co']);
+                        unset($node->content['#fieldgroups']['group_full_pro_collaborte']);
+                        //unset($node->content['#fieldgroups']['group_full_pro_rfps']);
+                    }
+                }
+            }
+        }
+        /*
+          if ($user->uid == $node->uid) {
+          if (isset($node->content['field_pro_bidding_info'])) {
+          foreach ($node->content['field_pro_bidding_info']['#items'] as $k => $v) {
+          $fcid = $v['value']; //pre($v['value']);
+          unset($node->content['field_pro_bidding_info'][$k]['entity']['field_collection_item'][$fcid]['links']['flag']);
+          $pnode_bidflag_hide = 1;
+          }
+          }
+          }
+          drupal_add_js(array('m6connect_projects' => array('pnode_bidflag_hide' => $pnode_bidflag_hide)), 'setting');
+         */
+    }
+
+    //kpr($node);
+    //$allCompanyUsers = in_array($user->uid, _get_current_company_users($node->uid));
+    /* if ($view_mode == 'full' && in_array($node->type, array('project', 'rfp')) && $node->uid != $user->uid && isset($user->roles[12]) && in_array($user->uid, _get_current_company_users($node->uid))) { */
+    
+    /*if ($view_mode == 'full' && in_array($node->type, array('project', 'rfp')) && $node->uid != $user->uid && isset($user->roles[12]) && in_array($user->uid, _get_company_users_by_group_company($CompNode))) {*/
+  
+  $aditional_user = m6connect_projects_uids_from_list($node);
+  $currentUserOgRoles = og_get_user_roles('node',$company->nid,$user->uid);
+  $currentUserOgRoles = array_values($currentUserOgRoles);
+  $currentUserStaffRole = ((!in_array('administrator member',$currentUserOgRoles)) && (!in_array('company admin',$currentUserOgRoles)) && (in_array('staff',$currentUserOgRoles)));
+    
+  if($view_mode == 'full' && in_array($node->type, array('project', 'rfp')) && ($node->uid != $user->uid) && (!in_array($user->uid, $aditional_user)) && $currentUserStaffRole && in_array($user->uid, _get_company_users_by_group_content($node))){  
+    
+    
+        // if (!in_array($user->uid, $aditional_user)) {
+        if ($node->type == 'project' && !in_array($user->uid, $aditional_user) && !((array_key_exists(3, $user->roles)) || (array_key_exists(6, $user->roles)))) {
+            unset($node->content['#fieldgroups']['group_full_invite_co']);
+            unset($node->content['#fieldgroups']['group_full_pro_bid_co']);
+            unset($node->content['#fieldgroups']['group_full_pro_collaborte']);
+            /* if (!in_array($user->uid, $aditional_user)) {
+              if (isset($node->content['field_pro_bidding_info'])) {
+              unset($node->content['field_pro_bidding_info']);
+              }
+              } */
+            if (isset($node->content['interested_flag_field'])) {
+//                unset($node->content['interested_flag_field']);
+            }
+        } else {
+            unset($node->content['#fieldgroups']['group_invited_companies']);
+            unset($node->content['#fieldgroups']['group_proposals_info']);
+            if (isset($node->content['rfps_bidding_flag_field'])) {
+                unset($node->content['rfps_bidding_flag_field']);
+            }
+        }
+        //}   
+    }
+    if ($view_mode == 'full' && $node->type == 'project' && ($user->uid != $node->uid && !in_array($user->uid, $aditional_user))) {
+        unset($node->content['#fieldgroups']['group_full_pro_collaborte']);
+    }
+   
+}
+
+function m6connect_projects_node_view_alter(&$build) { //kpr($build);
+}
+
+function m6connect_projects_field_widget_form_alter(&$element, &$form_state, $context) { //drup_msg(pre($element));
+    if (isset($element['#entity_type']) && $element['#entity_type'] == 'field_collection_item' && $element['#bundle'] == 'YOUR FIELD COLLECTION') {
+        $element['value']['#title_display'] = 'invisible';
+    }
+    if (isset($element['#field_name']) && $element['#field_name'] == 'field_pro_bidding_info' && $context['instance']['bundle'] == 'project') {
+        $element['#after_build'][] = 'custom_project_after_build';
+    }
+}
+
+function test_projects_view() {
+  return '<div style="display: none;">hello</div>';
+}
+
+// function m6connect_projects_views_query_alter(&$view, &$query) { //pre($query,1);
+//     global $user;
+//     // Add collaboration project node also
+//     if ($view->name == 'og_all_user_group_content' && $view->current_display == 'entityreference_2') {
+//          $q = db_query('SELECT a.entity_id FROM field_data_field_project_invite_comapnies AS a LEFT JOIN `field_data_field_comapny_manager` AS b ON (a.field_project_invite_comapnies_value=b.entity_id) LEFT JOIN `field_data_field_company_nid_mail` AS c ON(a.field_project_invite_comapnies_value=c.entity_id) WHERE c.field_company_nid_mail_value = \'' . $user->mail . '\' or b.field_comapny_manager_value = ' . $user->uid . ';');
+//           $nids = array(0);
+//           foreach ($q as $values) {
+//           $nids[] = $values->entity_id;
+//           }
+//           if (!empty($nids)) {
+//           $or = db_or()->condition('node.nid', array_values($nids), 'IN');
+//           $query->add_where(2, $or);
+//           } 
+//         /* $project_nodes = implode(',', $nids);
+//           $query->where[2]['conditions'][0]['value'] = $nids;
+//           $query->where[2]['conditions'][0]['operator'] = 'in';
+//           $query->where[1]['conditions'][] = $query->where[0]['conditions'][0];
+//           unset($query->where[0]); */
+//     }
+// }
+
+function m6connect_projects_block_info() {
+  $blocks['my-project-search'] = array(
+    'info' => t('Project search'),
+  );
+  $blocks['my-project-colaborate'] = array(
+    'info' => t('Project colaborate'),
+  );
+  $blocks['mybookmarks'] = array(
+    'info' => t('My bookmark'),
+  );
+  $blocks['projectInterestedBidders'] = array(
+    'info' => t('Interested Bidders'),
+  );
+  $blocks['peoplebookmarkblock'] = array(
+    'info' => t('People Bookmark'),
+  );
+  $blocks['project_view_rfp_tab'] = array(
+    'info' => t('project view rfp tab'),
+  );
+  return $blocks;
+}
+
+function m6connect_projects_block_view($delta = '') {
+  global $user;
+  $block = array();
+  switch ($delta) {
+    case 'my-project-search':
+      $block['subject'] = t('');
+      if (arg(1) && is_numeric(arg(1)) && arg(2) == '') {
+        $pnid = arg(1);
+        $pnode = node_load($pnid);
+        $cmpcall = in_array($user->uid, _get_current_company_users($pnode->uid));
+        $cmpcall2 = in_array($user->uid, m6connect_projects_uids_from_list($pnode));
+        if ($pnode->uid == $user->uid || $cmpcall || $cmpcall2) {
+          $block['content'] = rfp_find_companies();
+        }
+        else {
+          $block['content'] = '';
+        }
+      }
+      break;
+    case 'my-project-colaborate':
+      $block['subject'] = t('');
+      $block['content'] = rfp_find_companies_project();
+      break;
+    case 'mybookmarks':
+      $block['subject'] = t('Bookmark Folders');
+      $block['content'] = mybookmark();
+      break;
+    case 'projectInterestedBidders':
+      $block['subject'] = t('');
+      $block['content'] = project_interested_bidders();
+      break;
+    case 'peoplebookmarkblock':
+      $block['subject'] = t('');
+      $block['content'] = favorite_content_generator_people();
+      break;
+    case 'project_view_rfp_tab':
+      $block['subject'] = t('');
+      $block['content'] = project_view_rfp_tab_content();
+      break;
+  }
+
+  return $block;
+}
+
+function m6connect_projects_theme() {
+  return array(
+    'sendinvite_contents' => array(
+      'arguments' => array('variable_to_print1' => null),
+      'template' => 'sendinvite',
+    ),
+    'prochat_message_section_checkbox' => array(
+      'render element' => 'element',
+    ),
+  );
+}
+
+function m6connect_projects_init() {
+    global $user, $base_url;
+    $userid = $user->uid;
+    drupal_add_js(drupal_get_path('module', 'm6connect_projects') . '/m6connect_proj.js');
+    drupal_add_js(drupal_get_path('module', 'm6connect_rfp') . '/m6connect_rfp.js');
+    if (isset($_SESSION['cust_invite_msg_' . $userid])) {
+      $invitval = $_SESSION['cust_invite_msg_' . $userid];
+      $invitefrmuid = node_load($invitval)->uid;
+      $invitee = _get_user_full_name($invitefrmuid);
+      drupal_set_message(t($invitee . ' sent you invitation. You could accept or withdraw it.'), 'status');
+        unset($_SESSION['cust_invite_msg_' . $userid]);
+    }
+    if (arg(0) == 'projects' && !arg(1)) {
+      if (isset($_REQUEST['interested'])) {
+        $_SESSION['last_project_search'] = $base_url . '/projects?interested=interested';
+      }
+      elseif (isset($_REQUEST['myproject'])) {
+        $_SESSION['last_project_search'] = $base_url . '/projects?myproject=myproject';
+      }
+      elseif (isset($_REQUEST['myinterested'])) {
+        $_SESSION['last_project_search'] = $base_url . '/projects?myinterested=myinterested';
+      }
+      elseif (isset($_REQUEST['collaboration'])) {
+        $_SESSION['last_project_search'] = $base_url . '/projects?collaboration=collaboration';
+      }
+      elseif (isset($_REQUEST['draft'])) {
+        $_SESSION['last_project_search'] = $base_url . '/projects?draft=draft';
+      }
+      else {
+        $url = $_SERVER["HTTP_REFERER"];
+        $ur = explode('?', $url); //pre($ur);
+        $ur1 = explode('/', $ur[0]); //pre($ur1);
+        $urpop = array_pop($ur1); //pre($urpop); 
+        if ($urpop != 'projects') {
+          if (isset($_SESSION['last_project_search']) && !empty($_SESSION['last_project_search'])) {
+            $path = $_SESSION['last_project_search'];
+            unset($_SESSION['last_project_search']);
+            drupal_goto($path);
+          }
+        }
+      }
+    }
+    /*     * ********** for bookmark related js worked everywhere start ********* */
+    drupal_add_library('system', 'ui.draggable');
+    drupal_add_library('system', 'ui.droppable');
+    drupal_add_library('system', 'ui.sortable');
+    drupal_add_library('system', 'ui.dialog');
+    drupal_add_js(drupal_get_path('module', 'm6connect_company') . '/m6connect_bookmark.js');
+    drupal_add_js(array('m6connect_company' => array('company' => 1, 'current_path' => current_path())), 'setting');
+    drupal_add_css('.bookmarkorganizer-rename-item-form input.form-submit{ display:none; }', 'inline');
+    module_load_include($type = 'inc', $module = 'bookmarkorganizer', $name = 'bookmarkorganizer');
+    /*     * ********** for bookmark related js worked everywhere end ********* */
+}
+
+function project_interested_company() {
+  //
+}
+
+function m6connect_projects_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+    global $user;
+    if (!array_key_exists(3, $user->roles) && $user->uid != 0 && (arg(0) == 'node' && is_numeric(arg(1)))) {
+        $node = menu_get_object();
+        if ($node->type == 'project') { //pre($data,1);
+            if ($data['tabs'][0]['output'][0]['#link']['path'] == 'node/%/view') {
+                //$data['tabs'][0]['output'][0]['#link']['title'] = t('');
+                unset($data['tabs'][0]['output'][0]);
+            }
+            if ($data['tabs'][0]['output'][1]['#link']['path'] == 'node/%/edit') {
+                //$data['tabs'][0]['output'][1]['#link']['title'] = t('');  
+                unset($data['tabs'][0]['output'][1]);
+            }
+        }
+    }
+}
+
+function m6connect_projects_mail_alter(&$message) {
+    global $base_url, $user;
+    if ($message['id'] == 'invite_by_email_invite') {
+        $invite = $message['params']['invite'];
+        $token_data = array(
+            'invite' => $invite,
+            'user' => $user,
+            'profile' => user_load($user->uid),
+        );
+        $email = '[invite:inviter:name] has invited you to join [site:name] at [site:url].
+
+To become a member of [site:name], click the link below or paste it into the address bar of your browser.
+
+[invite:invite-accept-link]';
+        //dpm(token_replace($email, $token_data));
+        $message['body'][0] = token_replace($email, $token_data);
+    }
+    if ($message['id'] == 'rules_rules_action_mail_rules_projects_interested_mail_3') {
+        $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed; delsp=yes';
+        //$message['body'][1] = '<img src="'.$base_url.'/sites/default/files/rockstar_games_logo.png" height="70px" width="190px">';  
+    }
+}
+
+function taxonomy_get_children_all($tid, $vid = 0, $key = 'tid') {
+  $c = taxonomy_get_children($tid, $vid, $key);
+  foreach ($c as $t => $d) {
+    $result[$t] = $d;
+    $below = taxonomy_get_children_all($t, $vid, $key);
+    if (!empty($below)) {
+      foreach ($below as $nt => $nd) {
+        $result[$nt] = $nd;
+      }
+    }
+  }
+  return $result;
+}
+
+/**
+ *  Check Current User'commany Invited For RFP Inbox status(deleted or not).
+ */
+function rfp_invited_company_inbox_status($rfpNid) {
+  global $user;
+  $user_groups = og_get_groups_by_user($user, 'node');
+  if (is_array($user_groups) && count($user_groups) > 0) {
+    $user_groups = array_values($user_groups);
+    $companyNid = $user_groups[0];
+    $companyMail = $user->mail;
+
+    $dbor = db_or()
+      ->condition('rcne.field_rfp_company_nid_email_value', $companyNid, '=')
+      ->condition('rcne.field_rfp_company_nid_email_value', $companyMail, '=');
+
+    $query = db_select('node', 'n');
+    $query->Join('field_data_field_rfp_invite_comapnies', 'ric', 'ric.entity_id=n.nid');
+    $query->Join('field_data_field_rfp_company_nid_email', 'rcne', 'ric.field_rfp_invite_comapnies_value = rcne.entity_id');
+    $query->Join('field_data_field_invite_inbox_status', 'iis', 'ric.field_rfp_invite_comapnies_value = iis.entity_id');
+    $query->fields('n', array('nid'))
+      ->condition('n.type', 'rfp', '=')
+      ->condition('n.nid', $rfpNid, '=')
+      ->condition('iis.field_invite_inbox_status_value', 1, '=')
+      ->condition($dbor);
+    $result = $query->execute()->fetchCol();
+    if ($result && is_array($result) && !empty($result) && count($result) > 0) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+
+function m6connect_projects_node_access($node, $op, $account) {
+    global $user, $company;
+    /*     * ***Changed**** */
+    $CurrCompNid = isset($_SESSION['company']) ? $_SESSION['company'] : '';
+    //$type = is_string($node) ? $node : $node->type;
+    $type = (is_object($node) && isset($node->type)) ? $node->type : '';
+    $node_types = m6connect_projects_node_types();
+
+    /*     * ***Changed**** */
+  
+    if ($type && $type == 'project') {
+      $allowed_uids = m6connect_projects_uids_from_list($node);
+      /*** Company Admin functionality start***/
+      if($CurrCompNid){
+        $node_by_com = _get_company_nid_by_group_content($node);
+        $company_admin_rols = _get_company_users_by_og_roles($CurrCompNid,'company admin');
+        if(($CurrCompNid == $node_by_com) && in_array($user->uid , $company_admin_rols) &&  (in_array($op, array('view','update','delete')))){      
+          return NODE_ACCESS_ALLOW;
+        }
+        if(($CurrCompNid == $node_by_com) && ($node->uid == $account->uid || in_array($account->uid, $allowed_uids)) &&  (in_array($op, array('view','update','delete')))){
+          return NODE_ACCESS_ALLOW;
+        }else if(in_array($account->uid, $allowed_uids) && in_array($op, array('view','update'))){
+            return NODE_ACCESS_ALLOW;
+        }else if(in_array($op, array('delete'))){
+          return NODE_ACCESS_DENY;
+        }
+      }
+      /*** Company Admin functionality end***/
+      
+        $allCompanyUsers = in_array($user->uid, _get_company_users_by_group_content($node));
+        
+        if (in_array($account->uid, $allowed_uids) && ($CurrCompNid == _get_company_nid_by_group_content($node))) {  
+    // Give permissions to collabarate users of the project
+            return NODE_ACCESS_ALLOW;
+        } else if (is_object($node) && $node->type == 'project' && in_array($op, array('view'))) {
+      if(!user_is_logged_in()){
+          return NODE_ACCESS_DENY;
+        }
+        
+            $cmpcall = FALSE;
+           
+            if (isset($user->roles[3]) || isset($user->roles[6]) || ($allCompanyUsers && $CurrCompNid == _get_company_nid_by_group_content($node))) {
+                if ($node->status == 1) {
+                    return NODE_ACCESS_ALLOW;
+                } else if (isset($user->roles[3]) || isset($user->roles[6]) || $user->uid == $node->uid) {
+                    return NODE_ACCESS_ALLOW;
+                }
+            }
+            if (!is_project_rfps_accessible($node, $type = 'project')) {
+                if ($node->status == 1) {
+                    return NODE_ACCESS_ALLOW;
+                }
+            }
+            return NODE_ACCESS_DENY;
+        } else if (is_object($node) && $node->type == 'project' && in_array($op, array('update'))) {
+            if ($account->uid == $node->uid && $CurrCompNid == _get_company_nid_by_group_content($node)) {
+                return NODE_ACCESS_ALLOW;
+                //} else if ($allCompanyUsers && $op == 'update' && $account->uid != $node->uid ) {
+            } else {
+                return NODE_ACCESS_DENY;
+            }
+        }
+    }
+    return NODE_ACCESS_IGNORE;
+}
+
+function rfp_find_companies_project($onlyComanyListing = FALSE) {
+    global $base_url, $user, $company;
+    // drupal_add_library('system', 'ui.draggable');
+    // drupal_add_library('system', 'ui.droppable');
+    // drupal_add_library('system', 'ui.sortable');
+    // drupal_add_library('system', 'ui.dialog');
+    // drupal_add_js(drupal_get_path('module', 'm6connect_company') . '/m6connect_bookmark.js');
+    drupal_add_js(array('m6connect_company' => array('company' => 1, 'user' => $user->uid)), 'setting');
+    drupal_add_css('.bookmarkorganizer-rename-item-form input.form-submit{ display:none; }', 'inline');
+    module_load_include($type = 'inc', $module = 'bookmarkorganizer', $name = 'bookmarkorganizer');
+    drupal_add_js(drupal_get_path('module', 'm6connect_projects') . '/procolInfinitescroll.js');
+
+    $invitedCompanies = $InvitedCompUsers = array();
+    $defaultCompanyUserInvited = array();
+    $output = '';
+    $current_node = '';
+    $current_node = menu_get_object();
+    $inid = arg(1);
+    $inode = $current_node;
+    $output .= '<div class="clearfix collabrated-user-section">';
+
+    if (isset($company->field_multi_company_collaboratio['und']) && $company->field_multi_company_collaboratio['und'][0]['value'] == 1) {
+      $output .= '<div class="row">';
+      $output .= '<div class="col-md-4 collabaration-search-block">';
+      if (arg(0)=='project-collaboration' && is_numeric(arg(1))) {
+        $output .= '<div class="project-next-links clearfix margin-bottom-10">';
+        $output .= l('<input type="button" value="Back" class="form-submit" alt ="Back" title ="Back" />', 'invite-companies/'.arg(1), array('html' => true, 'query' => array('prostep'=>'step_pro_invite_companies'), 'attributes' => array('class' => array('next-btn-link'))));
+        $output .= l('<input type="button" value="Next" class="form-submit" alt ="Next" title ="Next" />', 'node/'.arg(1), array('html' => true, 'attributes' => array('class' => array('next-btn-link'))));
+        $output .= '</div>';
+      }
+      $output .= drupal_render(drupal_get_form('colaborate_company_search_form'));
+      $output .= '</div>';
+    }
+
+    $output .= '<div class="col-md-4"></div>';
+    $output .= '<div class="col-md-4 invited-co-list-clbrte" rpnid="' . $current_node->nid . '">';
+    $output .= '<label>' . t('Collaborators :') . '</label>';
+    $items = field_get_items('node', $inode, 'field_project_invite_comapnies');
+    $dfg = 1;
+    $output .= '<div class="invited-companies-lists">';
+    foreach ($items as $item) {
+      $fc = field_collection_field_get_entity($item);
+      $inviteddata = (isset($fc->field_company_nid_mail['und'])) ? $fc->field_company_nid_mail['und'][0]['value'] : '';
+      $compMgr = array();
+      if (isset($fc->field_comapny_manager['und']) && !empty($fc->field_comapny_manager['und'][0]['value'])) {
+        $compMgr = explode(',', $fc->field_comapny_manager['und'][0]['value']);
+      }
+      if (!empty($inviteddata) && is_numeric($inviteddata) && !empty($compMgr)) {
+        $invitedCompanies[] = $inviteddata;
+        $InvitedCompUsers = $compMgr;
+        $defaultCompanyUserInvited[$inviteddata] = $compMgr;
+        $cname = _get_title_of_node($inviteddata);
+        $output .= '<div class="invited-companies-done-clbrte company-registered">';
+        $output .= '<span class="invited-companies-name">' . $cname . '</span>';
+
+        $userfullnameQuery = db_select('realname','rn');
+        $userfullnameQuery->fields('rn');
+        $userfullnameQuery->condition('uid',$compMgr,'in');
+        $userfullnameQueryResult = $userfullnameQuery->execute()->fetchAll();
+        foreach ($userfullnameQueryResult as $compMgrUid) {
+          $output .= '<div id="cont-col-' . $compMgrUid->uid . '">  <span><a href="javascript:void(0);" class="remove-invite-company-clbrte remove-invitees" cnid="' . $inviteddata . '" itemid="' . $compMgrUid->uid . '">X</a>' . $compMgrUid->realname . '<span></div>';
+        }
+        $output .= '</div>';      
+      }
+    }
+
+    $output .= '</div>';
+    $output .= '</div>';
+    $output .= '</div>';
+    $output .= '</div>';
+    $output .= '<div class="rfp-invite-companies-form clearfix"  style="visibility:hidden; height:0px;">';
+    $output .= drupal_render(drupal_get_form('colaborate_invite_companies_form'));
+    $output .= '</div>';
+
+    $output .= '<div class="custom-companies-lists custom-companies-lists-clbrte clearfix">';
+    $output .= '<div class="row">';
+    $counter = 0;
+    $or = db_or();
+    $query = db_select('node', 'n')->extend('PagerDefault')->element(0);
+    $query->distinct();
+    //************************** Start (Not Show Company When they are Inctive) **************************/
+    $ic_or = db_or();
+    $query->leftJoin('field_data_field_company_inactive', 'ic', 'ic.entity_id = n.nid');
+    $ic_or->condition('ic.field_company_inactive_value', 1, '!=')->condition('ic.field_company_inactive_value', NULL);
+    $query->condition($ic_or);
+    //*************************** End (Not Show Company When they are Inctive) ***************************/
+    //************************** Start (Show Company When show company active) **************************/
+    $query->leftJoin('field_data_field_show_company_in_search', 'isa', 'isa.entity_id = n.nid');
+    $query->condition('isa.field_show_company_in_search_value', 1, '=');
+    //*************************** End (Show Company When show company active) ***************************/
+    //************************** Start (Not Show Company When they are not company type) **************************/
+    $query->leftJoin('field_data_field_type_of_company', 'tc', 'tc.entity_id = n.nid');
+    $query->condition('tc.field_type_of_company_value', 'company', '=');
+    //*************************** End (Not Show Company When they are not company type) ***************************/
+
+    //************************** Show Own/Collabatation Allowed Company **************************/
+    $multi_company_or = db_or();
+    $nodeCompanyNid = _get_company_nid_by_group_content($inode);
+    if (!(isset($company->field_multi_company_collaboratio['und']) && $company->field_multi_company_collaboratio['und'][0]['value'] == 1)) {
+      $query->condition('n.nid', $nodeCompanyNid, '='); 
+    }
+    $query->addExpression('IF(n.nid=:nodeCompanyNid,1,0)','current_company',array(':nodeCompanyNid'=>$nodeCompanyNid));
+    $query->fields('n', array('nid','title'));
+
+    if(isset($_REQUEST['company-search']) && !empty($_REQUEST['company-search'])){
+      $query->condition('n.title', '%' . db_like($_REQUEST['company-search']) . '%', 'LIKE'); 
+    }
+    $query->condition('n.type', 'organization', '=');
+    $query->orderBy('current_company', 'DESC');
+    $query->orderBy('created', 'DESC');
+    $query->groupBy('n.nid');
+    $query->limit(10);
+    $result = $query->execute()->fetchAllKeyed(0,1);
+
+    drupal_add_js(array('m6connect_rfp' => array('current_node_type' => $current_node->type)), 'setting');
+    
+    $output .= '<div id="cust-company-listings-clbrte" class="col-md-12 col-sm-12 col-xs-12 cust-company-listings-clbrte-cll"><span class="current-node-nid" style="display:none;">' . $current_node->nid . '</span>
+      <span class="current-type" style="display:none;">' . $current_node->type . '</span>';
+    $output .= '<div class="cust-slect-all-invite" style="display:none;"><input type="checkbox" name="select-all-invite-co"> Select All</div>';
+
+    foreach ($result as $record_nid =>$record_title ) {
+      $node = node_load($record_nid); 
+      $com_city = isset($node->field_org_address['und']['0']['locality']) ? $node->field_org_address['und']['0']['locality'] : '';
+      $administrative_area = isset($node->field_org_address['und']['0']['administrative_area']) ? $node->field_org_address['und']['0']['administrative_area'] : '';       
+      if (isset($node->field_org_address['und']) && !empty($node->field_org_address['und']['0']['administrative_area'])) {
+        $field = field_info_field('field_org_address');
+        $instance = field_info_instance('node', 'field_org_address', 'organization');
+        $address = addressfield_default_values($field,$instance);
+        $handlers = array('address' => 'address',);
+        $context = array('mode' => 'form');
+        $data = addressfield_generate($address, $handlers, $context);         
+        $com_state = $data['locality_block']['administrative_area']['#options'][$administrative_area];
+      }
+      $com_city_state = $com_city.', '.$com_state;      
+      $desc = isset($node->field_description['und']['0']['value']) ? $node->field_description['und']['0']['value'] : '';
+      $desc = strip_tags($desc);
+      $length_body = strlen($desc);
+      if ($length_body > 50) {
+        $body = substr($desc, 0, 50) . '...';
+      }
+      else {
+        $body = $desc;
+      }
+      $pimagepath = '';
+      $pimgpath = (isset($node->field_logo['und']) && !empty($node->field_logo['und'][0]['uri'])) ? $node->field_logo['und'][0]['uri'] : 0;
+      if ($pimgpath) {
+        $pimagepath = image_style_url('thumbnail', $pimgpath);
+      }
+      $fa = _get_company_region_address($node);
+      $fa = (!empty($est)) ? '<i class="fa fa-map-marker"></i> ' . $fa : '';
+
+      $est = '';
+      if (isset($node->field_year_founded['und'])) {
+        $est = $node->field_year_founded['und'][0]['value'];
+      }
+      $est = (!empty($est)) ? '<i class="fa fa-calendar"></i> Est. ' . $est : '';
+      $arev = '';
+      if (isset($node->field_annual_revenue['und'])) {
+        $arev = $node->field_annual_revenue['und'][0]['value'];
+      }
+
+      if ($counter % 2 == 0) {
+        $cls = 'even';
+      } else {
+        $cls = 'odd';
+      }
+
+      $output .='<div class="project-box-clbrte project-box-clbrte-cll '.$cls.'">';
+      $output .='<div class="row">';
+      if ($pimgpath) {
+        $output .= '<div class="col-md-2 col-sm-2 col-xs-12 company-image"><img src="' . $pimagepath . '" /></div>';
+      }
+      else {
+       $output .='<div class="col-md-2 col-sm-2 col-xs-12 company-image"><img src="/sites/all/themes/m6connect/images/default_company_profile.jpg" style="height:100px; width:100px" /></div>';
+      }
+      $output .= '<div class="col-md-6 col-sm-6 col-xs-12 company-summary-clbrte">';
+      $output .= '<h2>' . l($node->title, 'node/' . $node->nid, array('attributes' => array('class' => array('cust-proj-title-clbrte'), 'target' => '_blank'))) . '</h2>';
+      $output .='<span class="company-nid-clbrte" style="display:none;">' . $node->nid . '</span>';
+      $output .= '<div class="company-about">' . $body . '</div>';
+      $output .= '<div class="company-city-state">' . $com_city_state . '</div>';
+      $output .= '<div class="company-meta"> <span>' . $fa . '</span> <span>' . $est . '</span> <span></i> ' . $arev . '</span> </div>'; //<i class="fa fa-usd">
+      $output .= '</div>';
+
+      $inviteStyle = '';
+      $addedStyle = 'style="display:none;"';
+      $addedText = ' Added';
+
+      $output .= '<div class="col-md-4 col-sm-4 col-xs-12 project-box-actions-clbrte" id="nid-' . $node->nid . '"><div class="form-group margin-bottom-10"><a ' . $inviteStyle . ' href="/" class="invite-to-rfp-clbrte btn btn-default" id="' . $node->nid . '"><i class="fa fa-envelope"></i> Invite to Collaborate</a><span class="btn btn-success added-to-rfp-clbrte" ' . $addedStyle . '><i class="fa fa-ok"></i> ' . $addedText . '</span></div>';
+
+      $gmlist = og_get_group_members_properties($node, array(), 'members__' . OG_STATE_ACTIVE, 'node');
+      $output .= '<select class="co_invite-manager-clbrte" id="co_invite_manager_' . $node->nid . '" multiple="multiple">';
+      $output .= '<option value="">Select Company Contact(s)</option>'; //
+      foreach ($gmlist as $var => $val) {
+        $uid = $val;
+        $usr = user_load($uid);
+        $uname = $usr->realname;
+        if (isset($defaultCompanyUserInvited[$node->nid]) && in_array($uid,$defaultCompanyUserInvited[$node->nid])) {
+          $output .= '<option value="' . $uid . '" data="' . $uname . '">' . $uname . ' (Invited)' . '</option>';
+        }
+        else {
+          $output .= '<option value="' . $uid . '" data="' . $uname . '">' . $uname . '</option>';
+        }
+      }
+      $output .= '</select>';
+      $output .= '<span class="invite-proj-managerid-clbrte invite-proj-managerid-' . $node->nid . '" style="display:none"></span>';
+      $output .= '<span class="invite-proj-managername-clbrte invite-proj-managername-' . $node->nid . '" style="display:none"></span>';
+      $output .= '</div>';
+      $output .='</div>';
+      $output .='</div>';
+      $counter++;
+    }
+    $output .='<div class="clear"></div>';
+    $output .='</div>';
+    $output .='</div>';
+    $output .= '</div>';
+    $next_scroll_page = theme('pager_next',array('text' =>'See More','element' => 0,'parameters' => array('clbrtetab' => 1)));
+    if (isset($next_scroll_page)) {
+      $output .= '<div class="nav-clibrate text-center">' . $next_scroll_page . '</div>'; //style="display: none;"
+    }
+    if ($counter < 1) {
+      $output .='<div Class="messages status">' . t('No Results available. Please try later.') . '</div>';
+    }
+    if (arg(0) == 'project-collaboration' && is_numeric(arg(1))) {
+      $output .= '<div class="projects-steps-actions">';
+      if (isset($_REQUEST['action']) && $_REQUEST['action'] == 'create') {
+        $output .= l('<input name="button" type="submit" value="Back" class="form-submit">', '/interested-bidders/' . arg(1), array('html' => TRUE, 'query' => array('action' => 'create')));
+        $output .= l('<input name="button" type="submit" value="Next" class="form-submit">', '/project-rfps/' . arg(1), array('html' => TRUE, 'query' => array('action' => 'create')));
+      }
+      $output .= '</div>';
+    }
+    $output .= '<div id="dialog-confirm" title="Remove your access?" style="display:none;">
+      <p>If you continue with this action you will no longer be able to edit and make changes to this project or the collaboration feature. Remove your access?</p>
+      </div>';
+
+    return $output;
+}
+
+function colaborate_company_search_form($form, &$form_state) {
+  $form['collabarate-search-container']= array(
+    '#type' => 'container',
+  '#attributes' => array('class'=> array('collabarate-search-container-main')),
+  );
+  $form['collabarate-search-container']['collabarate-search'] = array(
+    '#type' => 'textfield',
+  '#default_value' => (isset($_REQUEST['company-search']))?$_REQUEST['company-search']:'',
+  '#attributes' => array('placeholder' => 'Search Company...'),
+  );
+  $form['collabarate-search-container']['submit'] = array(
+    '#type' => 'submit',
+  '#value' => decode_entities('&#xf002;'),
+  '#attributes'=> array('style'=> array('font-family:FontAwesome;'),'class'=>array('collabarate-search-submit')),
+  );
+  return $form;
+}
+
+function colaborate_company_search_form_submit(&$form,&$form_state){
+  $values = $form_state['values'];
+  $query = array('query'=> array('clbrtetab'=>1,'page'=>0));
+  $cmpNmae = trim($values['collabarate-search']);
+  if(!empty($cmpNmae)){
+    $query = array('query'=> array('clbrtetab'=>1,'page'=>0,'company-search'=>$cmpNmae));   
+  }
+  drupal_goto(current_path(),$query);
+}
+
+function colaborate_invite_companies_form($form, &$form_state) {
+    drupal_add_js(array('m6connect_rfp' => array('custom_dialog_js' => 1)), 'setting');
+    $form['companies_clbrte'] = array(
+        '#type' => 'markup',
+        //'#markup' => '<div class="-invitees-title">Companies</div><div class="invitees-list"></div>',
+        '#markup' => '<div class="-invitees-title">Pending Invitations :</div><div class="invitees-list-clbrte"></div>',
+    );
+    $form['companies_hidden_clbrte'] = array(
+        '#type' => 'hidden',
+        '#title' => 'Companies',
+        '#attributes' => array('class' => 'companies_hidden_clbrte'),
+    );
+    $form['companies_manager_hidden_clbrte'] = array(
+        '#type' => 'hidden',
+        '#title' => 'Company Project Manager',
+        '#attributes' => array('class' => 'companies_manager_hidden_clbrte'),
+    );
+    $form['invite_later_hidden_clbrte'] = array(
+        '#type' => 'hidden',
+        '#title' => 'Company Invite Later',
+        '#attributes' => array('class' => 'invite_later_hidden_clbrte'),
+    );
+    $form['invite_nodeid_hidden_clbrte'] = array(
+        '#type' => 'hidden',
+        '#title' => 'Company Invite Later',
+        '#attributes' => array('class' => 'invite_nodeid_hidden_clbrte'),
+        '#value' => arg(1),
+    );
+    $form['invite_js_triggered_clbrte'] = array(
+        '#type' => 'hidden',
+        '#title' => 'Js Click',
+        '#attributes' => array('class' => 'invite_js_triggered_clbrte'),
+        '#value' => '0',
+    );
+    $form['reinvite_js_triggered_clbrte'] = array(
+        '#type' => 'hidden',
+        '#title' => 'Js Click',
+        '#attributes' => array('class' => 'reinvite_js_triggered_clbrte'),
+        '#value' => '0',
+    );
+    $form['invite_later_js_triggered_clbrte'] = array(
+        '#type' => 'hidden',
+        '#title' => 'Invite later Js Click',
+        '#attributes' => array('class' => 'invite_later_js_triggered_clbrte'),
+        '#value' => '0',
+    );
+    $form['companies_by_email_clbrte'] = array(
+        '#type' => 'textarea',
+        '#title' => t('Add Individuals by Email :'),
+        //'#description' => '<b>Maximum number of invite at a time is 25</b>',
+        '#prefix' => '<div style="display:none;">',
+        '#suffix' => '</div>',
+    );
+
+    $currentNode = menu_get_object();
+    /*
+      if (strpos(current_path(), 'invite-companies/') !== FALSE) {
+      $param = array();
+      if ($currentNode->type == 'rfp') {
+      $param = array('rfpstep' => 'step_rpf_documents');
+      } else {
+      $param = array('prostep' => 'step_pro_supplier_diversity');
+      }
+      $form['back-button'] = array(
+      '#type' => 'markup',
+      '#markup' => l('<input type="button" value="Back" class="btn btn-primary form-submit" alt ="Back", title ="Back" />', 'node/' . arg(1) . '/edit', array('html' => true, 'query' => $param, 'attributes' => array('class' => array('back-btn-link')))),
+      );
+      } */
+    /**
+     * Colaboration Screen changes
+     * comment Add Email functionality for now
+     * */
+    /*    $form['add_individual_by_email_clbrte'] = array(
+      '#type' => 'button',
+      '#value' => 'Add Emails',
+      '#attributes' => array('class' => array('btn', 'btn-primary', 'add-individual-by-email_clbrte'), 'alt' => array('Add Emails'), 'title' => array('Add Emails')),
+      );
+     */
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => 'Send Invitations',
+        '#attributes' => array('class' => array('btn', 'btn-primary', 'send-invitations-submit_clbrte'), 'alt' => array('Send Invitations'), 'title' => array('Send Invitations')),
+    );
+
+    $form['resubmit'] = array(
+        '#type' => 'submit',
+        '#value' => 'Resend Invitations',
+        '#attributes' => array('class' => array('btn', 'btn-primary', 'resend-invitations-submit_clbrte'), 'alt' => array('Resend Invitations'), 'title' => array('Resend Invitations')),
+    );
+    /* if(arg(1)&& is_numeric(arg(1))) {
+      $nid = arg(1);
+      $node= node_load($nid);
+      if($node->type == 'project') { */
+    $form['later'] = array(
+        '#type' => 'submit',
+        '#value' => 'Invite Later',
+        '#attributes' => array('class' => array('btn', 'btn-primary', 'invite-later-submit_clbrte'), 'alt' => array('Invite Later'), 'title' => array('Invite Later')),
+    );
+    /* }
+      } */
+    $nodeTypeDialog = ($currentNode->type == 'rfp') ? 'RFP' : 'Project';
+    $form['invite-confirm-dialog'] = array(
+        //'#markup' => '<div class="text-center"><strong>Are you sure you want to send out this ' . $nodeTypeDialog . '?</strong></div>',
+        '#markup' => '<div class="invite-clbrte-cnfrm"><strong>Invite Users to Collaborate</strong></div><div class="invite-clbrte-msg">Sending these invitations will invite the selected users to collaborate on this project with you. This will give them access to view AND edit this project and its associated RFPs and Proposals. Are you sure you would like grant these users this ability for this project?</div>',
+        '#prefix' => '<div id="invite-confirm-clbrte">',
+        '#suffix' => '</div>',
+    );
+
+    $form['reinvite-confirm-dialog'] = array(
+        '#markup' => '<div class="text-center"><strong>Are you sure you want to resend out this ' . $nodeTypeDialog . '?</strong></div>',
+        '#prefix' => '<div id="reinvite-confirm-clbrte">',
+        '#suffix' => '</div>',
+    );
+
+    $form['invite-later-dialog'] = array(
+        '#markup' => '<div class="text-center"><strong>Saved as Draft</strong></div>',
+        '#prefix' => '<div id="invite-later-dialog-clbrte">',
+        '#suffix' => '</div>',
+    );
+
+    $form['co-persion-dialog'] = array(
+        '#markup' => '<div class="co-persion-dialog-text text-center"><strong>Select Contact Person First.</strong></div>',
+        '#prefix' => '<div id="co-persion-dialog-clbrte">',
+        '#suffix' => '</div>',
+    );
+
+    $form['company-already-invited'] = array(
+        '#markup' => '<div class="company-already-invited-text text-center"></div>',
+        '#prefix' => '<div id="company-already-invited-clbrte">',
+        '#suffix' => '</div>',
+    );
+
+    return $form;
+}
+
+function colaborate_invite_companies_form_validate(&$form, &$form_state) { //pre($form_state,1);
+    $nid = $form_state['values']['invite_nodeid_hidden_clbrte'];
+    if ($form_state['values']['op'] == 'Send Invitations' && $_SESSION['clbrte_invitelater-' . $nid] != 1) {
+        if (empty($form_state['values']['companies_hidden_clbrte']) || $form_state['values']['companies_hidden_clbrte'] == '') {
+            form_set_error('', t('No Companies are selected for Inviting.'));
+        }
+    }
+}
+
+function colaborate_invite_companies_form_submit(&$form, &$form_state) {//pre($form_state,1);
+    global $user;
+    global $base_url;
+    $m6connect_common_module_exist = module_exists('m6connect_common');
+    $m6connect_notification_table_exist = db_table_exists('m6connect_notification');
+    //$_SESSION['rfp-invite-trigger'] = 1;
+    $_SESSION['clbrte-rfp-invite-trigger'] = 1;
+
+    $user_groups = og_get_groups_by_user($user, 'node');
+//    foreach ($user_groups as $key => $value) {
+//        $user_company = node_load($value);
+//    }
+//    if (isset($user_company->field_logo['und']) && !empty($user_company->field_logo['und'][0]['uri'])) { //pre('hi');
+//        $pimagepath = image_style_url('thumbnail', $user_company->field_logo['und'][0]['uri']);
+//    } //pre($pimagepath,1);
+    //$companies_array = explode(',', $form_state['values']['companies_hidden']);
+    $companies_array = explode(',', $form_state['values']['companies_hidden_clbrte']); //pre($companies_array);
+    $company_emails = '';
+    $current_node = menu_get_object();
+    $authname = _get_user_full_name($current_node->uid);
+
+    //////////////////////////////////////////////
+    $fdescp = '';
+    if (isset($current_node->field_public_description['und']) && !empty($current_node->field_public_description['und'][0]['value'])) {
+        $fdescp = $current_node->field_public_description['und'][0]['value'];
+    }
+    //$co_manager_array = $form_state['values']['companies_manager_hidden'];
+    $co_manager_array = $form_state['values']['companies_manager_hidden_clbrte']; //pre($co_manager_array);
+    $co_mngr_arr = array();
+    if (!empty($co_manager_array)) {
+        $co_manager_arr = explode(';', $co_manager_array);
+        foreach ($co_manager_arr as $k => $v) {
+            $cmngr = explode('_', $v);
+            $co_mngr_arr[$cmngr[0]] = $cmngr[1];
+        }
+    } //pre($co_mngr_arr,1);pre('hii',1);
+    if ($form_state['values']['op'] == 'Invite Later') {
+        $_SESSION['clbrte_invite_later_js_popup'] = 1;
+        $_SESSION['clbrte_invitelater-' . arg(1)] = 1;
+        drupal_set_message("The companies that you have selected have been saved however, the invitations have not been sent at this time.");
+        //You can complete the invitation process by clicking the â€œSend Invitationsâ€? button below, once you are ready.  
+    } else if ($form_state['values']['op'] == 'Resend Invitations') {
+        $_SESSION['clbrte_invitelater-' . arg(1)] = 0;
+        $i = 0;
+        $emptyCmpyMailto = '';
+        $nodeUser = node_load($current_node->uid);
+        $mailAttr = _get_mail_variables($mailKey = 'project_mail___collaborate_user_invite_project', $type = 'project', $current_node, $other = array());
+        foreach ($current_node->field_project_invite_comapnies['und'] as $key => $value) {
+            if (isset(field_collection_item_load($value)->field_company_nid_mail['und'][0]['value']) && !empty(field_collection_item_load($value)->field_company_nid_mail['und'][0]['value'])) {
+
+                $to = array();
+                $invited_companies = field_collection_item_load($value)->field_company_nid_mail['und'][0]['value'];
+                if (is_numeric($invited_companies)) {
+                    $company_user = node_load($invited_companies);
+                    $cmpUserUid = $company_user->uid;
+                    $cmpUsrObj = user_load($company_user->uid);
+                    $company_emails = $cmpUsrObj->mail;
+                    //$company_name = $company_user->field_owner_name['und'][0]['value'];
+                    $company_name = _get_user_full_name($cmpUserUid);
+                    //$to[] = $cmpUsrObj->mail;
+                } else {
+                    $company_emails = $invited_companies;
+                    $to[] = $invited_companies;
+                    $company_name = $invited_companies;
+                }
+                $is_ok = 1;
+
+                if (isset(field_collection_item_load($value)->field_comapny_manager['und']) && !empty(field_collection_item_load($value)->field_comapny_manager['und'])) {
+                    //$cmpMngr = field_collection_item_load($value)->field_comapny_manager['und'];
+                    $item = field_collection_item_load($value);
+                    //pre(field_collection_item_load($value)->field_comapny_manager['und']);
+                    $cmpMngr = explode(',', $item->field_comapny_manager['und'][0]['value']);
+                    //pre($cmpMngr);
+                    foreach ($cmpMngr as $cmpMngrindex => $cmpMngrUid) {
+                        $cmpUserObj = user_load($cmpMngrUid);
+                        $to[] = $cmpUserObj->mail;
+                        $params = $mailAttr;
+                        $replace = array('[PROJECT:InvitedCompanyOwnerName]' => _get_user_full_name($cmpUserObj->uid));
+                        $params['body'] = str_replace(array_keys($replace), array_values($replace), $params['body']);
+                        $mail = drupal_mail($params['module'], $params['key'], $cmpUserObj->mail, $params['language'], $params, $nodeUser->mail);
+                        $i++;
+                    }
+                }
+                /* $params = $mailAttr;
+                  $replace = array('[PROJECT:InvitedCompanyOwnerName]' => $company_name,);
+                  $params['body'] = str_replace(array_keys($replace), array_values($replace), $params['body']);
+                  $mail = drupal_mail($params['module'], $params['key'], implode(',', $to), $params['language'], $params, $nodeUser->mail); */
+                //$mail = drupal_mail('m6connect_rfp', 'rfp-invite', $to, 'en', $params);
+                /* if ($mail['result']) {
+                  $i++;
+                  } else {
+                  $is_ok = 0;
+                  drupal_set_message(implode(',', $to) . " is invalid or did not work.", 'error');
+                  } */
+            }
+        }
+        if ($i) {
+            drupal_set_message("You have successfully invited(" . $i . ")");
+        }
+    } else if ($form_state['values']['op'] == 'Send Invitations') { //pre('tt',1);
+        $_SESSION['clbrte_invitelater-' . arg(1)] = 0;
+        $i = 0;
+        $nodeUser = node_load($current_node->uid);
+        $m6connect_notification = array('type' => 'project', 'event' => 'collabarate', 'entity_id' => $current_node->nid, 'message' => NULL, 'request_from' => $user->uid, 'status' => 1, 'timestamp' => time());
+        $mailAttr = _get_mail_variables($mailKey = 'project_mail___collaborate_user_invite_project', $type = 'project', $current_node, $other = array());
+        //echo '<pre>';
+        //print_r($m6connect_notification);
+
+        foreach ($companies_array as $key => $value) {
+            $to = array();
+            if (is_numeric($value)) {
+                $company_user = node_load($value);
+                $cmpUserUid = $company_user->uid;
+                $cmpUsrObj = user_load($company_user->uid);
+                $company_emails = $cmpUsrObj->mail;
+                //$company_name = $company_user->field_owner_name['und'][0]['value'];
+                $company_name = _get_user_full_name($cmpUserUid);
+                ////////////////////////////////////////////////
+                $to[] = $cmpUsrObj->mail;
+                //$notification = $m6connect_notification;
+                //$notification['request_to'] = $cmpUsrObj->uid;
+                //if ($m6connect_common_module_exist && $m6connect_notification_table_exist) {
+                //    entity_save('m6connect_notification', (object) $notification);
+                //}
+                if (isset($co_mngr_arr[$value]) && !empty($co_mngr_arr[$value])) {
+                    $cmpMngr = explode(',', $co_mngr_arr[$value]);
+                    foreach ($cmpMngr as $cmpMngrindex => $cmpMngrUid) {
+                        //if ($cmpMngrUid != $cmpUserUid) {
+                        $cmpUserObj = user_load($cmpMngrUid);
+                        //$to[] = $cmpUserObj->mail;
+                        $notification = $m6connect_notification;
+                        $notification['request_to'] = $cmpUserObj->uid;
+                        $notification['company_nid'] = $value;
+                        $params = $mailAttr;
+                        $replace = array('[PROJECT:InvitedCompanyOwnerName]' => _get_user_full_name($cmpUserObj->uid));
+                        $params['body'] = str_replace(array_keys($replace), array_values($replace), $params['body']);
+                        $mail = drupal_mail($params['module'], $params['key'], $cmpUserObj->mail, $params['language'], $params, $nodeUser->mail);
+                        $i++;
+                        if ($m6connect_common_module_exist && $m6connect_notification_table_exist) {
+                            entity_save('m6connect_notification', (object) $notification);
+                        }
+                        //}
+                    }
+                }
+                ////////////////////////////////////////////////
+            } else {
+                /* $to[] = $value;
+                  $company_emails = $value;
+                  $company_name = $value;
+                  $notification = $m6connect_notification;
+                  $notification['request_to'] = $value;
+                  $emailuser = user_load_by_mail($value);
+                  if ($emailuser) {
+                  $notification['request_to'] = $emailuser->uid;
+                  }
+                  if ($m6connect_common_module_exist && $m6connect_notification_table_exist) {
+                  //drupal_set_message('<pre>'.print_r($notification,1).'</pre>');
+                  entity_save('m6connect_notification', (object) $notification);
+                  } */
+            }
+            $is_ok = 1;
+            //$params = $mailAttr;
+            //$replace = array('[PROJECT:InvitedCompanyOwnerName]' => $company_name,);
+            //$params['body'] = str_replace(array_keys($replace), array_values($replace), $params['body']);
+            //$mail = drupal_mail($params['module'], $params['key'], implode(',', $to), $params['language'], $params, $nodeUser->mail);
+            //$mail = drupal_mail('m6connect_rfp', 'rfp-invite', $to, 'en', $params);
+            //if ($mail['result']) {
+            //    $i++;
+            //} else {
+            //    $is_ok = 0;
+            //    drupal_set_message(implode(',', $to) . " is invalid or did not work.", 'error');
+            //}
+            //************* invite management ******************
+            if ($is_ok) {
+                if (is_numeric($value)) {
+                    $fcolnid = get_fieldCollectionId_by_entityid_for_collab($current_node->nid, $value);
+                    if (!empty($fcolnid)) {
+                        $alreadyinvited = get_inviteduser_by_fielccollectionid_for_collab($fcolnid); //pre($alreadyinvited);
+                        $manager = '';
+                        if (isset($co_mngr_arr[$value])) {
+                            $manager = $co_mngr_arr[$value];
+                        }
+                        $updateduids = $alreadyinvited . ',' . trim($manager);
+                        $fc_item = field_collection_item_load($fcolnid);
+                        $fc_wrapper = entity_metadata_wrapper('field_collection_item', $fc_item);
+                        $fc_wrapper->field_comapny_manager->set(trim($updateduids));
+                    } else {
+                        $fc_item = entity_create('field_collection_item', array('field_name' => 'field_project_invite_comapnies'));
+                        $fc_item->setHostEntity('node', $current_node);
+                        $fc_wrapper = entity_metadata_wrapper('field_collection_item', $fc_item);
+                        $fc_wrapper->field_company_nid_mail->set($value);
+                        //$fc_wrapper->field_rfp_invite_status->set(0);
+                        if (isset($co_mngr_arr[$value])) {
+                            $manager = $co_mngr_arr[$value];
+                            $fc_wrapper->field_comapny_manager->set(trim($manager));
+                        }
+                    }
+                    $fc_wrapper->save(TRUE);
+                }
+            }
+            node_save($current_node);
+            if (is_numeric($value)) {
+                $grp = node_load($value);
+                if ($grp->type == 'organization') {
+                    $grpuid = $grp->uid;
+                    $_SESSION['clbrte_cust_invite_msg_' . $grpuid] = $value;
+                }
+            }
+        }
+        //die;
+        //drupal_set_message("Invitations Sent");
+        if ($i) {
+            drupal_set_message("You have successfully invited(" . $i . ")");
+        }
+        if ($current_node->status == 0) { // node published after sending invitation
+            $current_node->status = 1;
+        }
+        node_save($current_node);
+    }
+    //drupal_goto('projects');
+    $form_state['redirect'] = array('node/' . arg(1));
+}
+
+/*
+  implement hook_node_types() to define which type of node are available to
+  provide custom permission
+ */
+
+function m6connect_projects_node_types() {
+    return array('project', 'rfp', 'rfp-document', 'proposal');
+}
+
+function m6connect_projects_uids_from_list($node) {
+    global $user;
+    $allowed_uids = array();
+    if ($node->type == 'rfp') {
+        $projects = field_get_items('node', $node, 'field_project');
+        if ($projects) {
+            $project_node = node_load($projects[0]['target_id']);
+            $allowed_uids = loadadinitation_project_user($project_node);
+      if($node->uid!= $project_node->uid && $user->uid == $project_node->uid){
+        $allowed_uids[] = $project_node->uid; 
+      }
+        }
+    } else {
+        $allowed_uids = loadadinitation_project_user($node);
+    }
+    return $allowed_uids;
+}
+
+function loadadinitation_project_user($node) {
+    //kpr($node);
+    $users = field_get_items('node', $node, 'field_project_invite_comapnies');
+    $allowed_uids = array();
+    $uidsArr = array();
+    if ($users && is_array($users)) {
+        foreach ($users as $k => $v) {
+            $val = entity_load('field_collection_item', array($v['value']));
+            if (count($val[$v['value']]->field_comapny_manager) > 0) {
+                $Manageruids = $val[$v['value']]->field_comapny_manager['und'][0]['value'];
+                $Manageruid = explode(',', $Manageruids);
+                foreach ($Manageruid as $k => $v) {
+                    $uidsArr[] = $v;
+                }
+            } else {
+                $uids = $val[$v['value']]->field_company_nid_mail['und'][0]['value'];
+            }
+            if (count($uidsArr) > 0) {
+                foreach ($uidsArr as $k1 => $v1) {
+                    $allowed_uids[] = $v1;
+                }
+            } else {
+
+                $email_user = user_load_by_mail($uids);
+                $allowed_uids[] = $email_user->uid;
+            }
+        }
+    }
+    return $allowed_uids;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
+
+
+/*
+ * Get fieldcollection id by entityid for collaboration
+ */
+function get_fieldCollectionId_by_entityid_for_collab($cnodeid, $compnid) {
+    $fcid = '';
+    $query = db_select('node', 'n');
+    $query->Join('field_data_field_project_invite_comapnies', 'ric', 'ric.entity_id=n.nid');
+    $query->Join('field_data_field_company_nid_mail', 'rcne', 'ric.field_project_invite_comapnies_value = rcne.entity_id');
+    $query->fields('ric', array('field_project_invite_comapnies_value'))
+            ->condition('n.nid', $cnodeid, '=')
+            ->condition('rcne.field_company_nid_mail_value', $compnid, '=');
+    $result = $query->execute()->fetchCol();
+    if ($result && is_array($result) && !empty($result) && count($result) > 0) {
+        foreach ($result as $k => $f) {
+            $fcid = $f;
+        }
+    }
+    return $fcid;
+}
+
+/*
+ * Get Inviteduseruid value by fieldcollection id for collaboration
+ */
+
+function get_inviteduser_by_fielccollectionid_for_collab($fcolnid) {
+    $uids = '';
+    $query = db_select('field_data_field_comapny_manager', 'imu');
+    $query->fields('imu', array('field_comapny_manager_value'))
+            ->condition('imu.entity_id', $fcolnid, '=');
+    $result = $query->execute()->fetchCol();
+    if ($result && is_array($result) && !empty($result) && count($result) > 0) {
+        foreach ($result as $k => $f) {
+            $uids = $f;
+        }
+    }
+    return $uids;
+}
+
+/*
+ * copy project node into new project node
+ */
+
+function custom_project_copy_submit(&$form, &$form_state) { //pre($form,1);
+    if (isset($form['nid']) && isset($form['nid']['#value']) && !empty($form['nid']['#value'])) {
+        $projectnid = $form['nid']['#value'];
+        $redirect = 'copyproject/' . $projectnid;
+        drupal_goto($redirect);
+    }
+}
+
+function _get_associated_rfp_with_project($nid) { //972
+    $query = db_select('node', 'n');
+    $query->Join('field_data_field_project', 'p', 'p.entity_id=n.nid');
+    $query->fields('n', array('nid'))
+            ->condition('n.type', 'rfp', '=')
+            ->condition('p.field_project_target_id', $nid, '=');
+    $result = $query->execute()->fetchCol(); //pre($result);
+    $rfpnids = array();
+    if ($result && is_array($result) && !empty($result) && count($result) > 0) {
+        foreach ($result as $k => $rfpnid) {
+            $rfpnids[] = $rfpnid;
+        }
+    }
+    return $rfpnids;
+}
+
+function m6connect_projects_page_alter(&$page) {
+    $page['#attached']['library'][] = array('system', 'ui.dialog');
+}
+
+function m6connect_projects_flag_flag($flag, $entity_id, $account, $flagging) {
+    global $company, $user;
+    //pre($flag);pre($entity_id);pre($account);pre($flagging);pre($company);pre('end',1);
+
+    if (($flag->fid == 2 && $flag->entity_type == 'node') || ($flag->fid == 3 && $flag->entity_type == 'field_collection_item')) {
+        if ($flag->fid == 3 && $flag->entity_type == 'field_collection_item') {
+            $fc = $flagging->entity_id;
+            $model = entity_load_single('field_collection_item', $fc);
+            $node = $model->hostEntity();
+            $node_id = $node->nid;
+        } else {
+            $node_id = $flagging->entity_id;
+        }
+        $db_insert = array(
+            'flagging_id' => $flagging->flagging_id,
+            'fid' => $flagging->fid,
+            'entity_type' => $flagging->entity_type,
+            'entity_id' => $flagging->entity_id,
+            'uid' => $flagging->uid,
+            'sid' => $flagging->sid,
+            'timestamp' => $flagging->timestamp,
+            'company_id' => $company->nid,
+            'node_id' => $node_id,
+        );
+        $returnedId = db_insert('m6connect_flagging')->fields($db_insert)->execute();
+    }
+    if ($flag->fid == 1 && $flag->entity_type == 'node') {
+        $node = node_load($entity_id);
+        $nodeType = $node->type;
+        if (in_array($nodeType, array('project', 'rfp', 'my_proposal', 'organization'))) {
+            $foldername = array('project' => 'Projects', 'rfp' => 'RFPs', 'my_proposal' => 'Proposals', 'organization' => 'Companies');
+            $fname = $foldername[$nodeType];
+            //$result = db_select('bookmarkorganizer_folder','b')->fields('b')->condition('b.name', $fname, '=')->condition('b.uid', $flagging->uid, '=')->execute()->fetchAll();
+            $result = db_select('bookmarkorganizer_item', 'b')->fields('b')->condition('b.label', $fname, '=')->condition('b.uid', $flagging->uid, '=')->condition('b.type', 'folder', '=')->execute()->fetchAll();
+            if ($result && is_array($result) && !empty($result) && count($result) > 0) {
+                foreach ($result as $var => $val) {
+                    $parent = $val->id;
+                }
+                //pre($parent);
+                module_load_include($type = 'inc', $module = 'bookmarkorganizer', $name = 'bookmarkorganizer');
+                $bookmarkItem = bookmarkorganizer_get_item_by_content($node->nid, $flagging->uid, $type = 'node'); //pre($bookmarkItem);
+                if ($bookmarkItem) {
+                    $fields = array('parent' => $parent, 'updated' => time('YYYY-MM-DD HH:MM:SS'));
+                    $query = db_update('bookmarkorganizer_item');
+                    $query->fields($fields);
+                    $query->condition('id', $bookmarkItem->id);
+                    $query->execute();
+                } else {
+                    $fields = array(
+                        'content_id' => $node->nid,
+                        'uid' => $flagging->uid,
+                        'parent' => $parent,
+                        'label' => $node->title,
+                        'type' => 'node',
+                        'weight' => 0,
+                        'created' => time('YYYY-MM-DD HH:MM:SS'),
+                        'updated' => time('YYYY-MM-DD HH:MM:SS')
+                    );
+
+
+                    db_insert('bookmarkorganizer_item')->fields($fields)->execute();
+                }
+                //pre('hh',1);
+            }
+        }
+    }
+}
+
+function m6connect_projects_flag_unflag($flag, $entity_id, $account, $flagging) {
+    global $company;
+    //pre($flag);pre($entity_id);pre($account);pre($flagging);pre($company);pre('end',1);
+    if (($flag->fid == 2 && $flag->entity_type == 'node') || ($flag->fid == 3 && $flag->entity_type == 'field_collection_item')) {
+        db_delete('m6connect_flagging')->condition('flagging_id', $flagging->flagging_id)->execute();
+    }
+}
+
+/*
+ * check bookmark folder exists for user or not
+ * variable: $fname (folder name), $uid (user id)
+ */
+
+function is_bookmark_folder_exists($fname, $uid) {
+    $result = db_select('bookmarkorganizer_item', 'b')->fields('b')->condition('b.label', $fname, '=')->condition('b.uid', $uid, '=')->condition('b.type', 'folder', '=')->execute()->rowCount();
+    return $result;
+}
+
+//////////////// Script for bookmark folder creation for existing user start //////////////////////
+/*
+  module_load_include($type = 'inc', $module = 'bookmarkorganizer', $name = 'bookmarkorganizer');
+  $foldername =   array('project'=> 'Projects','rfp'=> 'RFPs','my_proposal'=> 'Proposals','organization'=> 'Organizations');
+  $query = db_select('users', 'u');
+  $query->fields('u');
+  $result = $query->execute();
+  while($record = $result->fetchAssoc()) {
+  $uid = $record['uid'];
+  foreach($foldername as $k=>$fname) {
+  $folder_exists = is_bookmark_folder_exists($fname, $uid);
+  if(!$folder_exists){
+  bookmarkorganizer_create_folder($uid,$fname);
+  }
+  }
+  }
+ */
+//////////////// Script for bookmark folder creation for existing user end //////////////////////
+
+/**
+ * Implements hook_user_insert().
+ */
+function m6connect_projects_user_insert(&$edit, $account, $category) {
+    module_load_include($type = 'inc', $module = 'bookmarkorganizer', $name = 'bookmarkorganizer');
+    $foldername = array('project' => 'Projects', 'rfp' => 'RFPs', 'my_proposal' => 'Proposals', 'organization' => 'Companies');
+    //$foldername = array('project' => 'Projects', 'rfp' => 'RFPs', 'my_proposal' => 'Proposals', 'organization' => 'Companies', 'people' => 'People');
+    $uid = $account->uid;
+    foreach ($foldername as $k => $fname) {
+        $folder_exists = is_bookmark_folder_exists($fname, $uid);
+        if (!$folder_exists) {
+            bookmarkorganizer_create_folder($uid, $fname, 1);
+        }
+    }
+}
+
+/* * **************************************** for new book mark functionality start********************************************* */
+/* * *************************************************************************************************************************** */
+
+
+function favorite_content_generator_new_all($share = FALSE) {
+    global $user;
+    $send = '';
+    $params = drupal_get_query_parameters();
+    $current_path = current_path();
+    if (arg(0) == 'node' && is_numeric(arg(1))) {
+        $current_path = drupal_lookup_path('alias', $current_path);
+    }
+    //drupal_set_message($current_path);
+    //drupal_set_message('<pre>'.print_r( drupal_get_query_parameters(),1).'</pre>');
+    module_load_include($type = 'inc', $module = 'bookmarkorganizer', $name = 'bookmarkorganizer');
+    $folders = bookmarkorganizer_get_possible_parents($user->uid);
+    $extra = $data = bookmarkorganizer_get_items($user->uid, $index = 0, !variable_get('bookmarkorganizer_enable_folders'));
+    $extra = array_reverse($data);
+    $output = array();
+    $output['last'] = '';
+    foreach ($data as $index => $item) {
+        if ($item->type == 'folder') {
+            $colpClass = '';
+            //$colpsedspan = '<span>&nbsp;</span>';
+            $colpsedspan = '<span><i class="fa fa-folder-o"></i></span>';
+            $startLast = '';
+            $endLast = '</li>';
+            $browseFolder = '';
+            $go = 0;
+            $nextparent = $data[($index + 1)]->parent;
+            $folderClass = 'folder-clickable';
+            if (isset($data[($index + 1)]) && $nextparent == $item->id) {
+                $folderClass = 'folder-clickable';
+                $colpClass = ' collapsed';
+                //$colpsedspan = '<span class="span1"><i class="fa fa-minus"></i></span> <span class="span2"><i class="fa fa-plus"></i></span>';
+                $colpsedspan = '<span class="span1"><i class="fa fa-folder-open-o"></i></span> <span class="span2"><i class="fa fa-folder-o"></i></span>';
+                $startLast = '<div class="collapse" id="allcollapsecustommenus' . $index . '"><ul class="list-unstyled sortable-favorite-list">';
+                $endLast = '</ul></div></li>';
+                //$browseFolder = '<a href="?favorite='.$item->id.'" class="action action-browse" alt="Browse Favorite" title="Browse Favorite"><i class="fa fa-folder-open"></i></a>&nbsp;';
+                $go = 1;
+                $gotype = $data[($index + 1)]->type;
+            }
+            //   /'.$current_path.'
+            $output['folder'][$item->id] = array(
+                'start' => '<li id="allbookmark-fav-id-' . $item->id . '" class="folder-list dropable-favorite-folder dragable-favorite-container-li sortable-favorite-folder ' . $folderClass . '">
+           <span class="bookmark-folder-id bookmark-fav-id-' . $item->id . '_folder" style="display:none;">' . $item->id . '</span>
+           <span class="bookmark-type bookmark-fav-id-' . $item->id . '_type" style="display:none;">' . $item->type . '</span>
+           <span class="bookmark-content-id bookmark-fav-id-' . $item->id . '" style="display:none;">' . $item->content_id . '</span>
+           <a class="drg2 bookmark-link' . $colpClass . '" href="#allcollapsecustommenus' . $index . '" data-toggle="collapse" aria-expanded="false" aria-controls="allcollapsecustommenus' . $index . '">' . $colpsedspan . $item->label . '</a>
+           <div class="pull-right">' . $browseFolder . '
+           
+           
+           </div>' . $startLast,
+                'nodes' => '',
+                'end' => $endLast,
+                'mid' => '',
+                'index' => $index,
+                'parent' => $item->parent,
+                'go' => $go,
+                'gotype' => $gotype,
+                'nextparent' => $nextparent,
+            );
+        } else {
+            //$nodePath = '/'.drupal_lookup_path('alias','node/'.$item->content_id); 
+            //$nodePath = 'javascript:void(0);';
+            $nodePath = '/' . drupal_lookup_path('alias', 'node/' . $item->content_id);
+            $output['node'][$item->id] = array(
+                'start' => '<li id="allbookmark-fav-id-' . $item->id . '" class="folder-node-list dragable-favorite-container-li sortable-favorite-folder dropable-favorite-folder">
+                 <span class="bookmark-type bookmark-fav-id-' . $item->id . '_type" style="display:none;">' . $item->type . '</span>
+           <span class="bookmark-folder-id bookmark-fav-id-' . $item->id . '_folder" style="display:none;">' . $item->parent . '</span>
+                 <span class="bookmark-content-id bookmark-fav-id-' . $item->id . '" style="display:none;">' . $item->content_id . '</span>
+           <span class="bookmark-content-id bookmark-fav-id-' . $item->id . '_item" style="display:none;">' . $item->id . '</span>
+           <div class="cust-bookmarked-data" ><a class="drg5 bookmark-link bookmark-link-overflow" href="' . $nodePath . '"><span>&nbsp;</span>' . $item->label . '</a>
+             <span class="pull-right">
+           
+               <a href="/bookmarkorganizer/delete/' . $item->id . '" class="action action-remove-node" alt="Remove article" title="Remove article"><i class="fa fa-trash-o"></i></a>
+               &nbsp;<i class="fa fa-star"></i>
+             </span>
+           </div></li>',
+                'end' => '',
+                'index' => $index,
+                'parent' => $item->parent
+            );
+            //<a href="/bookmarkorganizer/rename/' . $item->id . '" class="action action-rename" alt="Rename article" title="Rename article"><i class="fa fa-pencil"></i></a>&nbsp;
+        }
+    }
+    if (isset($output['node']) && count($output['node'])) {
+        foreach ($output['node'] as $itemId => $nodeItem) {
+            if ($nodeItem['parent'] == 0) {
+                $output['last'] .= $nodeItem['start'];
+            } else {
+                $output['folder'][$nodeItem['parent']]['nodes'] .= $nodeItem['start'];
+            }
+        }
+    }
+    if (isset($output['folder']) && count($output['folder'])) {
+        /* foreach($output['folder'] as $itemId => $folderItem){
+          //if($folderItem['parent']!=0){
+          if($folderItem['nextparent'] == $folderItem['parent']){
+          $output['folder'][$folderItem['parent']]['start'] .= $folderItem['start'].$folderItem['nodes'].$folderItem['end'];
+          $output['folder']['processed']=1;
+          }
+          else if($folderItem['nextparent']==$folderItem->id){
+          $output['folder'][$folderItem['parent']]['start'] .= $folderItem['start'].$folderItem['nodes'];
+          $output['folder'][$folderItem['parent']]['end'] = $folderItem['end'].$output['folder'][$folderItem['parent']]['end'];
+          $output['folder']['processed']=0;
+          }
+          //}
+          } */
+        foreach ($extra as $index => $itemex) {
+            if ($itemex->type == 'folder') {
+                if ($output['folder'][$itemex->id]['parent'] != 0) {
+                    $curritem = $output['folder'][$itemex->id];
+                    $output['folder'][$curritem['parent']]['mid'] .= $curritem['start'] . $curritem['mid'] . $curritem['nodes'] . $curritem['end'];
+                }
+            }
+        }
+        foreach ($output['folder'] as $itemId => $folderItem) {
+            if ($folderItem['parent'] == 0) {
+                $send .= $folderItem['start'] . $folderItem['mid'] . $folderItem['nodes'] . $folderItem['end'];
+            }
+        }
+    }
+    //////////////////// people bookmark start ////////////////////////////////
+    $flagid = _get_flag_id_by_flag_name('people_bookmark');
+    $uids = array();
+    $cuid = $user->uid;
+    $query = db_select('flagging', 'f');
+    $query->fields('f');
+    $query->condition('f.entity_type', 'user', '=');
+    $query->condition('f.fid', $flagid, '='); // 11-> people bookmark flag
+    $query->condition('f.uid', $cuid, '=');
+    $result = $query->execute();
+    while ($record = $result->fetchAssoc()) {
+        $uids[] = $record['entity_id'];
+    }
+    $peopleflagged = count($uids);
+    $folderoutput = '';
+    $PcolpClass = '';
+//$Pcolpsedspan = '<span>&nbsp;</span>';
+    $Pcolpsedspan = '<span><i class="fa fa-folder-o"></i></span>';
+    if ($peopleflagged) {
+        $PcolpClass = ' collapsed';
+        //$Pcolpsedspan = '<span class="span1"><i class="fa fa-minus"></i></span> <span class="span2"><i class="fa fa-plus"></i></span>';
+        $Pcolpsedspan = '<span class="span1"><i class="fa fa-folder-open-o"></i></span> <span class="span2"><i class="fa fa-folder-o"></i></span>';
+    }
+    $folderoutput .= '<li class="folder-list dropable-favorite-folder dragable-favorite-container-li sortable-favorite-folder folder-clickable ui-droppable" id="bookmark-fav-id-people">
+  <a aria-controls="allcollapsecustommenuspeople" aria-expanded="true" data-toggle="collapse" href="#allcollapsecustommenuspeople" class="bookmark-link' . $PcolpClass . '">
+    ' . $Pcolpsedspan . 'People
+  </a>
+  <div class="pull-right"></div>';
+
+    if ($peopleflagged) {
+        $folderoutput .= '<div id="allcollapsecustommenuspeople" class="collapse" aria-expanded="false">
+    <ul class="list-unstyled sortable-favorite-list">';
+        foreach ($uids as $k => $fuid) {
+            $fusername = _get_user_full_name($fuid);
+            $folderoutput .= '    <li class="folder-node-list dragable-favorite-container-li sortable-favorite-folder dropable-favorite-folder ui-droppable" id="bookmark-fav-id-' . $fuid . '">
+    <div class="cust-bookmarked-data" ><a href="/user/' . $fuid . '" class="bookmark-link-overflow bookmark-link ui-draggable"><span>&nbsp;</span>' . $fusername . '</a>
+    <span class="pull-right">';
+            /* $folderoutput .= '<a title="Rename article" alt="Rename article" class="action action-rename" href="/bookmarkorganizer/rename/147"><i class="fa fa-pencil"></i></a>
+              &nbsp;
+              <a title="Remove article" alt="Remove article" class="action action-remove" href="/bookmarkorganizer/delete/147"><i class="fa fa-trash-o"></i></a>'; */
+            //$folderoutput .= '<span class="send-message btn btn-primary">'.flag_create_link('people_bookmark', $fuid).'</span>';
+            $flag = flag_get_flag('people_bookmark');
+            $relationships = user_relationships_load(array('approved' => $user->uid, 'approved' => TRUE, 'requestee_id' => $fuid));
+            if (!empty($relationships) && count($relationships) > 0) {
+                $connectspan = '<i class="fa fa-arrow-circle-o-right"></i>';
+            } else {
+                $connectspan = '';
+            }
+            $folderoutput .= $connectspan . '&nbsp;<a title="Remove article" alt="Remove article" class="action action-remove-people" href="/peoplebookmark/delete/0/' . $fuid . '"><i class="fa fa-trash-o"></i></a>&nbsp;<i class="fa fa-star"></i>';
+            $folderoutput .= '    </span>
+      </div>
+    </li>';
+        }
+        $folderoutput .= '
+    </ul>
+  </div>';
+    }
+
+    $folderoutput .= ' </li>';
+
+    $send .= $folderoutput;
+//////////////////// people bookmark end //////////////////////////////// 
+    $send .= $output['last'];
+    //$send .= '<li class="root-lavel">root</li>';
+    return $send;
+}
+
+function favorite_content_generator_new($share = FALSE) {
+    global $user;
+    $send = '';
+    $params = drupal_get_query_parameters();
+    $current_path = current_path();
+    if (arg(0) == 'node' && is_numeric(arg(1))) {
+        $current_path = drupal_lookup_path('alias', $current_path);
+    }
+    //drupal_set_message($current_path);
+    //drupal_set_message('<pre>'.print_r( drupal_get_query_parameters(),1).'</pre>');
+    module_load_include($type = 'inc', $module = 'bookmarkorganizer', $name = 'bookmarkorganizer');
+    $folders = bookmarkorganizer_get_possible_parents($user->uid);
+    $extra = $data = bookmarkorganizer_get_items($user->uid, $index = 0, !variable_get('bookmarkorganizer_enable_folders'));
+    $extra = array_reverse($data);
+    $output = array();
+    $output['last'] = '';
+    foreach ($data as $index => $item) {
+        if ($item->type == 'folder') {
+            $colpClass = '';
+            //$colpsedspan = '<span>&nbsp;</span>';
+            $colpsedspan = '<span><i class="fa fa-folder-o"></i></span>';
+            $startLast = '';
+            $endLast = '</li>';
+            $browseFolder = '';
+            $go = 0;
+            $nextparent = $data[($index + 1)]->parent;
+            $folderClass = 'folder-clickable';
+            if (isset($data[($index + 1)]) && $nextparent == $item->id) {
+                $folderClass = 'folder-clickable';
+                $colpClass = ' collapsed';
+                //$colpsedspan = '<span class="span1"><i class="fa fa-minus"></i></span> <span class="span2"><i class="fa fa-plus"></i></span>';
+                $colpsedspan = '<span class="span1"><i class="fa fa-folder-open-o"></i></span> <span class="span2"><i class="fa fa-folder-o"></i></span>';
+                $startLast = '<div class="collapse" id="newcollapsecustommenus' . $index . '"><ul class="list-unstyled sortable-favorite-list">';
+                $endLast = '</ul></div></li>';
+                //$browseFolder = '<a href="?favorite='.$item->id.'" class="action action-browse" alt="Browse Favorite" title="Browse Favorite"><i class="fa fa-folder-open"></i></a>&nbsp;';
+                $go = 1;
+                $gotype = $data[($index + 1)]->type;
+            }
+            //   /'.$current_path.'
+            $output['folder'][$item->id] = array(
+                'start' => '<li id="bookmark-fav-id-' . $item->id . '" class="folder-list dropable-favorite-folder dragable-favorite-container-li sortable-favorite-folder ' . $folderClass . '">
+           <span class="bookmark-folder-id bookmark-fav-id-' . $item->id . '_folder" style="display:none;">' . $item->id . '</span>
+           <span class="bookmark-type bookmark-fav-id-' . $item->id . '_type" style="display:none;">' . $item->type . '</span>
+           <span class="bookmark-content-id bookmark-fav-id-' . $item->id . '" style="display:none;">' . $item->content_id . '</span>
+           <a class="drg3 bookmark-link' . $colpClass . '" href="#newcollapsecustommenus' . $index . '" data-toggle="collapse" aria-expanded="false" aria-controls="newcollapsecustommenus' . $index . '">' . $colpsedspan . $item->label . '</a>
+           <div class="pull-right">' . $browseFolder . '
+           
+           
+           </div>' . $startLast,
+                'nodes' => '',
+                'end' => $endLast,
+                'mid' => '',
+                'index' => $index,
+                'parent' => $item->parent,
+                'go' => $go,
+                'gotype' => $gotype,
+                'nextparent' => $nextparent,
+            );
+        } else {
+            //$nodePath = '/'.drupal_lookup_path('alias','node/'.$item->content_id); 
+            //$nodePath = 'javascript:void(0);';
+            $nodePath = '/' . drupal_lookup_path('alias', 'node/' . $item->content_id);
+            $output['node'][$item->id] = array(
+                'start' => '<li id="bookmark-fav-id-' . $item->id . '" class="folder-node-list dragable-favorite-container-li sortable-favorite-folder dropable-favorite-folder">
+                 <span class="bookmark-type bookmark-fav-id-' . $item->id . '_type" style="display:none;">' . $item->type . '</span>
+           <span class="bookmark-folder-id bookmark-fav-id-' . $item->id . '_folder" style="display:none;">' . $item->parent . '</span>
+                 <span class="bookmark-content-id bookmark-fav-id-' . $item->id . '" style="display:none;">' . $item->content_id . '</span>
+           <span class="bookmark-content-id bookmark-fav-id-' . $item->id . '_item" style="display:none;">' . $item->id . '</span>
+           <div class="cust-bookmarked-data" ><a class="drg6 bookmark-link bookmark-link-overflow" href="' . $nodePath . '"><span>&nbsp;</span>' . $item->label . '</a>
+           <span class="pull-right">
+           
+           <a href="/bookmarkorganizer/delete/' . $item->id . '" class="action action-remove-node" alt="Remove article" title="Remove article"><i class="fa fa-trash-o"></i></a>
+           &nbsp;<i class="fa fa-star"></i>
+           </span>
+           </div></li>',
+                'end' => '',
+                'index' => $index,
+                'parent' => $item->parent
+            );
+            //<a href="/bookmarkorganizer/rename/' . $item->id . '" class="action action-rename" alt="Rename article" title="Rename article"><i class="fa fa-pencil"></i></a>&nbsp;
+        }
+    }
+    if (isset($output['node']) && count($output['node'])) {
+        foreach ($output['node'] as $itemId => $nodeItem) {
+            if ($nodeItem['parent'] == 0) {
+                $output['last'] .= $nodeItem['start'];
+            } else {
+                $output['folder'][$nodeItem['parent']]['nodes'] .= $nodeItem['start'];
+            }
+        }
+    }
+    if (isset($output['folder']) && count($output['folder'])) {
+        /* foreach($output['folder'] as $itemId => $folderItem){
+          //if($folderItem['parent']!=0){
+          if($folderItem['nextparent'] == $folderItem['parent']){
+          $output['folder'][$folderItem['parent']]['start'] .= $folderItem['start'].$folderItem['nodes'].$folderItem['end'];
+          $output['folder']['processed']=1;
+          }
+          else if($folderItem['nextparent']==$folderItem->id){
+          $output['folder'][$folderItem['parent']]['start'] .= $folderItem['start'].$folderItem['nodes'];
+          $output['folder'][$folderItem['parent']]['end'] = $folderItem['end'].$output['folder'][$folderItem['parent']]['end'];
+          $output['folder']['processed']=0;
+          }
+          //}
+          } */
+        foreach ($extra as $index => $itemex) {
+            if ($itemex->type == 'folder') {
+                if ($output['folder'][$itemex->id]['parent'] != 0) {
+                    $curritem = $output['folder'][$itemex->id];
+                    $output['folder'][$curritem['parent']]['mid'] .= $curritem['start'] . $curritem['mid'] . $curritem['nodes'] . $curritem['end'];
+                }
+            }
+        }
+        foreach ($output['folder'] as $itemId => $folderItem) {
+            if ($folderItem['parent'] == 0) {
+                $send .= $folderItem['start'] . $folderItem['mid'] . $folderItem['nodes'] . $folderItem['end'];
+            }
+        }
+    }
+    //////////////////// people bookmark start ////////////////////////////////
+    $flagid = _get_flag_id_by_flag_name('people_bookmark');
+    $uids = array();
+    $cuid = $user->uid;
+    $query = db_select('flagging', 'f');
+    $query->fields('f');
+    $query->condition('f.entity_type', 'user', '=');
+    $query->condition('f.fid', $flagid, '='); // 11-> people bookmark flag
+    $query->condition('f.uid', $cuid, '=');
+    $result = $query->execute();
+    while ($record = $result->fetchAssoc()) {
+        $uids[] = $record['entity_id'];
+    }
+    $peopleflagged = count($uids);
+    $folderoutput = '';
+    $PcolpClass = '';
+//$Pcolpsedspan = '<span>&nbsp;</span>';
+    $Pcolpsedspan = '<span><i class="fa fa-folder-o"></i></span>';
+    if ($peopleflagged) {
+        $PcolpClass = ' collapsed';
+        //$Pcolpsedspan = '<span class="span1"><i class="fa fa-minus"></i></span> <span class="span2"><i class="fa fa-plus"></i></span>';
+        $Pcolpsedspan = '<span class="span1"><i class="fa fa-folder-open-o"></i></span> <span class="span2"><i class="fa fa-folder-o"></i></span>';
+    }
+    $folderoutput .= '<li class="folder-list dropable-favorite-folder dragable-favorite-container-li sortable-favorite-folder folder-clickable ui-droppable" id="bookmark-fav-id-people">
+  <a aria-controls="collapsecustommenuspeople" aria-expanded="true" data-toggle="collapse" href="#collapsecustommenuspeople" class="bookmark-link ui-draggable ' . $PcolpClass . '">
+    ' . $Pcolpsedspan . 'People
+  </a>
+  <div class="pull-right"></div>';
+
+    if ($peopleflagged) {
+        $folderoutput .= '<div id="collapsecustommenuspeople" class="collapse" aria-expanded="false" style="">
+    <ul class="list-unstyled sortable-favorite-list">';
+        foreach ($uids as $k => $fuid) {
+            $fusername = _get_user_full_name($fuid);
+            $folderoutput .= '    <li class="folder-node-list dragable-favorite-container-li sortable-favorite-folder dropable-favorite-folder ui-droppable" id="bookmark-fav-id-' . $fuid . '">
+    <div class="cust-bookmarked-data" ><a href="/user/' . $fuid . '" class="bookmark-link-overflow bookmark-link ui-draggable"><span>&nbsp;</span>' . $fusername . '</a>
+    <span class="pull-right">';
+            /* $folderoutput .= '<a title="Rename article" alt="Rename article" class="action action-rename" href="/bookmarkorganizer/rename/147"><i class="fa fa-pencil"></i></a>
+              &nbsp;
+              <a title="Remove article" alt="Remove article" class="action action-remove" href="/bookmarkorganizer/delete/147"><i class="fa fa-trash-o"></i></a>'; */
+            //$folderoutput .= '<span class="send-message btn btn-primary">'.flag_create_link('people_bookmark', $fuid).'</span>';
+            $flag = flag_get_flag('people_bookmark');
+            $relationships = user_relationships_load(array('approved' => $user->uid, 'approved' => TRUE, 'requestee_id' => $fuid));
+            if (!empty($relationships) && count($relationships) > 0) {
+                $connectspan = '<i class="fa fa-arrow-circle-o-right"></i>';
+            } else {
+                $connectspan = '';
+            }
+            $folderoutput .= $connectspan . '&nbsp;<a title="Remove article" alt="Remove article" class="action action-remove-people" href="/peoplebookmark/delete/0/' . $fuid . '"><i class="fa fa-trash-o"></i></a>&nbsp;<i class="fa fa-star"></i>';
+            $folderoutput .= '  </span>  
+      </div>
+    </li>';
+        }
+        $folderoutput .= ' </ul>
+  </div>';
+    }
+
+    $folderoutput .= '</li>';
+
+    $send .= $folderoutput;
+//////////////////// people bookmark end ////////////////////////////////
+    $send .= $output['last'];
+    //$send .= '<li class="root-lavel">root</li>';
+    return $send;
+}
+
+/*
+ * get flag id by flag name
+ */
+function _get_flag_id_by_flag_name($flagname) {
+  $flagfid = 0;
+  $query = db_select('flag', 'f');
+  $query->fields('f', array('fid'))
+          ->condition('f.name', $flagname, '=');
+  $result = $query->execute()->fetchCol();
+  if ($result && is_array($result) && !empty($result) && count($result) > 0) {
+      foreach ($result as $k => $v) {
+          $flagfid = $v;
+      }
+  }
+  return $flagfid;
+}
+
+function mybookmark() {
+  global $user;
+  module_load_include($type = 'inc', $module = 'bookmarkorganizer', $name = 'bookmarkorganizer');
+  $output = bookmarkorganizer_main_view($user);
+  return drupal_render($output);
+}
+
+/* * **************************************** for new book mark functionality end ********************************************** */
+/* * *************************************************************************************************************************** */
+
+
+
+function _get_associate_node_by_nodenid($nodeid) {
+  $associatenid = array();
+  $checkIn = array($nodeid);
+  $query = db_select('og_membership', 'ogms')
+    ->fields('ogms', array('etid'))
+    ->condition('group_type', 'node', '=')
+    ->condition('entity_type', 'node', '=')
+    ->condition('gid', $nodeid, '=');
+  $associatenid = $query->execute()->fetchCol();
+
+  if (!empty($associatenid)) {
+    $checkIn = array_merge($checkIn, $associatenid);
+  }
+  $query2 = db_select('node', 'n');
+  $query2->leftjoin('field_data_field_submit_proposal_in_respons', 'r', 'r.entity_id=n.nid');
+  $query2->leftjoin('field_data_field_field_sub_proposal_pjt', 'p', 'p.entity_id=n.nid');
+  $query2->leftjoin('field_data_field_submit_proposal_to_company', 'c,', 'c.entity_id=n.nid');
+  $query2->fields('n', array('nid'));
+  $query2->condition('n.type', 'my_proposal');
+  $ic_or = db_or();
+  $ic_or->condition('field_submit_proposal_in_respons_target_id', array_values($checkIn), 'IN')
+          ->condition('field_field_sub_proposal_pjt_target_id', array_values($checkIn), 'IN')
+          ->condition('field_submit_proposal_to_company_target_id', array_values($checkIn), 'IN');
+  $query2->condition($ic_or);
+  $proposalnid = $query2->execute()->fetchCol();
+
+  if (!empty($proposalnid)) {
+    $associatenid = array_merge($associatenid, $proposalnid);
+  }
+
+  return $associatenid;
+}
+
+/**
+ * Implements hook_node_delete()
+ */
+function m6connect_projects_node_delete($node) {
+  if (isset($node) && $node->type == 'organization') {
+    $nodeidsWoCurrent = $nodeids = _get_associate_node_by_nodenid($node->nid);
+    array_push($nodeids, $node->nid);
+    if (!empty($nodeids)) {
+      db_delete('bookmarkorganizer_item')
+        ->condition('type', 'node', '=')
+        ->condition('content_id', array_values($nodeids), 'IN')
+        ->execute();
+
+      db_delete('flagging')
+        ->condition('entity_type', 'node', '=')
+        ->condition('entity_id', array_values($nodeids), 'IN')
+        ->execute();
+
+      $ic_or = db_or();
+      $ic_or->condition('entity_id', array_values($nodeids), 'IN')->condition('company_nid', $node->nid, '=');
+      db_delete('m6connect_notification')
+        ->condition($ic_or)
+        ->execute();
+      if (!empty($nodeidsWoCurrent)) {
+        node_delete_multiple(array_values($nodeidsWoCurrent));
+      }
+    }
+  }
+
+  $is_node_type = array('project', 'rfp', 'my_proposal', 'routing_slip', 'insurance_certificates');
+  $node_type = $node->type;
+  if (isset($node) && in_array($node_type, $is_node_type)) {
+    if (!empty($node)) {
+      db_delete('bookmarkorganizer_item')
+        ->condition('type', 'node', '=')
+        ->condition('content_id', $node->nid, '=')
+        ->execute();
+
+      db_delete('flagging')
+        ->condition('entity_type', 'node', '=')
+        ->condition('entity_id', $node->nid, '=')
+        ->execute();
+
+
+      $ic_or = db_or();
+      $ic_or->condition('entity_id', $node->nid, '=')->condition('company_nid', $node->nid, '=');
+      db_delete('m6connect_notification')
+        ->condition($ic_or)
+        ->execute();
+    }
+  }
+}
+
+function custom_project_after_build($form, &$form_state) {
+  if (isset($form['field_proj_bid_date']['und'][0]['value']['date'])) {
+    $form['field_proj_bid_date']['und'][0]['value']['date']['#attributes']['onkeydown'] = 'return false;';
+    $form['field_proj_bid_date']['und'][0]['value']['date']['#description'] = '';
+  }
+  if (isset($form['field_proj_bid_date']['und'][0]['value']['time'])) {
+    $form['field_proj_bid_date']['und'][0]['value']['time']['#attributes']['onkeydown'] = 'return false;';
+    $form['field_proj_bid_date']['und'][0]['value']['time']['#description'] = '';
+  }
+
+  if (isset($form['field_proj_start_date']['und'][0]['value']['date'])) {
+    $form['field_proj_start_date']['und'][0]['value']['date']['#attributes']['onkeydown'] = 'return false;';
+    $form['field_proj_start_date']['und'][0]['value']['date']['#description'] = '';
+  }
+  if (isset($form['field_proj_start_date']['und'][0]['value']['time'])) {
+    $form['field_proj_start_date']['und'][0]['value']['time']['#attributes']['onkeydown'] = 'return false;';
+    $form['field_proj_start_date']['und'][0]['value']['time']['#description'] = '';
+  }
+
+  if (isset($form['field_proj_complete_date']['und'][0]['value']['date'])) {
+    $form['field_proj_complete_date']['und'][0]['value']['date']['#attributes']['onkeydown'] = 'return false;';
+    $form['field_proj_complete_date']['und'][0]['value']['date']['#description'] = '';
+  }
+  if (isset($form['field_proj_complete_date']['und'][0]['value']['time'])) {
+    $form['field_proj_complete_date']['und'][0]['value']['time']['#attributes']['onkeydown'] = 'return false;';
+    $form['field_proj_complete_date']['und'][0]['value']['time']['#description'] = '';
+  }
+  return $form;
+}
+
+function custom_project_step_after_build($form, &$form_state) {
+  if (isset($form['actions']['next'])) {
+    $form['actions']['next']['#weight']=100;
+  }
+  return $form;
+}
+
+function custom_project_draft_hendler($form, &$form_state) {
+  $form_state['values']['status'] = 0;
+}
+
+
+function custom_node_delete_pupup_action_form($form, &$form_state, $node_nid, $action, $ajax = NULL) {
+  ctools_include('ajax');
+  ctools_include('modal');
+  if ($form_state['ajax'] == true) {
+    $node_nid = $form_state['node_nid']; 
+    $action = $form_state['action'];    
+  }
+  $form['node_action_title'] = array(
+    '#type' => 'markup',
+    '#title' => t('status'),
+    '#markup' => '<div class="node-action-status"><p>Are you sure you want to delete this Project ?</p></div>',
+  );
+  $form['node_action_status'] = array(
+    '#type' => 'hidden', 
+    '#value' => $action, 
+  );
+  $form['node_action_data_id'] = array(
+    '#type' => 'hidden', 
+    '#value' => $node_nid, 
+  );
+  $form['submit_action_dnode'] = array(
+    '#type' => 'submit',
+    '#value' => t('Confirm')
+  );
+  $form['submit_action_cancel']['close'] = array(
+    '#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('assign-bid-packages-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+    '#weight' => 10,
+  );
+  return $form;
+}
+
+function custom_node_delete_pupup_action_form_submit($form, &$form_state) {
+  ctools_include('ajax');
+  ctools_include('modal');
+  $action = $form_state['values']['node_action_status'];
+  $node_nid = $form_state['values']['node_action_data_id'];
+  if (isset($form_state['values']) && $form_state['values']['node_action_status']=='delete') {
+    node_delete($node_nid);
+  }
+  if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+    $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+    $form_state['ajax_commands'][] = ctools_ajax_command_redirect('projects');
+  }
+  else{
+    $form_state['redirect'] = url('projects'); 
+  }
+}
+/*** node delete pupup show end ***/
+
+function is_rpf_tab_accessible_in_projects($RFPlinsting){
+  global $user;
+  $companyNid = $_SESSION['company'];
+  if(!empty($RFPlinsting) && $companyNid && is_numeric($companyNid)) {
+      
+  $isCompanyIndividual = is_company_individual_flag($companyNid);
+  $companyMail = $user->mail;
+  $query = db_select('node', 'n');
+  $query->Join('field_data_field_rfp_invite_comapnies', 'ric', 'ric.entity_id=n.nid');
+  $query->Join('field_data_field_rfp_company_nid_email', 'rcne', 'ric.field_rfp_invite_comapnies_value = rcne.entity_id');
+  $query->leftJoin('field_data_field_co_invite_manager_uid', 'rcimu', 'ric.field_rfp_invite_comapnies_value = rcimu.entity_id');
+  $query->fields('n', array('nid'));
+  $query->condition('n.type', 'rfp', '=');
+  $query->condition('n.nid', array_keys($RFPlinsting), 'IN');
+    
+  if ($isCompanyIndividual) {
+    $query->condition('rcne.field_rfp_company_nid_email_value', $companyMail, '=');
+  } else { 
+    $company_email = db_select('m6connect_og_membership_email', 'om')->fields('om', array('company_email'))->condition('om.entity_id', $companyNid, '=')->condition('om.user_uid', $user->uid, '=')->execute()->fetchColumn(0);
+    if (!empty($company_email)) {
+        $company_email = strtolower($company_email);
+        $query->where('(LOWER(rcne.field_rfp_company_nid_email_value)=:companyMail or (rcne.field_rfp_company_nid_email_value=:companyNid and FIND_IN_SET(:UserUid,rcimu.field_co_invite_manager_uid_value)>0))', array(':UserUid' => $user->uid, ':companyMail' => $company_email, ':companyNid' => $companyNid));
+    } else {
+        $query->condition('rcne.field_rfp_company_nid_email_value', $companyNid, '=');
+        $query->where('(FIND_IN_SET(:UserUid,rcimu.field_co_invite_manager_uid_value)>0)', array(':UserUid' => $user->uid));
+    }
+          
+  }
+  $result = $query->execute()->fetchCol();
+  return $result;
+  }
+  
+}
+
+function project_view_rfp_tab_content(){
+  global $user, $company;
+  $projectID = arg(1);
+  $output = '';
+  if($projectID &&  is_numeric($projectID)){
+    $project = menu_get_object();
+    $allowed_uids = m6connect_projects_uids_from_list($project);  
+    $rfpQuery = db_select('field_data_field_project', 'fp');
+    $rfpQuery->leftjoin('node', 'n','n.nid=fp.entity_id');
+    $rfpQuery->fields('fp', array('entity_id'));
+    $rfpQuery->fields('n', array('title'));
+    $rfpQuery->condition('fp.field_project_target_id', $projectID);
+    $rfpQuery->condition('n.status', 1);
+    $RFPlinsting = $rfpQuery->execute()->fetchAllKeyed(0,1);
+    if($project->uid == $user->uid || in_array($user->uid,$allowed_uids)){
+      if(!empty($RFPlinsting)){
+      foreach($RFPlinsting as $rfpNid => $rfpTitle){
+        $output .= '<div class="project-rfp-listing">'.l($rfpTitle,'node/'.$rfpNid).'</div>';  
+        }  
+      }else{
+       $output .= '<div class="project-rfp-listing">No RFP found.</div>';  
+      }
+    }else if(!empty($RFPlinsting)){
+      $invited = is_rpf_tab_accessible_in_projects($RFPlinsting);
+      foreach($RFPlinsting as $rfpNid => $rfpTitle){
+        if(in_array($rfpNid,$invited)){
+          $output .= '<div class="project-rfp-listing">'.l($rfpTitle,'node/'.$rfpNid).'</div>';  
+        }
+      }
+    }
+  }
+  return $output;
+}
+
+function theme_prochat_message_section_checkbox($variables){
+  $output = '';
+  $element = $variables['element'];
+  //kpr($element);
+  foreach($element['chat-users'] as $UserUid =>$data){
+    if(!is_numeric($UserUid)){
+      continue;
+    }
+    $title = $element['chat-users'][$UserUid]['prochat_user_'.$UserUid]['#title'];
+    $element['chat-users'][$UserUid]['prochat_user_'.$UserUid]['#title']='';
+    $output .= '<div class="row margin-5">';
+    $output .= '  <div class="col-md-1 col-xs-1 padding-5">';
+    $output .=      drupal_render($element['chat-users'][$UserUid]['prochat_group_user_image_'.$UserUid]);
+    $output .= '  </div>';
+    $output .= '  <div class="col-md-10 col-xs-10 padding-5">';
+    $output .=      $title;
+    $output .= '  </div>';
+    $output .= '  <div class="col-md-1 col-xs-1 text-right padding-5">';
+    $output .=      drupal_render($element['chat-users'][$UserUid]['prochat_user_'.$UserUid]);
+    $output .= '  </div>';    
+    $output .= '</div>';
+  }
+  $output .= drupal_render_children($element);
+  return $output;
+}
+
+function mymodule_ajax_command_insertInEmoji($selector) {
+  return array(
+    'command' => 'insertInEmoji',
+    'selector' => $selector,
+  );
+}
+
+function mymodule_ajax_command_insertInFile($selector) {
+  return array(
+    'command' => 'insertInFile',
+    'selector' => $selector,
+  );
+}
+
+function FileSizeConvert($bytes){
+  $bytes = floatval($bytes);
+  $arBytes = array(
+  0 => array(
+    "UNIT" => "TB",
+    "VALUE" => pow(1024, 4)
+  ),
+  1 => array(
+    "UNIT" => "GB",
+    "VALUE" => pow(1024, 3)
+  ),
+  2 => array(
+    "UNIT" => "MB",
+    "VALUE" => pow(1024, 2)
+  ),
+  3 => array(
+    "UNIT" => "KB",
+    "VALUE" => 1024
+  ),
+  4 => array(
+    "UNIT" => "B",
+    "VALUE" => 1
+  ),
+  );
+  foreach($arBytes as $arItem){
+  if($bytes >= $arItem["VALUE"]){
+    $result = $bytes / $arItem["VALUE"];
+    $result = str_replace(".", "," , strval(round($result, 2)))." ".$arItem["UNIT"];
+    break;
+  }
+  }
+  return $result;
+}
+
+function m6connect_projects_forms($form_id, $args) {
+  $forms = array();
+  if (strpos($form_id,'prochat_member_chat_form_')!==FALSE) {
+    $forms['prochat_member_chat_form_'.$args[0]] = array('callback' => 'prochat_member_chat_form');
+  }
+  if (strpos($form_id,'prochat_file_attached_form_')!==FALSE) {
+    $forms['prochat_file_attached_form_'.$args[0]] = array('callback' => 'prochat_file_attached_form');
+  }  
+  return $forms;
+}
+
+/**
+ * only people folder show
+ */
+function favorite_content_generator_people($share = FALSE) {
+    global $user;
+    //drupal_add_js(array('m6connect_company' => array('company' => 1, 'current_path' => current_path())), 'setting');
+    $flagid = _get_flag_id_by_flag_name('people_bookmark');
+    $uids = array();
+    $cuid = $user->uid;
+    $query = db_select('flagging', 'f');
+    $query->fields('f');
+    $query->fields('un',array('realname'));
+    $query->join('realname','un', 'f.entity_id=un.uid');
+    $query->condition('f.entity_type', 'user', '=');
+    $query->condition('f.fid', $flagid, '='); // 11-> people bookmark flag
+    $query->condition('f.uid', $cuid, '=');
+    $result = $query->execute();
+    while ($record = $result->fetchAssoc()) {
+        $uids[] = $record['entity_id'];
+        $unam[$record['entity_id']] = $record['realname'];
+    }
+    $peopleflagged = count($uids);
+    $folderoutput = '';
+
+/////////////////////////////////////////////////////////////////
+    //$folderoutput .=' <div class="dashboard-block-heading" >Bookmark Folders </div>';
+    $folderoutput .= '<div class="fav-all-container custom-favorite-container"><div class="left-bookmark-block-data-people"><ul class="list-unstyled favorite-menus favorite-replaceable-people dropable-favorite-list sortable-favorite-list">'; //// new people change
+/////////////////////////////////////////////////////////////////
+    $PcolpClass = '';
+//$Pcolpsedspan = '<span>&nbsp;</span>';
+    //$Pcolpsedspan = '<span><i class="fa fa-folder-o"></i></span>';
+    $Pcolpsedspan = '<span class="span3"></span>';
+    if ($peopleflagged) {
+        if (!$share) {
+            $PcolpClass = ' collapsed';
+            $NPae = 'true';
+        } else {
+            $NPae = 'false';
+        }
+        //$Pcolpsedspan = '<span class="span1"><i class="fa fa-minus"></i></span> <span class="span2"><i class="fa fa-plus"></i></span>';
+        //$Pcolpsedspan = '<span class="span1"><i class="fa fa-folder-open-o"></i></span> <span class="span2"><i class="fa fa-folder-o"></i></span>';
+        $Pcolpsedspan = '<span class="span1"></span> <span class="span2"></span>';
+    }
+    $folderoutput .= '<li class="folder-list dropable-favorite-folder dragable-favorite-container-li sortable-favorite-folder folder-clickable ui-droppable" id="bookmark-fav-id-people">
+  <a aria-controls="collapsecustommenuspeople" aria-expanded="' . $NPae . '" data-toggle="collapse" href="#collapsecustommenuspeople" class="bookmark-link ui-draggable ' . $PcolpClass . '">
+    ' . $Pcolpsedspan . '<span class="label">People</span>
+  </a>
+  <div class="pull-right"></div>';
+
+    if ($peopleflagged) {
+        if ($share) {
+            $NPcolpClass = 'collapse in';
+        } else {
+            $NPcolpClass = 'collapse';
+        }
+        $folderoutput .= '<div id="collapsecustommenuspeople" class="' . $NPcolpClass . '" aria-expanded="' . $NPae . '" style="">
+    <ul class="list-unstyled sortable-favorite-list">';
+        foreach ($uids as $k => $fuid) {
+            $fusername = $unam[$fuid];
+            $folderoutput .= '    <li class="folder-node-list dragable-favorite-container-li sortable-favorite-folder dropable-favorite-folder ui-droppable" id="bookmark-fav-id-' . $fuid . '">
+    <div class="cust-bookmarked-data" ><a href="/user/' . $fuid . '" class="bookmark-link-overflow bookmark-link ui-draggable"><span>&nbsp;</span>' . $fusername . '</a>
+    <span class="pull-right">';
+            $flag = flag_get_flag('people_bookmark');
+            $relationships = user_relationships_load(array('approved' => $user->uid, 'approved' => TRUE, 'requestee_id' => $fuid));
+            if (!empty($relationships) && count($relationships) > 0) {
+                $connectspan = '<i class="fa fa-arrow-circle-o-right"></i>';
+            } else {
+                $connectspan = '';
+            }
+            $folderoutput .= $connectspan . '&nbsp;<a title="Remove article" alt="Remove article" class="action action-remove-people" href="/peoplebookmark/delete/0/' . $fuid . '"><i class="fa fa-trash-o"></i></a>';
+            $folderoutput .= '  </span>  
+      </div>
+    </li>';
+        }
+        $folderoutput .= ' </ul>
+  </div>';
+    }
+    $folderoutput .= '</li>';
+
+    $folderoutput .= '</ul></div></div>'; ///////////////////////// 
+
+    return $folderoutput;
+}
+
+/**
+ * Menu callback for
+ */
+function project_interested_bidders() {
+  global $user;
+
+  $nid = arg(1);
+  $entity = menu_get_object();
+
+  $cmpcall = in_array($user->uid, _get_current_company_users($entity->uid));
+  $cmpcall2 = in_array($user->uid, loadadinitation_project_user($entity));
+
+  if ($entity->uid == $user->uid || $cmpcall || $cmpcall2) {
+    $output = '';
+    $nid = $entity->nid;
+    $node = $entity;
+    $items = field_get_items('node', $node, 'field_pro_bidding_info');
+    $output .= '<div class="Bidding-fc-list">';
+    foreach ($items as $item) {
+      $fc = field_collection_field_get_entity($item); //pre($fc);  
+      $itemid = $fc->item_id;
+      $output .= '<div class="form-group"><div class="row">';
+      $output .= '<div class="col-md-3 col-sm-3 col-xs-12">';
+      $output .= '<label>' . t('Bid Name:') . '</label>';
+      $output .= '<div class="Cust-bidfc-data">';
+      $output .= (isset($fc->field_proj_bid_name['und'])) ? $fc->field_proj_bid_name['und'][0]['value'] : '';
+      $output .= '</div>';
+      $output .= '</div>';
+
+      $output .= '<div class="col-md-3 col-sm-3 col-xs-12">';
+      $output .= '<label>' . t('Bid Date:') . '</label>';
+      $output .= '<div class="Cust-bidfc-data">';
+      $biddateval = (isset($fc->field_proj_bid_date['und'])) ? $fc->field_proj_bid_date['und'][0]['value'] : '';
+      $dtstmp = !empty($biddateval) ? strtotime($biddateval) : '';
+      $output .= date("j F Y", $dtstmp);
+      $output .= '</div>';
+      $output .= '</div>';
+
+      $output .= '<div class="col-md-3 col-sm-3 col-xs-12">';
+      $output .= '<label>' . t('Start:') . '</label>';
+      $output .= '<div class="Cust-bidfc-data">';
+      $biddateval1 = (isset($fc->field_proj_start_date['und'])) ? $fc->field_proj_start_date['und'][0]['value'] : '';
+      $dtstmp1 = !empty($biddateval1) ? strtotime($biddateval1) : '';
+      $output .= date("j F Y", $dtstmp1);
+      $output .= '</div>';
+      $output .= '</div>';
+
+      $output .= '<div class="col-md-3 col-sm-3 col-xs-12">';
+      $output .= '<label>' . t('Complete:') . '</label>';
+      $output .= '<div class="Cust-bidfc-data">';
+      $biddateval2 = (isset($fc->field_proj_complete_date['und'])) ? $fc->field_proj_complete_date['und'][0]['value'] : '';
+      $dtstmp2 = !empty($biddateval2) ? strtotime($biddateval2) : '';
+      $output .= date("j F Y", $dtstmp2);
+      $output .= '</div>';
+      $output .= '</div>';
+
+      $output .= '</div>'; // .row
+
+      $output .= '<div class="row">';
+      $output .= '<div class="col-md-12 col-sm-12 col-xs-12">';
+      $output .= '<label>' . t('Bidding Companies:') . '</label>';
+      $query2 = db_select('flagging', 'f')->fields('f', array('uid'))->condition('entity_id', $itemid, '=')->condition('entity_type', 'field_collection_item', '=');
+      $result2 = $query2->execute();
+
+      while ($record2 = $result2->fetchAssoc()) {
+          $counterc = 0;
+          $uid = $record2['uid'];
+          //$gids = get_user_company_nids($uid); //pre($gids);
+          /*                 * **changed **** */
+          $gids = _get_user_company_nid($uid);
+          if (!empty($gids)) {
+              /*                     * **changed **** */
+              //foreach ($gids as $k => $v) {$counterc++;
+              //$gnode = node_load($v);
+              $counterc++;
+              $gnode =  _get_title_of_node($gids);//node_load($gids);
+              $output .= '<div class="bid-co-name">' .$gnode . '</div>';
+              //}
+          } else {
+              if ($counterc == 0) {
+                  $output .= '<br/>At this time, no companies have selected that they will be bidding on this RFP.';
+              }
+          }
+      }
+
+
+      $output .= '</div>';
+      $output .= '</div></div>'; // .row .form-group
+    }
+    $output .= '</div>';
+
+    return $output;
+  }
+}
+
+
+/**
+ * Helper function to generate html.
+ */
+function _generate_bookmark_fav_block_content_new() {
+  $output = '<div class="left-bookmark-block-data">';
+  $cust_bookmark_search_form = drupal_get_form('cust_bookmark_search_form');
+  $output .= drupal_render($cust_bookmark_search_form);
+  $output .= '<div id="cust-bookmark-search-data"></div>';
+  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Function to get Bookmark search form.
+ */
+function cust_bookmark_search_form($form, $form_state) {
+  $form['bookmark_title'] = array(
+    '#type' => 'textfield',
+    '#title' => '',
+    //'#default_value' => $co_name,
+    '#attributes' => array('class' => array('form-control')),
+    '#prefix' => '<div class="form-group">',
+  );
+
+  $form['bookmark_submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'SEARCH',
+    '#attributes' => array('class' => array('btn btn-default search-button cust-bookmark-search-sub')),
+    '#executes_submit_callback' => FALSE,
+    '#limit_validation_errors' => array(),
+    '#href' => '',
+    '#ajax' => array(
+      'callback' => 'search_bookmark_callback',
+      'effect' => 'fade',
+      'event' => 'click',
+      'progress' => array('type' => 'throbber', 'message' => 'please wait'),
+    ),
+    '#suffix' => '</div>',
+  );
+
+  return $form;
+}
+
+function search_bookmark_callback(&$form, &$form_state) {
+  global $user;
+  $commands = array();
+  $data = '';
+  $values = $form_state['values']; //pre($values,1);
+  $search = $values['bookmark_title'];
+  if (!empty($search)) {
+    $searchdata = '';
+    $bookmarkdata = bookmarkorganizer_get_items($user->uid, $index = 0, !variable_get('bookmarkorganizer_enable_folders'));
+    if ((!empty($bookmarkdata)) && (count($bookmarkdata) > 0)) {
+      foreach ($bookmarkdata as $index => $item) {
+        if ($item->type == 'node') {
+          $label = $item->label;
+          if (strpos(strtolower($label), strtolower($search)) !== false) {
+              $nodePath = drupal_lookup_path('alias', 'node/' . $item->content_id);
+              $searchdata .= '<div>' . l($label, $nodePath) . '</div>';
+          }
+        }
+      }
+    }
+    $flagid = _get_flag_id_by_flag_name('people_bookmark');
+    $cuid = $user->uid;
+    $query = db_select('flagging', 'f');
+    $query->fields('f');
+    $query->condition('f.entity_type', 'user', '=');
+    $query->condition('f.fid', $flagid, '='); // 11-> people bookmark flag
+    $query->condition('f.uid', $cuid, '=');
+    $result = $query->execute();
+    while ($record = $result->fetchAssoc()) {
+      $fusername = _get_user_full_name($record['entity_id']);
+      if (strpos(strtolower($fusername), strtolower($search)) !== false) {
+        $userPath = drupal_lookup_path('alias', 'user/' . $record['entity_id']);
+        $searchdata .= '<div>' . l($fusername, $userPath) . '</div>';
+      }
+    }
+
+    $output = '<div>';
+    if (!empty($searchdata)) {
+      $output .= $searchdata;
+    }
+    else {
+      $output .= '<div>No Record Found.</div>';
+    }
+    $output .= '</div>';
+    $data = $output;
+  }
+  $commands[] = ajax_command_html('#cust-bookmark-search-data', $data);
+  return array('#type' => 'ajax', '#commands' => $commands);
+}
+
+function cust_bookmark_search_form_submit($form, $form_state) {
+  global $user, $base_url;
+  $bookmark_title = '';
+  $values = $form_state['values'];
+  $bookmark_title = $values['bookmark_title'];
+}
+
+/**
+ * Implements hook_js_alter()
+ */
+function m6connect_projects_js_alter(&$javascript) {
+  if (arg(0) == 'projects' && !empty($_GET['myproject'])) {
+    // Disabling some js on the landing page of project, so as to speed up the
+    // page load.
+    unset($javascript['sites/all/libraries/plupload/js/plupload.full.min.js']);
+    // unset($javascript['sites/all/libraries/tooltipster/tooltipster.bundle.min.js']);
+    unset($javascript['sites/all/libraries/cycle2/jquery.cycle2.scrollVert.js']);
+    unset($javascript['sites/all/libraries/cycle2/jquery.cycle2.scrollVert.js']);
+    unset($javascript['sites/all/libraries/bootstrap_js/jquery.mobile.custom-swipe.min.js']);
+    unset($javascript['sites/all/libraries/jquery-ui-timepicker/jquery-ui-timepicker-addon.js']);
+    unset($javascript['sites/all/libraries/jquery-ui-timepicker/jquery-ui-sliderAccess.js']);
+    unset($javascript['sites/all/modules/custom/m6connect_common/js/m6connect_common.js']);
+    unset($javascript['sites/all/modules/autoupload/js/autoupload.js']);
+    unset($javascript['sites/all/modules/custom/m6connect_rfp/m6connect_rfp.js']);
+    unset($javascript['sites/all/modules/custom/m6connect_onboarding/m6connect_onboarding.js']);
+    unset($javascript['sites/all/modules/custom/m6connect_ins_cert/m6connect_ins_cert.js']);
+  }
+}

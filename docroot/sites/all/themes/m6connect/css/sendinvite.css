@@ -1,0 +1,18 @@
+#lightbox body{
+	background:none;
+	margin:0;
+	padding:0;
+}
+#lightbox body #page{
+	margin:0;
+	padding:0;
+}
+#lightbox body #page #main{
+	margin:0;
+	padding:0;
+}
+#lightbox body #page #main .box{
+	margin:0;
+	padding:0;
+	box-shadow:none;
+}

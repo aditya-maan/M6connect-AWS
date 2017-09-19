@@ -1,0 +1,5 @@
+name = M6Connect Supply Chain Manager
+description = Supply Chain Management Functionality For M6CONNECT
+package = CUSTOM
+core = 7.x
+

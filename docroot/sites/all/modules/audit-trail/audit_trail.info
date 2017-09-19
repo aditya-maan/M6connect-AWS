@@ -1,0 +1,15 @@
+name = Audit Trail
+description = Track specified forms.
+configure = admin/config/development/audit-trail
+
+core = 7.x
+package = Administration
+
+files[] = tests/audit_trail.test
+
+; Information added by drupal.org packaging script on 2013-09-30
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "audit-trail"
+datestamp = "1380554682"
+

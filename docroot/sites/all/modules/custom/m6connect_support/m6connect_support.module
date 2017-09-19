@@ -1,0 +1,585 @@
+<?php
+/**
+ * Implements hook_menu().
+ */
+function m6connect_support_menu() {
+  $items['program/support'] = array(
+    'title' => 'M6Connect Support',
+    'page callback' => 'm6connect_support_management_content',
+    'access callback' => '_is_m6_user_logged_in',
+  );
+  $items['support/user-list'] = array(
+    'title' => 'Support user list',
+    'page callback' => 'm6connect_support_management_user_list_content',
+    'access callback' => '_is_m6_user_logged_in',
+  );
+  $items['support/company-list'] = array(
+    'title' => 'Support company list',
+    'page callback' => 'm6connect_support_management_company_list_content',
+    'access callback' => '_is_m6_user_logged_in',
+  );
+  $items['support-change-password/%/%ctools_js'] = array(
+    'page callback' => 'support_change_password_callback', 
+    'page arguments' => array( 1,2 ), 
+    'access callback' => '_is_m6_user_logged_in',    
+  );
+  $items['support-ajax-password-change'] = array(
+    'page callback' => 'support_ajax_password_change_callback',
+    'access callback' => '_is_m6_user_logged_in',
+  );
+  $items['support-change-email/%/%ctools_js'] = array(
+    'page callback' => 'support_change_email_callback', 
+    'page arguments' => array( 1,2 ), 
+    'access callback' => '_is_m6_user_logged_in',
+  );
+  $items['support-ajax-email-change'] = array(
+    'page callback' => 'support_ajax_email_change_callback',
+    'access callback' => '_is_m6_user_logged_in',
+  );
+  $items['support-user-masquerade/%'] = array(
+    'page callback' => 'support_user_masquerade_callback', 
+    'page arguments' => array(1), 
+    'access callback' => '_is_m6_user_logged_in',
+  );
+  $items['support-user-delete/%/%ctools_js'] = array(
+    'page callback' => 'support_user_delete_callback', 
+    'page arguments' => array( 1,2 ), 
+    'access callback' => '_is_m6_user_logged_in',
+  );
+  $items['support-company-change-status/%/%/%ctools_js'] = array(
+    'page callback' => 'support_company_change_status_callback', 
+    'page arguments' => array(1,2,3), 
+    'access callback' => '_is_m6_user_logged_in',
+  );
+  $items['support-company-masquerade/%'] = array(
+    'page callback' => 'support_company_masquerade_callback', 
+    'page arguments' => array(1), 
+    'access callback' => '_is_m6_user_logged_in',
+  );
+  $items['support-company-delete/%/%ctools_js'] = array(
+    'page callback' => 'support_company_delete_callback', 
+    'page arguments' => array( 1,2 ), 
+    'access callback' => '_is_m6_user_logged_in',
+  );
+  
+  return $items;
+}
+
+function m6connect_support_management_content() {
+  //drupal_add_js(drupal_get_path('module', 'm6connect_program') . '/js/m6connect_program.js');
+  $quicktabs = quicktabs_build_quicktabs('m6connect_support_management');
+  return render($quicktabs);    
+}
+
+function m6connect_support_management_user_list_content () {
+  return 'Providing user list';
+}
+
+function m6connect_support_management_company_list_content () {
+  return 'Providing Company list';
+}
+/**
+* Implements hook_block_info().
+*/
+function m6connect_support_block_info() {
+  $blocks = array();
+  $blocks['support_user_sorting'] = array(
+    'info' => t('Support User Sorting'),
+    'cache' => DRUPAL_CACHE_GLOBAL,
+  );  
+  return $blocks;
+}
+/**
+* Implements hook_block_view().
+*/
+function m6connect_support_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'support_user_sorting':
+      $block['subject'] = '';
+      $block['content'] = support_user_sorting_content();
+      break;  
+  }
+  return $block;
+}
+function support_user_sorting_content(){
+  drupal_add_js(drupal_get_path('module',  'm6connect_support') . '/js/m6connect_support.js');
+  $output = $sortVal = $one = $two = $three = $zero = '';
+  if(isset($_REQUEST['sorting']) && !empty($_REQUEST['sorting'])){
+    $sortVal = $_REQUEST['sorting'];
+    $sortVal == 0?$zero = 'selected="selected"':'';
+    $sortVal == 1?$one = 'selected="selected"':'';
+    $sortVal == 2?$two = 'selected="selected"':'';
+    $sortVal == 3?$three = 'selected="selected"':'';
+  } 
+  $output .= '<form method="GET" action="/program/support" class="custom-sorting-form" id="custom-sorting-form">    
+      <div class="row">
+        <div class="col-md-8 col-sm-8 col-xs-12 col-xs-12-hidden"></div>
+        <div class="col-md-4 col-sm-4 col-xs-12 margin-bottom-10">
+          <div class="form-item form-type-select">
+            <select onchange="sortFormSubmit();" class="form-select" name="sorting" id="custom_sorting">
+              <option value="0" '.$zero.'>Sort by Currently logged on only</option>
+              <option value="1" '.$one.'>Sort by Most recent login</option>
+              <option value="2" '.$two.'>Sort by First Name</option>
+              <option value="3" '.$three.'>Sort by Last Name</option>
+            </select>
+          </div>          
+        </div>
+      </div>          
+    </form> ';
+  return $output;
+}
+// function for change user email
+function support_change_email_callback($user_id = 0, $ajax){
+  if ($ajax){
+    ctools_include('ajax');
+    ctools_include('modal');
+    $form_state = array(
+      'ajax' => TRUE,
+      'user_id' => $user_id, 
+    );
+    $output = ctools_modal_form_wrapper('change_email_form',  $form_state);
+    if (!empty($form_state['ajax_commands'])) {
+      $output = $form_state['ajax_commands'];
+    }    
+    print ajax_render($output);
+    drupal_exit();
+  }
+  else {
+    return drupal_get_form('change_email_form',  $user_id);
+  }
+}
+function change_email_form($form, &$form_state,  $user_id = ''){
+  drupal_add_js(drupal_get_path('module',  'm6connect_support') . '/js/m6connect_support.js');
+  if(empty($user_id))
+  {
+    $user_id = $form_state['user_id'];
+  }
+  if(!empty($user_id)){
+    $form = array( );     
+    $form['main-container']= array(
+      '#type' => 'container', 
+      //'#attributes' => array( 'class'=>array('row') ), 
+      '#prefix' => '<div class="clearfix"><div id="bulk_upload_main_container" class="bulk-upload-detail">',  
+    );    
+    $form['main-container']['user_id'] = array(
+      '#type' => 'hidden',
+      '#value' => $user_id,
+      '#attributes' => array('class' => array('support-user-email'), 'id' => 'support_user_id')
+    );    
+    $form['main-container']['email'] = array(
+      '#title' => t('Enter email'), 
+      '#type' => 'textfield',
+      '#attributes' => array('class' => array('support-user-email'), 'id' => 'support_user_email', 'placeholder' => 'Enter email'),
+      //'#required' => TRUE,
+      '#prefix' => '<div class="support-mail margin-bottom-20">'
+    );
+    $form['main-container']['email_error'] = array(
+      '#markup' => '<div id="support_email_error" class="text-danger"></div>',
+      '#suffix' => '</div>'
+    );    
+    $form['submit'] = array(
+      '#value' => 'Submit', 
+      '#type' => 'submit',
+      '#name' => 'email_change',
+      '#attributes' => array( 'class' => array('support_email_form_submit')),
+      '#ajax' => array(
+        'callback' => 'change_email_form_ajax_callback', 
+        'wrapper' => 'alert-container-section', 
+        'method' => 'replace', 
+        'effect' => 'fade', 
+        'progress' => array( 'type'=> 'none', 'message'=> NULL ), 
+      ),
+      '#prefix' => '<div class="button-div">',
+    );
+    $form['close'] = array(
+      '#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array( 'external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('assign-bid-packages-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();')) ),      
+    );    
+    $form['email_message'] = array(
+      '#markup' => '<span id="support_email_message" class="display-inline-block"></span>',      
+      '#suffix' => '</div>',
+    );        
+    return $form;
+  }
+}
+function change_email_form_ajax_callback(&$form, &$form_state){
+  $message = $email = $user_id = '';$commands = array();
+  $values = $form_state['values'];
+  $user_id = $form_state['user_id'];
+  $email = $values['email'];
+  if(!empty($email))
+  {
+    if(!valid_email_address($email)){
+      $message = 'Please enter valid email';
+      $commands[] = ajax_command_invoke('#support_email_error','html',array($message));
+      $commands[] = ajax_command_invoke('#support_email_error','fadeIn');
+      $commands[] = ajax_command_invoke('#support_email_error','fadeOut', array(5000));      
+      return array('#type' => 'ajax','#commands' => $commands);
+    }
+    else{
+      //$commands[] = ajax_command_invoke(NULL, 'support_change_email', array($user_id, $email));
+      //return array('#type' => 'ajax','#commands' => $commands);
+    }
+  }
+  else{
+    $message = 'Please enter valid email';
+    $commands[] = ajax_command_invoke('#support_email_error','html',array($message));
+    $commands[] = ajax_command_invoke('#support_email_error','fadeIn');
+    $commands[] = ajax_command_invoke('#support_email_error','fadeOut', array(5000));    
+    return array('#type' => 'ajax','#commands' => $commands);
+  }
+}
+function support_ajax_email_change_callback(){
+  if(isset($_REQUEST) && $_REQUEST['change_email'] == 1){
+    $user_id = $_REQUEST['user_id'];
+    $email = $_REQUEST['email'];
+    $user = user_load($user_id);
+    try{
+      $user->mail = $email;
+      user_save($user);
+      echo "1";
+    }
+    catch(Exception $e){
+      echo $e;
+    }    
+  }
+}
+// function code for change user email ends
+// function code for change user password starts
+function support_change_password_callback($user_id = 0, $ajax){
+  if ($ajax){
+    ctools_include('ajax');
+    ctools_include('modal');
+    $form_state = array(
+      'ajax' => TRUE,
+      'user_id' => $user_id, 
+    );
+    $output = ctools_modal_form_wrapper('change_password_form',  $form_state);
+    if (!empty($form_state['ajax_commands'])) {
+      $output = $form_state['ajax_commands'];
+    }    
+    print ajax_render($output);
+    drupal_exit();
+  }
+  else {
+    return drupal_get_form('change_password_form',  $user_id);
+  }
+}
+function change_password_form($form, &$form_state,  $user_id = ''){
+  drupal_add_js(drupal_get_path('module',  'm6connect_support') . '/js/m6connect_support.js');
+  if(empty($user_id))
+  {
+    $user_id = $form_state['user_id'];
+  }
+  if(!empty($user_id)){
+    $form = array();     
+    $form['main-container']= array(
+      '#type' => 'container',
+      '#prefix' => '<div class="clearfix"><div id="bulk_upload_main_container" class="bulk-upload-detail">',  
+    );    
+    $form['main-container']['user_id'] = array(
+      '#type' => 'hidden',
+      '#value' => $user_id,
+      '#attributes' => array('class' => array('support-user-password'), 'id' => 'support_user_id')
+    );    
+    $form['main-container']['password'] = array(
+      '#title' => t('Enter password'), 
+      '#type' => 'password',
+      '#attributes' => array('class' => array('support-user-password'), 'id' => 'support_user_password', 'placeholder' => 'Enter password'),
+      //'#required' => TRUE,
+      '#prefix' => '<div class="support-password margin-bottom-20">'
+    );
+    $form['main-container']['password_error'] = array(
+      '#markup' => '<div id="support_password_error" class="text-danger"></div>',
+      '#suffix' => '</div>'
+    );    
+    $form['submit'] = array(
+      '#value' => 'Submit', 
+      '#type' => 'submit',
+      '#name' => 'password_change',
+      '#attributes' => array( 'class' => array('support_password_form_submit')),
+      '#ajax' => array(
+        'callback' => 'change_password_form_ajax_callback', 
+        'wrapper' => 'alert-container-section', 
+        'method' => 'replace', 
+        'effect' => 'fade', 
+        'progress' => array( 'type'=> 'none', 'message'=> NULL ), 
+      ),
+      '#prefix' => '<div class="button-div">',
+    );
+    $form['close'] = array(
+      '#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array( 'external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('assign-bid-packages-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();')) ),      
+    );    
+    $form['password_message'] = array(
+      '#markup' => '<span id="support_password_message" class="display-inline-block"></span>',      
+      '#suffix' => '</div>',
+    );        
+    return $form;
+  }
+}
+function change_password_form_ajax_callback(&$form, &$form_state){
+  $message = $password = $user_id = '';$commands = array();
+  $values = $form_state['values'];
+  $user_id = $form_state['user_id'];
+  $password = $values['password'];
+  if(empty($password))
+  {
+    $message = 'Please enter password';
+    $commands[] = ajax_command_invoke('#support_password_error','html',array($message));
+    $commands[] = ajax_command_invoke('#support_password_error','fadeIn');
+    $commands[] = ajax_command_invoke('#support_password_error','fadeOut', array(5000));    
+    return array('#type' => 'ajax','#commands' => $commands);
+  }
+  else{
+    if(!preg_match('/^(?=.*\d)(?=.*[@#\-_$%^&+=§!\?])(?=.*[a-z])(?=.*[A-Z])[0-9A-Za-z@#\-_$%^&+=§!\?]{8,30}$/',$password)){
+      $message = '<div class="password-suggestions description" style="display: block;">The password does not include enough variation to be secure.<ul><li>Password must contain at least one lowercase character.</li><li>Password must be at least 8 characters in length.</li><li>Password must contain at least one digit.</li><li>Password must contain at least one punctuation (not whitespace or an alphanumeric) character.</li><li>Password must contain at least one uppercase character.</li></ul></div>';
+      $commands[] = ajax_command_invoke('#support_password_error','html',array($message));
+      $commands[] = ajax_command_invoke('#support_password_error','fadeIn');
+      //$commands[] = ajax_command_invoke('#support_password_error','fadeOut', array(5000));    
+      return array('#type' => 'ajax','#commands' => $commands);
+    }
+    //$commands[] = ajax_command_invoke(NULL, 'support_change_email', array($user_id, $email));
+    //return array('#type' => 'ajax','#commands' => $commands);
+  }
+}
+function support_ajax_password_change_callback(){
+  if(isset($_REQUEST) && $_REQUEST['change_password'] == 1){
+    $user_id = $_REQUEST['user_id'];
+    $password = $_REQUEST['password'];
+    $user = user_load($user_id);
+    require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
+    $hashthepass = user_hash_password(trim($password));
+    try{
+      $user->pass = $hashthepass;
+      user_save($user);
+      echo "1";
+    }
+    catch(Exception $e){
+      echo $e;
+    }    
+  }
+}
+// function code for change user password ends
+// function for user musqurade
+function support_user_masquerade_callback($user_id = ''){
+  if(!empty($user_id)){
+    masquerade_switch_user($user_id);
+    drupal_goto($_SERVER['HTTP_REFERER']);
+    exit();
+  }
+}
+// function for user delete
+function support_user_delete_callback($user_id = 0, $ajax){
+  if ($ajax){
+    ctools_include('ajax');
+    ctools_include('modal');
+    $form_state = array(
+      'ajax' => TRUE,
+      'user_id' => $user_id, 
+    );
+    $output = ctools_modal_form_wrapper('user_delete_form',  $form_state);
+    if (!empty($form_state['ajax_commands'])) {
+      $output = $form_state['ajax_commands'];
+    }    
+    print ajax_render($output);
+    drupal_exit();
+  }
+  else {
+    return drupal_get_form('user_delete_form',  $user_id);
+  }
+}
+function user_delete_form($form, &$form_state, $user_id = '') {
+  if(!$user_id)
+  {
+    $user_id = $form_state['user_id'];
+  }  
+  $form['user_delete_title'] = array(
+    '#type' => 'markup',
+    '#title' => t('status'),
+    '#markup' => '<div class="group-action-status"><p>Are you sure you want to delete this User ?</p></div>',
+  );  
+  $form['user_id'] = array(
+    '#type' => 'hidden', 
+    '#value' => $user_id, 
+  );    
+  $form['submit_action_user'] = array(
+    '#type' => 'submit',
+    '#value' => t('Confirm')
+  );
+  $form['submit_action_cancel']['close'] = array(
+    '#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('group-delete-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+    '#weight' => 10,
+  );
+  return $form;
+}
+// function for delete group
+function user_delete_form_submit($form, &$form_state) {  
+  $form_values = $form_state['values'];
+  $user_id = $form_state['user_id'];
+  if(!empty($user_id))
+  {
+    try{
+      user_delete($user_id);
+      drupal_set_message('User deleted successfully', 'status');      
+      if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+        $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+        $form_state['ajax_commands'][] = ctools_ajax_command_redirect('/program/support');  
+      }
+    }
+    catch(Exception $e){
+      drupal_set_message($e, 'error');      
+      if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+        $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+        $form_state['ajax_commands'][] = ctools_ajax_command_redirect('/program/support');  
+      }
+    }
+  }
+}
+// function for change company node status
+function support_company_change_status_callback($nid = '', $status = '', $ajax){
+  if ($ajax){
+    ctools_include('ajax');
+    ctools_include('modal');
+    $form_state = array(
+      'ajax' => TRUE,
+      'nid' => $nid,
+      'status' => $status,
+    );
+    $output = ctools_modal_form_wrapper('company_node_update_form',  $form_state);
+    if (!empty($form_state['ajax_commands'])) {
+      $output = $form_state['ajax_commands'];
+    }    
+    print ajax_render($output);
+    drupal_exit();
+  }
+  else {
+    return drupal_get_form('company_node_update_form', $nid, $status);
+  }
+}
+function company_node_update_form($form, &$form_state, $nid = '', $status = '') {
+  if(!$nid)
+  {
+    $nid = $form_state['nid'];
+  }
+  if(!$status)
+  {
+    $status = $form_state['status'];
+  }
+  $form['company_update_title'] = array(
+    '#type' => 'markup',
+    '#title' => t('status'),
+    '#markup' => '<div class="group-action-status"><p>Are you sure you want to update this Company ?</p></div>',
+  );  
+  $form['nid'] = array(
+    '#type' => 'hidden', 
+    '#value' => $nid, 
+  );
+  $form['status'] = array(
+    '#type' => 'hidden', 
+    '#value' => $status, 
+  );    
+  $form['submit_action_company'] = array(
+    '#type' => 'submit',
+    '#value' => t('Confirm')
+  );
+  $form['submit_action_cancel']['close'] = array(
+    '#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('company_update-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+    '#weight' => 10,
+  );
+  return $form;
+}
+function company_node_update_form_submit($form, &$form_state) {  
+  $form_values = $form_state['values'];
+  $nid = $form_state['nid'];
+  $status = $form_state['status'];
+  if(!empty($nid))
+  {
+    $node = node_load($nid);
+    $statusCode = 0;
+    if($status == 'Active'){
+      $statusCode = 1;
+    }
+    $node->status = $statusCode;    
+    field_attach_update('node', $node);
+    node_save($node);
+    drupal_set_message('Company updated successfully', 'status');      
+    if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+      $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+      $form_state['ajax_commands'][] = ctools_ajax_command_redirect('/program/support');  
+    }
+  }
+}
+// function for company musqurade
+function support_company_masquerade_callback($user_id = ''){
+  if(!empty($user_id)){
+    masquerade_switch_user($user_id);
+    drupal_goto($_SERVER['HTTP_REFERER']);
+    exit();
+  }
+}
+// function for company delete
+/*function support_company_delete_callback($company_id = 0, $ajax){
+  if ($ajax){
+    ctools_include('ajax');
+    ctools_include('modal');
+    $form_state = array(
+      'ajax' => TRUE,
+      'company_id' => $company_id, 
+    );
+    $output = ctools_modal_form_wrapper('company_delete_form',  $form_state);
+    if (!empty($form_state['ajax_commands'])) {
+      $output = $form_state['ajax_commands'];
+    }    
+    print ajax_render($output);
+    drupal_exit();
+  }
+  else {
+    return drupal_get_form('company_delete_form',  $company_id);
+  }
+}
+function company_delete_form($form, &$form_state, $company_id = '') {
+  if(!$company_id)
+  {
+    $company_id = $form_state['company_id'];
+  }  
+  $form['company_delete_title'] = array(
+    '#type' => 'markup',
+    '#title' => t('status'),
+    '#markup' => '<div class="group-action-status"><p>Are you sure you want to delete this Company ?</p></div>',
+  );  
+  $form['company_id'] = array(
+    '#type' => 'hidden', 
+    '#value' => $company_id, 
+  );    
+  $form['submit_action_company'] = array(
+    '#type' => 'submit',
+    '#value' => t('Confirm')
+  );
+  $form['submit_action_cancel']['close'] = array(
+    '#markup' => '&nbsp;&nbsp;' . l('<input type="button" class="btn btn primary form-submit" value="Cancel" />', 'javascript:void(0);', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('group-delete-popup-close'), 'onclick' => 'jQuery("span.popups-close").click();'))),
+    '#weight' => 10,
+  );
+  return $form;
+}
+function company_delete_form_submit($form, &$form_state) {  
+  $form_values = $form_state['values'];
+  $company_id = $form_state['company_id'];
+  if(!empty($company_id))
+  {
+    try{
+      node_delete($company_id);
+      drupal_set_message('Company deleted successfully', 'status');      
+      if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+        $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+        $form_state['ajax_commands'][] = ctools_ajax_command_redirect('/program/support');  
+      }
+    }
+    catch(Exception $e){
+      drupal_set_message($e, 'error');      
+      if ((isset($form_state['ajax'])) ? (($form_state['ajax'] == 1) ? true : false) : false) {
+        $form_state['ajax_commands'][] = ctools_modal_command_dismiss();
+        $form_state['ajax_commands'][] = ctools_ajax_command_redirect('/program/support');  
+      }
+    }
+  }
+}*/

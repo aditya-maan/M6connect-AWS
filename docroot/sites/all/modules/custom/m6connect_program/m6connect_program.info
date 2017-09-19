@@ -1,0 +1,7 @@
+name = M6Connect Program
+description = Project Management Functionality for M6CONNECT
+package = CUSTOM
+core = 7.x
+
+files[] = views/handlers/m6connect_program_handler_company_address_custom.inc
+

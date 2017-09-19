@@ -1,0 +1,297 @@
+@media only screen and (min-width :320px) and (max-width :979px)
+{
+.page-node-add-my-proposal .required-fields.group-basic-prp-inner.field-group-div{width:100%; float:left; margin-right:0px !important;}
+.page-node-add-my-proposal .required-fields.group-document-for-proposal.field-group-div { float: left; width: 100%;}
+.page-node-add-my-proposal.form-field-type-addressfield.form-field-name-field-proposal-job-location.field-widget-addressfield-standard.form-wrapper{width:100%;}
+.page-node-add-my-proposal #field-proposal-job-location-add-more-wrapper > div{width:100% !important;}
+.page-node-add-my-proposal .form-field-type-addressfield.form-field-name-field-proposal-job-location.field-widget-addressfield-standard.form-wrapper{width:100%;}
+}
+@media only screen and (min-width :640px) and (max-width :767px)
+{
+.page-node-add-my-proposal .head_creat_prop .left_cre_prop h1{font-size:22px;}
+}
+@media only screen and (min-width :320px) and (max-width :639px)
+{
+.page-node-add-my-proposal #edit-actions{position:absolute; right:23px; top:58px;}
+.page-node-add-my-proposal .views-exposed-widget.views-widget-filter-keys{width:66% !important;}
+}
+@media only screen and (min-width :320px) and (max-width :479px)
+{
+.page-node-add-my-proposal #edit-field-proposoal-bid-types-und > div{width:100%;}
+.page-node-add-my-proposal div.addressfield-container-inline > div.form-item{width:100% !important;}
+.page-node-add-my-proposal .ds-2col-stacked .group-left{width:95% !important;}
+}
+
+/** ************** responsive popup proposals aug 13 ********** */
+@media only screen and (min-width :320px) and (max-width :767px)
+{
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table table, #views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table thead, #views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table tbody, #views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table th, #views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table td, 
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table tr { display: block; }
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table thead tr { position: absolute;top: -9999px;left: -9999px;}	
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table tr { border: 1px solid #ccc; }
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table td { border: none;border-bottom: 1px dotted #5f6062; position: relative;padding-left:50%;}
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table td:before { position: absolute;top: 6px;left: 6px;width: 45%; padding-right: 10px; white-space: nowrap;}
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table td:nth-of-type(1):before { content: "Date"; font-weight:bold; }
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table td:nth-of-type(2):before { content: "Order"; font-weight:bold; }
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table td:nth-of-type(3):before { content: "Product"; font-weight:bold; }
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table td:nth-of-type(4):before { content: "Total";  font-weight:bold;}
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table td:nth-of-type(5):before { content: "Status";font-weight:bold;}
+#views-form-m6rfp-for-proposal-entityreference-view-widget-1 .views-table span{float:none;}
+
+/******************************/
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table table, #views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table thead, #views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table tbody, #views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table th, #views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table td, 
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table tr { display: block; }
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table thead tr { position: absolute;top: -9999px;left: -9999px;}	
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table tr { border: 1px solid #ccc; }
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table td { border: none;border-bottom: 1px dotted #5f6062; position: relative;padding-left:50%;}
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table td:before { position: absolute;top: 6px;left: 6px;width: 45%; padding-right: 10px; white-space: nowrap;}
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table td:nth-of-type(1):before { content: "Select"; font-weight:bold; }
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table td:nth-of-type(2):before { content: "Project Name"; font-weight:bold; }
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table td:nth-of-type(3):before { content: "Company"; font-weight:bold; }
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table td:nth-of-type(4):before { content: "Post date";  font-weight:bold;}
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table td:nth-of-type(5):before { content: "Public Description";font-weight:bold;}
+#views-form-m6project-for-proposal-entityreference-view-widget-1 .views-table span{float:none;}
+
+/*****************************/
+
+/******************************/
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table table, #views-form-m6individual-member-entityreference-view-widget-1 .views-table thead, #views-form-m6individual-member-entityreference-view-widget-1 .views-table tbody, #views-form-m6individual-member-entityreference-view-widget-1 .views-table th, #views-form-m6individual-member-entityreference-view-widget-1 .views-table td, 
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table tr { display: block; }
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table thead tr { position: absolute;top: -9999px;left: -9999px;}	
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table tr { border: 1px solid #ccc; }
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table td { border: none;border-bottom: 1px dotted #5f6062; position: relative;padding-left:50%;}
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table td:before { position: absolute;top: 6px;left: 6px;width: 45%; padding-right: 10px; white-space: nowrap;}
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table td:nth-of-type(1):before { content: "Select"; font-weight:bold; }
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table td:nth-of-type(2):before { content: "Member Name"; font-weight:bold; }
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table td:nth-of-type(3):before { content: "E-mail"; font-weight:bold; }
+#views-form-m6individual-member-entityreference-view-widget-1 .views-table span{float:none;}
+
+/*****************************/
+
+/******************************/
+#views-form-m6companies-entityreference-view-widget-1 .views-table table, #views-form-m6companies-entityreference-view-widget-1 .views-table thead, #views-form-m6companies-entityreference-view-widget-1 .views-table tbody, #views-form-m6companies-entityreference-view-widget-1 .views-table th, #views-form-m6individual-member-entityreference-view-widget-1 .views-table td, 
+#views-form-m6companies-entityreference-view-widget-1 .views-table tr { display: block; }
+#views-form-m6companies-entityreference-view-widget-1 .views-table thead tr { position: absolute;top: -9999px;left: -9999px;}	
+#views-form-m6companies-entityreference-view-widget-1 .views-table tr { border: 1px solid #ccc; }
+#views-form-m6companies-entityreference-view-widget-1 .views-table td { border: none;border-bottom: 1px dotted #5f6062; position: relative;padding-left:50%;}
+#views-form-m6companies-entityreference-view-widget-1 .views-table td:before { position: absolute;top: 6px;left: 6px;width: 45%; padding-right: 10px; white-space: nowrap;}
+#views-form-m6companies-entityreference-view-widget-1 .views-table td:nth-of-type(1):before { content: "Select"; font-weight:bold; }
+#views-form-m6companies-entityreference-view-widget-1 .views-table td:nth-of-type(2):before { content: "Company Name"; font-weight:bold; }
+#views-form-m6companies-entityreference-view-widget-1 .views-table span{float:none;}
+
+/*****************************/
+
+.create_new_prop_pop_content .create_pop_text{width:100%;}
+#create_new_prop_pop_content #send_pop_text {
+    width: 98%;
+}
+#create_new_prop_pop_content #view_pop_text {
+    width: 98%;
+}
+}
+
+@media only screen and (min-width :768px) and (max-width :800px)
+{
+.head_creat_prop .left_cre_prop h1{font-size:21px !important;}
+}
+@media only screen and (min-width :640px) and (max-width :767px)
+{
+/*.logged-in form .form-actions .form-submit{font-size:12px; padding:5px !important;}*/
+.page-node-add-my-proposal #edit-actions{right:60px !important;}
+.page-node-add-my-proposal.logged-in .cancel{width:53px !important; right:6px !important;}
+.page-node-add-my-proposal .head_creat_prop .left_cre_prop h1 {font-size: 18px;  padding-top: 41px;}
+}
+@media only screen and (min-width :460px) and (max-width :639px)
+{
+.page-node-add-my-proposal .head_creat_prop .left_cre_prop h1{margin-top:-13px !important;}
+.page-node-add-my-proposal #edit-actions{right:73px !important; top:76px !important;}
+.page-node-add-my-proposal.logged-in .cancel{right:0px !important; top:75px !important;}
+/*.logged-in form .form-actions .form-submit{font-size:12px; padding:5px !important;}*/
+}
+@media only screen and (min-width :320px) and (max-width :459px)
+{
+.page-node-add-my-proposal .head_creat_prop .left_cre_prop h1{margin-top:-19px !important; float:left; text-align:center; width:100%;}
+.page-node-add-my-proposal .head_creat_prop .left_cre_prop > a{background:none repeat scroll 0 0 #1f83be; width:100% !important;}
+.page-node-add-my-proposal .box.box-with-image{margin-top:50px !important;}
+.page-node-add-my-proposal #edit-actions{right:67px !important; top:154px !important; width:auto !important;}
+.page-node-add-my-proposal.logged-in .cancel{right:7px !important; top:154px !important; font-size:12px; width:58px !important; padding:4px !important;}
+/*.logged-in form .form-actions .form-submit{font-size:12px; padding:3px !important;}*/
+#edit-field-footer-buttton > div p input {  float: left; font-size: 12px; margin-right: 4px;}
+.cancel_bottom a{font-size:12px; padding:4px 10px !important;}
+
+}
+@media only screen and (min-width :320px) and (max-width :359px)
+{
+	.page-node-add-my-proposal .head_creat_prop .left_cre_prop h1{font-size:17px !important;}
+}
+@media only screen and (min-width :360px) and (max-width :459px)
+{
+	.page-node-add-my-proposal .head_creat_prop .left_cre_prop h1{font-size:17px !important;}
+}
+@media only screen and (min-width :320px) and (max-width :550px)
+{
+.indi_red {
+    color: #f00;
+    float: right;
+    font-size: 12px;
+    margin-top: -33px;
+    padding-top: 2px;
+}
+
+}
+@media only screen and (min-width :320px) and (max-width :979px)
+{
+#mymap iframe {
+    float: left;
+    margin: 0 !important;
+    padding-left: 0 !important;
+    width: 100%;
+}
+#mymap {width:100% !important; margin-left:0px !important; margin-top:20px;}
+#field-mymap-add-more-wrapper #mymap {width:100% !important; margin-left:0px !important;}
+}
+@media only screen and (min-width :980px) and (max-width :1232px)
+{
+.page-node-add-my-proposal div.addressfield-container-inline > div.form-item{margin-right:16px !important;}
+}
+/*@media only screen and (min-width :1024px) and (max-width :1140px)
+{
+#edit-field-footer-buttton > div{width:35% !important;}
+}
+@media only screen and (min-width :900px) and (max-width :1023px)
+{
+	#edit-field-footer-buttton > div{width:41% !important;}
+}
+@media only screen and (min-width :800px) and (max-width :899px)
+{
+	#edit-field-footer-buttton > div{width:45% !important;}
+}
+@media only screen and (min-width :750px) and (max-width :799px)
+{
+	#edit-field-footer-buttton > div{width:49% !important;}
+}
+@media only screen and (min-width :700px) and (max-width :749px)
+{
+	#edit-field-footer-buttton > div{width:52% !important;}
+}
+@media only screen and (min-width :640px) and (max-width :699px)
+{
+	#edit-field-footer-buttton > div{width:58% !important;}
+}*/
+/*@media only screen and (min-width :320px) and (max-width :639px)
+{
+	#edit-field-footer-buttton > div{float:left; width:100%;}
+	.node-my-proposal #comment-form .create_pop_text_click{width:92% !important;}
+}
+*/
+@media only screen and (min-width :320px) and (max-width :400px)
+{
+	.m6_own_con .m6_own .m6_own_info li span {width: 40% !important; font-size:12px !important;}
+	.m6_own_con .m6_own .m6_own_info li label{width:110px !important; font-size:12px !important;}
+}
+/************************************sep3********************************/
+@media only screen and (min-width :320px) and (max-width :767px)
+{
+.prop_new_det .company-summary h3{text-align:center;}
+.prop_new_det .company-about { float: left; text-align: center; width: 100%;}
+.prop_new_det .company-meta {  float: left; text-align: center;width: 100%;}
+.prop_new_det .btn-group { float: left;margin-top: 20px !important; text-align: center; width: 100%;}
+.new_pop_created_main{left:0px !important;position: relative;top: 0;}
+.prop_new_det .prop_created{text-align:center !important;}
+.prop_new_det .prop_miles{text-align:center !important;}
+.prop_new_det .prop_unread{text-align:center !important;}
+.prop_new_det .company-ank {
+    float: left;
+    width: 100%;
+}
+.prop_new_det .company-summary {
+    float: left;
+    width: 100%;
+}
+.new_pop_created_main{
+	 float: left;
+    width: 100%;
+}
+.new_pop_created_main strong {
+    float: none !important;
+}
+.new_pop_created_main span {
+    float: none !important;
+}
+.prop_new_det .col-md-2.col-sm-2.col-xs-12 > a{text-align:center !important;}
+.prop_new_det .col-md-2.col-sm-2.col-xs-12 > p{padding-left:0px !important; text-align:center !important; width:100% !important;}
+.default_cmp .fa.fa-fw.fa-building{width:auto !important;}
+.page-proposals .view-id-proposals .views-exposed-form .views-exposed-widget .form-type-select select{width:100% !important;}
+.right_m6_view.list_inbox_pro{margin-left:0px !important; width:100%;}
+.m6_prop1_img > a span{text-align:center !important; width:100% !important; padding-left:0px !important;}
+}
+@media only screen and (min-width :320px) and (max-width :640px)
+{
+.page-proposals .views-exposed-widget.views-widget-filter-title{width:95%;}
+.page-proposals .view-id-proposals .views-exposed-form .views-exposed-widget .form-submit {
+    float: right;
+    margin-top: 0 !important;
+    position: relative;
+    top: -105px;
+	width:25%;
+}
+.page-proposals .view-id-proposals .form-item.form-type-textfield.form-item-title {
+    float: left;
+    width: 88%;
+}
+/*.page-proposals .view-id-proposals .views-exposed-form .views-exposed-widget .form-type-select{margin-top:20px;}
+.page-proposals .view-id-proposals .views-exposed-form .views-exposed-widget {padding: 0 !important; float:right; width:100%;}*/
+
+/*.page-proposals .proposal-exposed-filter .views-submit-button, .rpf-exposed-filter .views-submit-button, .clarification-exposed-filter .views-submit-button{position:relative !important; top: -19px;}*/
+}
+@media only screen and (min-width :320px) and (max-width :995px)
+{
+.page-proposals .sidebars section { width: 100% !important;padding-left:0px !important;}
+.page-proposals .view.view-proposals {float: right; width: 100% !important;}
+ 
+}
+@media only screen and (min-width :641px) and (max-width :995px)
+{
+/*.page-proposals .proposal-exposed-filter .views-submit-button, .rpf-exposed-filter .views-submit-button, .clarification-exposed-filter .views-submit-button{position:relative !important; top: 0px !important;}*/
+}
+/************************************sep3********************************/
+@media only screen and (min-width :768px) and (max-width :979px)
+{
+.right_m6_view.list_inbox_pro{margin-left:0px !important; width:100%;}
+}
+
+@media only screen and (min-width :320px) and (max-width :979px)
+{
+	.simple-pagination{ margin-left:0px !important;}
+}
+@media only screen and (min-width :480px) and (max-width :638px)
+{
+.page-node-add-my-proposal div.addressfield-container-inline > div.form-item{margin-right:15px !important}
+}
+
+
+/*************sep16***********/
+@media only screen and (min-width :981px) and (max-width :1080px)
+{
+#confirm_pop_content .create_pop_text_new{width:80%;}	
+#confirm_pop_content #send_pop_text_new {
+    width: 43%;
+}
+}
+@media only screen and (min-width :320px) and (max-width :767px)
+{
+#confirm_pop_content #send_pop_text_new {
+    width: 98%;
+}
+#view_close{left:53px !important; padding:4px 5px !important; font-size:12px !important;}
+.page-node-add-my-proposal #edit-actions-ervw{left:-53px !important;}
+}
+@media only screen and (min-width :768px) and (max-width :980px)
+{
+#confirm_pop_content .create_pop_text_new{width:100%;}	
+#confirm_pop_content #send_pop_text_new {
+    width: 56%;
+}
+}
+
+/*************sep16***********/

@@ -1,0 +1,55 @@
+
+.view-uc-coupon-purchase-view .uc-coupon-code-used {
+  text-decoration: line-through;
+}
+.view-uc-coupon-purchase-view .views-field-base-name {
+  width: 20%;
+}
+.view-uc-coupon-purchase-view td {
+  vertical-align: top;
+}
+
+div.uc-coupon-certificate {
+  page-break-after: always;
+  background: white;
+  width: 90%;
+  margin: auto;
+  border: 1px solid blue;
+  padding: 2%;
+}
+
+#uc-coupon-add-form #edit-valid-from-wrapper label,
+#uc-coupon-add-form #edit-valid-until-wrapper label {
+  float: left;
+  width: 8em;
+  margin-top: 2px;
+}
+
+#uc-cart-pane-coupon,
+#uc-cart-pane-coupon-automatic {
+  border: solid 1px #bbb;
+  margin-top: .5em;
+  padding: 0 .75em;
+}
+
+/*********** jeevitha 10/07/ ************/
+#uc-cart-pane-coupon {padding: 20px; width:400px;margin-top:20px;}
+#uc-cart-pane-coupon .form-item label {  padding-bottom: 5px;}
+#uc-cart-pane-coupon .form-item input {margin-bottom: 10px; width:290px;}
+#uc-cart-pane-coupon .form-item .description {margin-bottom: 10px;}
+#uc-cart-view-form table{ width:100%;  border:1px solid #d3d3d3;}
+#uc-cart-view-form table th, td {padding: 10px;}
+/*#uc-cart-view-form .form-actions a{ margin:0px !important;  color:#fff !important;}*/
+#uc-cart-view-form table tr td{padding:10px}
+
+
+
+#uc-cart-view-form .form-actions a {
+    background: #337ab7 none repeat scroll 0 0;
+    color: #fff;
+    float: left;
+    margin: 0 !important;
+    padding: 6px 12px;
+}
+uc-cart-view-form .form-actions a :hover{text-decoration:none !important;}
+

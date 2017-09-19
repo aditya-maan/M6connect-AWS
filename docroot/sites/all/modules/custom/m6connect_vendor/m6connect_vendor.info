@@ -1,0 +1,4 @@
+name = M6Connect Vendor
+description = Provides M6Connect Vendor Services
+package = CUSTOM
+core = 7.x

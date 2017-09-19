@@ -1,0 +1,10 @@
+description = "Custom module for m6connect dashboard."
+name = "m6connect_dashboard"
+package = CUSTOM
+core = 7.x
+dependencies[] = og
+files[] = includes/views/m6connect_dashboard.views.inc
+; Views fields
+files[] = includes/views/handlers/m6connect_dashboard_handler_field_og_membership_link_edit.inc
+files[] = includes/views/handlers/m6connect_dashboard_handler_field_og_membership_link_delete.inc
+files[] = includes/views/handlers/m6connect_dashboard_handler_field_company_profile_pic.inc

@@ -1,0 +1,10 @@
+name = Custom Alert
+description = Development on alert.
+core = 7.x
+package = CUSTOM
+
+; Information added by drupal.org packaging script on 2011-11-13
+version = "7.x-3.1"
+core = "7.x"
+project = "m6connect_alert"
+datestamp = "1425981242"

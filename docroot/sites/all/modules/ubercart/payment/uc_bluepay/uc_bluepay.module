@@ -1,0 +1,1934 @@
+<?php
+
+/**
+ * @file
+ * Processes payments using BluePay
+ */
+
+define('UC_BLUEPAY_TEST_GATEWAY_URL', 'https://secure.bluepay.com/interfaces/a.net.test');
+define('UC_BLUEPAY_LIVE_GATEWAY_URL', 'https://secure.bluepay.com/interfaces/a.net');
+
+include('BluePay.php');
+$prod_id_cus = '';
+/**
+ * Implements hook_menu().
+ */
+function uc_bluepay_menu() {
+    
+  $items['custom/unsubscribe/plan'] = array(
+    'page callback' => 'uc_bluepay_unsubscribe_plan',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('access content'),
+  );
+  
+   $items['custom/unsubscribe/cron'] = array(
+    'page callback' => 'bp_unsubscribe_plan_cron',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('access content'),
+  );
+   
+   $items['custom/downgrade/cron'] = array(
+    'page callback' => 'bp_downgrade_plan_cron',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('access content'),
+  );
+   
+   $items['custom/commoncheck/cron'] = array(
+    'page callback' => 'bp_common_cron_check',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('access content'),
+  );
+   
+  
+ 
+  return $items;
+}
+
+/**
+ * Implements hook_uc_payment_gateway().
+ */
+function uc_bluepay_uc_payment_gateway() {
+  $gateways['bluepay'] = array(
+    'title' => t('BluePay'),
+    'description' => t('Process credit card payments using the BluePay gateway.'),
+    'settings' => 'uc_bluepay_settings_form',
+    'credit' => 'uc_bluepay_charge',
+    'credit_txn_types' => array(UC_CREDIT_AUTH_ONLY, UC_CREDIT_PRIOR_AUTH_CAPTURE, UC_CREDIT_AUTH_CAPTURE),
+  );
+
+  return $gateways;
+}
+
+/**
+ * Callback for payment gateway settings.
+ */
+function uc_bluepay_settings_form($form, &$form_state) {
+  $login_data = _uc_bluepay_login_data();
+
+  // Allow admin to set duplicate window.
+  $form['uc_bluepay_duplicate_window'] = array(
+    '#type' => 'select',
+    '#title' => t('Duplicate window'),
+    '#description' => t('Blocks submission of duplicate transactions within the specified window.  Defaults to 120 seconds.'),
+    '#default_value' => variable_get('uc_bluepay_duplicate_window', 120),
+    '#options' => drupal_map_assoc(array(0, 15, 30, 45, 60, 75, 90, 105, 120)),
+  );
+
+  $form['api_id_key'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('BluePay Account ID and Secret Key'),
+    '#description' => t('This information is required for Ubercart to interact with your payment gateway account.  It is different from your login username and password, and may be found through your Account Admin page.'),
+  );
+  $form['api_id_key']['uc_bluepay_api_login_id'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Account ID'),
+    '#default_value' => variable_get('uc_bluepay_api_login_id', ''),
+  );
+  $form['api_id_key']['uc_bluepay_api_transaction_key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Secret Key'),
+    '#default_value' => variable_get('uc_bluepay_api_transaction_key', ''),
+  );
+
+  $form['aim_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Transaction Mode Settings'),
+    '#description' => t('Live or Test mode. Under test mode, credit card information is not actually sent to the credit card processing network.'),
+  );
+  $form['aim_settings']['uc_bluepay_aim_txn_mode'] = array(
+    '#type' => 'radios',
+    '#title' => t('Transaction mode'),
+    '#options' => array(
+      'live' => t('LIVE'),
+      'live_test' => t('TEST'),
+    ),
+    '#default_value' => variable_get('uc_bluepay_aim_txn_mode', 'live_test'),
+  );
+  return $form;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for uc_payment_method_settings_form().
+ */
+function uc_bluepay_form_uc_payment_method_settings_form_alter(&$form, &$form_state) {
+  if ($form_state['build_info']['args'][0] == 'credit') {
+    $form['#submit'][] = 'uc_bluepay_payment_gateway_settings_submit';
+  }
+}
+
+/**
+ * Submit handler for payment gateway settings form to encrypt fields.
+ */
+function uc_bluepay_payment_gateway_settings_submit($form, &$form_state) {
+  // If CC encryption has been configured properly.
+  if ($key = uc_credit_encryption_key()) {
+    // Setup our encryption object.
+    $crypt = new UbercartEncryption();
+
+    // Encrypt the Login ID, Transaction key, and MD5 Hash.
+    if (!empty($form_state['values']['uc_bluepay_md5_hash'])) {
+      variable_set('uc_bluepay_md5_hash', $crypt->encrypt($key, $form_state['values']['uc_bluepay_md5_hash']));
+    }
+
+    // Store any errors.
+    uc_store_encryption_errors($crypt, 'uc_bluepay');
+  }
+}
+
+// Main handler for processing credit card transactions.
+function uc_bluepay_charge($order_id, $amount, $data) {
+  // Load the order.
+  $order = uc_order_load($order_id);
+  return _uc_bluepay_charge($order, $amount, $data);
+}
+
+/**
+ * Handles authorizations and captures through AIM at Authorize.Net
+ */
+function _uc_bluepay_charge($order, $amount, $data) {
+  global $user;
+  global $prod_id_cus;
+ 
+  //$cus_fields = authnetcustomfields();
+  
+  // Build a description of the order for logging in Auth.Net.
+  $description = array();
+  foreach ((array) $order->products as $product) {
+      $prod_id_cus = $product->nid;
+     // print_r($product);
+      //exit;
+    $description[] = $product->qty . 'x ' . $product->model;
+    $prod_sku_num = $product->model;
+  }
+  
+  
+
+  $billing_country = uc_get_country_data(array('country_id' => $order->billing_country));
+  $delivery_country = uc_get_country_data(array('country_id' => $order->delivery_country));
+
+  // Build the POST data for the transaction.
+  $submit_data = array(
+    // Merchant information.
+    'x_login' => trim(variable_get('uc_bluepay_api_login_id', '')),
+    'x_tran_key' => trim(variable_get('uc_bluepay_api_transaction_key', '')),
+
+    // Transaction information.
+    'x_version' => '3.1',
+    'x_type' => _uc_bluepay_txn_map($data['txn_type']),
+    // 'x_method' => $order->payment_method == 'credit' ? 'CC' : 'ECHECK',
+    'x_method' => 'CC',
+    // 'x_recurring_billing' => 'FALSE',
+    'x_amount' => uc_currency_format($amount, FALSE, FALSE, '.'),
+    'x_card_num' => $order->payment_details['cc_number'],
+    'x_exp_date' => $order->payment_details['cc_exp_month'] . '/' . $order->payment_details['cc_exp_year'],
+    'x_card_code' => $order->payment_details['cc_cvv'],
+    // 'x_trans_id' => '',
+    // 'x_auth_code' => '',
+    'x_test_request' => variable_get('uc_bluepay_aim_txn_mode', 'live_test') == 'live_test' ? 'TRUE' : 'FALSE',
+    'x_duplicate_window' => variable_get('uc_bluepay_duplicate_window', 120),
+
+    // Order information.
+    'x_invoice_num' => $order->order_id,
+    'x_description' => substr(implode(', ', $description), 0, 255),
+
+    // Customer information.
+    'x_first_name' => substr($order->billing_first_name, 0, 50),
+    'x_last_name' => substr($order->billing_last_name, 0, 50),
+    'x_company' => substr($order->billing_company, 0, 50),
+    'x_address' => substr($order->billing_street1, 0, 60),
+    'x_city' => substr($order->billing_city, 0, 40),
+    'x_state' => substr(uc_get_zone_code($order->billing_zone), 0, 40),
+    'x_zip' => substr($order->billing_postal_code, 0, 20),
+    'x_country' => !$billing_country ? '' : $billing_country[0]['country_iso_code_2'],
+    'x_phone' => substr($order->billing_phone, 0, 25),
+    // 'x_fax' => substr('', 0, 25),
+    'x_email' => substr($order->primary_email, 0, 255),
+    'x_cust_id' => substr($order->uid, 0, 20),
+    'x_customer_ip' => substr(ip_address(), 0, 15),
+
+    // Shipping information.
+    'x_ship_to_first_name' => substr($order->delivery_first_name, 0, 50),
+    'x_ship_to_last_name' => substr($order->delivery_last_name, 0, 50),
+    'x_ship_to_company' => substr($order->delivery_company, 0, 50),
+    'x_ship_to_address' => substr($order->delivery_street1, 0, 60),
+    'x_ship_to_city' => substr($order->delivery_city, 0, 40),
+    'x_ship_to_state' => substr(uc_get_zone_code($order->delivery_zone), 0, 40),
+    'x_ship_to_zip' => substr($order->delivery_postal_code, 0, 20),
+    'x_ship_to_country' => !$delivery_country ? '' : $delivery_country[0]['country_iso_code_2'],
+
+    // Extra information.
+	'x_customer_ip' => $_SERVER['REMOTE_ADDR'],
+    'x_delim_data' => 'TRUE',
+    'x_delim_char' => '|',
+    'x_encap_char' => '"',
+    'x_relay_response' => 'FALSE',
+    'x_email_customer' => variable_get('uc_bluepay_aim_email_customer', FALSE) ? 'TRUE' : 'FALSE',
+  );
+  
+  
+
+  if ($data['txn_type'] == UC_CREDIT_PRIOR_AUTH_CAPTURE) {
+    $submit_data['x_trans_id'] = $data['auth_id'];
+  }
+
+  // Determine the correct URL based on the transaction mode.
+  if (variable_get('uc_bluepay_aim_txn_mode', 'live_test') == 'developer_test') {
+    $post_url = variable_get('uc_bluepay_api_test_gateway_url', UC_BLUEPAY_TEST_GATEWAY_URL);
+  }
+  else {
+    $post_url = variable_get('uc_bluepay_api_live_gateway_url', UC_BLUEPAY_LIVE_GATEWAY_URL);
+  }
+
+  // Translate the data array into a string we can POST.
+  $post_fields = array();
+  foreach ($submit_data as $key => $value) {
+    $post_fields[] = $key . '=' . urlencode($value);
+  }
+
+  // Setup the cURL request.
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $post_url);
+  curl_setopt($ch, CURLOPT_VERBOSE, 0);
+  curl_setopt($ch, CURLOPT_POST, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, implode('&', $post_fields));
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+  curl_setopt($ch, CURLOPT_NOPROGRESS, 1);
+  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
+  $result = curl_exec($ch);
+
+  // Log any errors to the watchdog.
+  if ($error = curl_error($ch)) {
+    watchdog('uc_authorizenet', 'cURL error: @error', array('@error' => $error), WATCHDOG_ERROR);
+    return array('success' => FALSE);
+  }
+  curl_close($ch);
+
+  $response = explode('|', $result);
+  
+
+  if (variable_get('uc_bluepay_response_debug', FALSE)) {
+    watchdog('uc_bluepay', 'Debug response: !data', array('!data' => '<pre>' . check_plain(print_r($response, TRUE)) . '</pre>'));
+  }
+
+  // Trim off the encapsulating character from the results.
+  for ($i = 0; $i < count($response); $i++) {
+    $response[$i] = substr($response[$i], 1, strlen($response[$i]) - 2);
+  }
+
+  /**
+   * Response key index:
+   * 0 = Response Code
+   * 2 = Response Reason Code
+   * 3 = Response Reason Text
+   * 4 = Authorization Code
+   * 5 = Address Verification Service (AVS) Response
+   * 6 = Transaction ID; needed for CREDIT, PRIOR_AUTH_CAPTURE, and VOID transactions.
+   * 9 = Amount
+   * 11 = Transaction Type
+   * 32 = Tax Amount Charged
+   * 37 = Transaction Response MD5 Hash
+   * 38 = Card Code (CVV) Response
+   */
+
+  // If we didn't get an approval response code...
+  if ($response[0] != '1') {
+    // Fail the charge with the reason text in the decline message.
+    $result = array(
+      'success' => FALSE,
+      'message' => t('Credit card payment declined: @message', array('@message' => $response[3])),
+      'uid' => $user->uid,
+    );
+  }
+  else {
+      
+       $datas = $submit_data;
+      $can_account = user_load($user->uid,TRUE);
+      
+      $user_roles = $user->roles;
+      $current_plan = 'Paid';
+      if(array_key_exists('4',$user_roles))
+      {
+          
+          $current_plan = 'Free';
+          
+      }
+    
+  
+  
+  $an_field_items = field_get_items('user', $can_account, 'usr_last_pg');
+      
+      $last_payment = $an_field_items[0]['value'];
+      
+      if($last_payment == 'bluepay')
+      {
+      
+      
+      $bluepay_field_items = field_get_items('user', $can_account, 'user_bluepay_rebill_id');
+      
+      $rebill_id = $bluepay_field_items[0]['value'];
+      if($rebill_id!="")
+      {
+           
+          $accountID = $datas['x_login'];
+          $secretKey = $datas['x_tran_key'];;
+          
+$mode_set = trim(variable_get('uc_bluepay_aim_txn_mode',''));
+          
+          if($mode_set == 'live_test')
+          $mode = "TEST";
+          else
+          $mode = "LIVE";
+         
+          $rebillCancel = new BluePay(
+        $accountID, 
+        $secretKey, 
+        $mode
+    );
+
+    # Find rebill by id and cancel rebilling cycle 
+   $rebillCancel->cancelRebillingCycle($rebill_id);
+
+    // Makes the API request to cancel the rebill
+    $rebillCancel->process();
+    
+    if ($rebillCancel->isSuccessfulResponse()) {
+        
+        
+         $account = user_load($user->uid); // Loading account
+$edit = array(
+  'user_bluepay_rebill_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_trans_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'RECURRING CANCELLED',
+      ),
+    ),
+  ),
+'user_bluepay_rec_cancel_status' => array(
+            'und' => array(
+             0 => array(
+                 'value' => '0',
+                 ),
+             ),
+        ),
+  'user_bluepay_rec_expiration' => array(
+             'und' => array(
+             0 => array(
+             'value' => '',
+        ),
+        ),
+    )
+);
+    
+user_save($account, $edit);
+   
+        
+        
+
+    // Reads the response from BluePay
+    /*echo 
+    'Rebill Status: ' . $rebillCancel->getRebStatus() . "\n" .
+    'Rebill ID: ' . $rebillCancel->getRebID() . "\n" .
+    'Rebill Creation Date: ' . $rebillCancel->getCreationDate() . "\n" .
+    'Rebill Next Date: ' . $rebillCancel->getNextDate() . "\n" .
+    'Rebill Last Date: ' . $rebillCancel->getLastDate() . "\n" .
+    'Rebill Expression: ' . $rebillCancel->getSchedExpr() . "\n" .
+    'Rebill Cycles Remaining: ' . $rebillCancel->getCyclesRemaining() . "\n" .
+    'Rebill Amount: ' . $rebillCancel->getRebAmount() . "\n" .
+    'Rebill Next Amount Charged: ' . $rebillCancel->getNextAmount() . "\n"; */
+    }
+    else
+    {
+
+   $rebillCancel->getMessage();
+    }
+
+      }
+      
+      
+      
+    }
+    else
+    {
+        
+        
+       
+         $an_field_items = field_get_items('user', $can_account, 'user_authorizenet_rebill_id');
+          $an_field_items2 = field_get_items('user', $can_account, 'user_authorizenet_rec_trans_id');
+          $an_field_items3 = field_get_items('user', $can_account, 'user_m6_next_bill_date');
+          $next_bill_date = $an_field_items3[0]['value'];
+          
+          $an_rebill_id = $an_field_items[0]['value'];
+          $an_rebill_ref_id = $an_field_items2[0]['value'];
+          if($an_rebill_id!="")
+          {
+             
+          $result_uns = cancel_authorizenet_recurring($an_rebill_id,$an_rebill_ref_id);
+          
+          }
+        
+         
+      
+        
+        
+        
+        
+    }
+      
+     //$bluepay_recurring = bluepay_recurring_connect($submit_data);
+    
+     // Recurring Payment Starts
+      
+      
+      
+      
+            
+      
+     
+     global $prod_id_cus;
+    $nids[] = $prod_id_cus;
+   
+    $query = db_select('uc_recurring_product', 'p');
+      $query->leftjoin('uc_product_features', 'f', 'p.pfid = f.pfid');
+      $result = $query->fields('p', array('pfid', 'model', 'fee_amount', 'initial_charge', 'regular_interval', 'number_intervals'))
+        ->fields('f', array('nid'))
+        ->condition('f.nid', $nids, 'IN')
+        ->execute();
+      $cs_record = $result->fetchAssoc();
+      
+      
+      
+      
+       $downgrade_plan = false; 
+              
+      $query_status = db_select('uc_orders', 'o')
+    ->fields('o', array('order_id','uid', 'order_status', 'order_total')) ; 
+    $db_or_status = db_or();  
+    $db_or_status->condition(db_and()->condition('o.uid', $user->uid, '=')->condition('o.order_status', 'completed', '='));
+    $query_status->orderBy('order_id', 'DESC');
+    $query_status ->range(0, 1);
+  
+   $src_status =  $query_status->condition($db_or_status);  
+   $result_status = $src_status->execute()->fetchAll();
+ 
+    if(isset($result_status[0]->order_total))
+    {
+      $total1 = $result_status[0]->order_total;
+    }
+    else {
+        $total1 = 0;
+    }
+ 
+ if($amount < $total1 && $current_plan == 'Paid')
+ {
+     $downgrade_plan = true;
+     $usr_account = user_load($user->uid);
+      $bluepay_field_items = field_get_items('user', $usr_account, 'user_m6_next_bill_date');
+     
+      $user_next_bill_date = $bluepay_field_items[0]['value'];
+     $next_rec_date = date('Y-m-d',strtotime($user_next_bill_date.' + '.$cs_record['initial_charge']));
+ }
+ else
+ {
+     $next_rec_date = date('Y-m-d',strtotime('+'.$cs_record['initial_charge']));
+ }
+      
+      
+      
+  
+    
+    $accountID = $datas['x_login'];
+$secretKey = $datas['x_tran_key'];
+
+
+$mode_set = trim(variable_get('uc_bluepay_aim_txn_mode',''));
+          
+          if($mode_set == 'live_test')
+          $mode = "TEST";
+          else
+          $mode = "LIVE";
+
+
+
+$rebill = new BluePay(
+    $accountID,
+    $secretKey,
+    $mode
+);
+//print_r($datas);
+$rebill->setCustomerInformation(array(
+    'firstName' => $datas['x_first_name'], 
+    'lastName' => $datas['x_last_name'], 
+    'addr1' => $datas['x_address'], 
+    'addr2' => '', 
+    'city' => $datas['x_city'], 
+    'state' => $datas['x_state'], 
+    'zip' =>$datas['x_zip'], 
+    'country' => $datas['x_country'], 
+    'phone' => $datas['x_phone'], 
+    'email' => $datas['x_email'] 
+));
+ 
+$rebill->setCCInformation(array(
+    'cardNumber' => $datas['x_card_num'], // Card Number: 4111111111111111
+    'cardExpire' => $datas['x_exp_date'], // Card Expire: 12/15
+    'cvv2' => $datas['x_card_code'] // Card CVV2: 123
+));
+
+$reb_exp = explode(" ",$cs_record['regular_interval']);
+
+if($reb_exp[1] == 'months')
+$reb_exp_txt = $reb_exp[0]." MONTH";
+
+if($reb_exp[1] == 'years')
+$reb_exp_txt = $reb_exp[0]." YEAR";
+
+if($reb_exp[1] == 'days')
+$reb_exp_txt = $reb_exp[0]." DAY";
+
+if($reb_exp[1] == 'weeks')
+$reb_exp_txt = $reb_exp[0]." WEEK";
+
+$rebill->setRebillingInformation(array(
+   'rebillFirstDate' => $next_rec_date, // Rebill Start Date: Jan. 5, 2015
+   'rebillExpression' => $reb_exp_txt, // Rebill Frequency: 1 MONTH
+  'rebillCycles' => $cs_record['number_intervals'], // Rebill # of Cycles: 5
+   'rebillAmount' => $cs_record['fee_amount'] // Rebill Amount: $3.50
+    /*'rebillFirstDate' => '2015-09-20', // Rebill Start Date: Jan. 5, 2015
+   'rebillExpression' => '1 MONTH', // Rebill Frequency: 1 MONTH
+   'rebillCycles' => '5', // Rebill # of Cycles: 5
+   'rebillAmount' => '13.49' // Rebill Amount: $3.50    */
+        
+));
+
+$rebill->auth('0.00');
+
+// Makes the API Request with BluePay
+$rebill->process();
+
+if ($rebill->isSuccessfulResponse()) {
+    
+    
+    
+    $account = user_load($user->uid); // Loading account
+    
+    
+    
+    if($downgrade_plan == true)
+    {
+        
+       $dwn_grd_id = bp_get_downgrade_role_id($prod_sku_num);
+        $edit = array(
+  'user_bluepay_rebill_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => $rebill->getRebillID(),
+      ),
+    ),
+  ),
+  'user_bluepay_rec_trans_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => $rebill->getTransID(),
+      ),
+    ),
+  ),
+  'user_bluepay_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => $rebill->getStatus(),
+      ),
+    ),
+  ),
+'user_bluepay_rec_cancel_status' => array(
+            'und' => array(
+             0 => array(
+                 'value' => '0',
+                 ),
+             ),
+        ),
+ 'user_bluepay_rec_expiration' => array(
+             'und' => array(
+             0 => array(
+             'value' => '',
+        ),
+        ),
+    ),
+'user_m6_next_bill_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => $next_rec_date,
+      ),
+    )
+),
+ 'user_m6_dgrd_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => $user_next_bill_date,
+      ),
+    )
+),
+'user_m6_dgrd_rid' => array(
+    'und' => array(
+      0 => array(
+        'value' => $dwn_grd_id,
+      ),
+    )
+),
+ 'usr_last_pg' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'bluepay',
+      ),
+    )
+),
+  'user_authorizenet_rc_cncl_stat' => array(
+    'und' => array(
+      0 => array(
+        'value' => '0',
+      ),
+    )
+),
+'user_authorizenet_rec_expiration' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+)
+);
+        
+        
+    }
+     
+    
+  else
+  {
+    
+$edit = array(
+  'user_bluepay_rebill_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => $rebill->getRebillID(),
+      ),
+    ),
+  ),
+  'user_bluepay_rec_trans_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => $rebill->getTransID(),
+      ),
+    ),
+  ),
+  'user_bluepay_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => $rebill->getStatus(),
+      ),
+    ),
+  ),
+'user_bluepay_rec_cancel_status' => array(
+            'und' => array(
+             0 => array(
+                 'value' => '0',
+                 ),
+             ),
+        ),
+             'user_bluepay_rec_expiration' => array(
+             'und' => array(
+             0 => array(
+             'value' => '',
+        ),
+        ),
+    ),
+'user_m6_next_bill_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => $next_rec_date,
+      ),
+    )
+),
+ 'user_m6_dgrd_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+'user_m6_dgrd_rid' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+ 'usr_last_pg' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'bluepay',
+      ),
+    )
+),
+  'user_authorizenet_rc_cncl_stat' => array(
+    'und' => array(
+      0 => array(
+        'value' => '0',
+      ),
+    )
+),
+'user_authorizenet_rec_expiration' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+)
+);
+
+  }
+
+user_save($account, $edit);
+
+
+    /*echo 
+    'Transaction ID: '. $rebill->getTransID() . "\n" .
+    'Rebill ID: ' . $rebill->getRebillID() . "\n" .
+    'Status: '. $rebill->getStatus() . "\n" .
+    'Message: '. $rebill->getMessage() . "\n" .
+    'AVS Response: ' . $rebill->getAVSResponse() . "\n" .
+    'CVS Response: ' . $rebill->getCVV2Response() . "\n" .
+    'Masked Account: ' . $rebill->getMaskedAccount() . "\n" .
+    'Card Type: ' . $rebill->getCardType() . "\n" .
+    'Authorization Code: ' . $rebill->getAuthCode() . "\n";*/
+    
+    
+}
+else
+{
+    
+    
+     $account = user_load($user->uid); // Loading account
+     
+     
+  if($downgrade_plan == true)
+    {    
+     
+$edit = array(
+  'user_bluepay_rebill_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_trans_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'RECURRING FAILED',
+      ),
+    ),
+  ),
+'user_m6_next_bill_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+ 'user_m6_dgrd_date' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+'user_m6_dgrd_rid' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+),
+ 'usr_last_pg' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'bluepay',
+      ),
+    )
+),
+'user_bluepay_rec_cancel_status' => array(
+            'und' => array(
+             0 => array(
+                 'value' => '0',
+                 ),
+             ),
+        ),
+             'user_bluepay_rec_expiration' => array(
+             'und' => array(
+             0 => array(
+             'value' => '',
+        ),
+        ),
+    ),
+     'user_authorizenet_rc_cncl_stat' => array(
+    'und' => array(
+      0 => array(
+        'value' => '0',
+      ),
+    )
+),
+'user_authorizenet_rec_expiration' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+)
+);
+    }
+    else
+    {
+        $edit = array(
+  'user_bluepay_rebill_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_trans_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'RECURRING FAILED',
+      ),
+    ),
+  ),
+ 'usr_last_pg' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'bluepay',
+      ),
+    )
+),
+'user_bluepay_rec_cancel_status' => array(
+            'und' => array(
+             0 => array(
+                 'value' => '0',
+                 ),
+             ),
+        ),
+             'user_bluepay_rec_expiration' => array(
+             'und' => array(
+             0 => array(
+             'value' => '',
+        ),
+        ),
+    ),
+    'user_authorizenet_rc_cncl_stat' => array(
+    'und' => array(
+      0 => array(
+        'value' => '0',
+      ),
+    )
+),
+'user_authorizenet_rec_expiration' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    )
+)
+);
+    }
+    
+user_save($account, $edit);
+   
+    
+    
+}
+
+
+    // Build a message for display and comments in the payments table.
+    $message = t('Type: @type<br />ID: @id', array('@type' => _uc_bluepay_txn_type($response[11]), '@id' => $response[6]));
+    $result = array(
+      'success' => TRUE,
+      'comment' => $message,
+      'message' => $message,
+      'data' => array('module' => 'uc_bluepay', 'txn_type' => $response[11], 'txn_id' => $response[6], 'txn_authcode' => $response[4]),
+      'uid' => $user->uid,
+    );
+
+    // If this was an authorization only transaction...
+    if ($data['txn_type'] == UC_CREDIT_AUTH_ONLY) {
+      // Log the authorization to the order.
+      uc_credit_log_authorization($order->order_id, $response[6], $amount);
+    }
+    elseif ($data['txn_type'] == UC_CREDIT_PRIOR_AUTH_CAPTURE) {
+      uc_credit_log_prior_auth_capture($order->order_id, $data['auth_id']);
+    }
+
+    // Create a transaction reference if specified in the payment gateway
+    // settings and this is an appropriate transaction type.
+    if (variable_get('uc_bluepay_cim_profile', FALSE) && in_array($data['txn_type'], array(UC_CREDIT_AUTH_ONLY, UC_CREDIT_AUTH_CAPTURE))) {
+      // Ignore the returned message for now; that will appear in the comments.
+      _uc_bluepay_cim_profile_create($order);
+    }
+    
+    if($downgrade_plan == false)
+    {
+     $order_confirm_st = user_load($user->uid,TRUE);
+     
+     $edit = array(
+  'user_order_stat_recent' => array(
+    'und' => array(
+      0 => array(
+        'value' => '1',
+      ),
+    ),
+  )
+);
+    
+user_save($order_confirm_st, $edit);
+    }
+    
+  }
+
+  // Don't log this as a payment money wasn't actually captured.
+  if (in_array($data['txn_type'], array(UC_CREDIT_AUTH_ONLY))) {
+    $result['log_payment'] = FALSE;
+  }
+
+  // Build an admin order comment.
+  $comment = t('<b>@type</b><br /><b>@status:</b> @message<br />Amount: @amount<br />AVS response: @avs',
+    array('@type' => _uc_bluepay_txn_type($response[11]), '@status' => $result['success'] ? t('ACCEPTED') : t('REJECTED'), '@message' => $response[3], '@amount' => uc_currency_format($response[9]), '@avs' => _uc_bluepay_avs($response[5])));
+
+  // Add the CVV response if enabled.
+  if (variable_get('uc_credit_cvv_enabled', TRUE)) {
+    $comment .= '<br />' . t('CVV match: @cvv', array('@cvv' => _uc_bluepay_cvv($response[38])));
+  }
+
+  // Save the comment to the order.
+  uc_order_comment_save($order->order_id, $user->uid, $comment, 'admin');
+  
+  
+ 
+  
+  
+
+  return $result;
+  
+  
+}
+
+/**
+ * Returns the message text for an AVS response code.
+ */
+function _uc_bluepay_avs($code) {
+  $text = $code . ' - ';
+
+  switch ($code) {
+    case 'A':
+      $text .= t('Address (Street) matches, ZIP does not');
+      break;
+    case 'B':
+      $text .= t('Address information not provided for AVS check');
+      break;
+    case 'E':
+      $text .= t('AVS error');
+      break;
+    case 'G':
+      $text .= t('Non-U.S. Card Issuing Bank');
+      break;
+    case 'N':
+      $text .= t('No Match on Address (Street) or ZIP');
+      break;
+    case 'P':
+      $text .= t('AVS not applicable for this transaction');
+      break;
+    case 'R':
+      $text .= t('Retry – System unavailable or timed out');
+      break;
+    case 'S':
+      $text .= t('Service not supported by issuer');
+      break;
+    case 'U':
+      $text .= t('Address information is unavailable');
+      break;
+    case 'W':
+      $text .= t('Nine digit ZIP matches, Address (Street) does not');
+      break;
+    case 'X':
+      $text .= t('Address (Street) and nine digit ZIP match');
+      break;
+    case 'Y':
+      $text .= t('Address (Street) and five digit ZIP match');
+      break;
+    case 'Z':
+      $text .= t('Five digit ZIP matches, Address (Street) does not');
+      break;
+  }
+
+  return $text;
+}
+
+/**
+ * Returns the message text for a CVV match.
+ */
+function _uc_bluepay_cvv($code) {
+  $text = $code . ' - ';
+
+  switch ($code) {
+    case 'M':
+      $text .= t('Match');
+      break;
+    case 'N':
+      $text .= t('No Match');
+      break;
+    case 'P':
+      $text .= t('Not Processed');
+      break;
+    case 'S':
+      $text .= t('Should have been present');
+      break;
+    case 'U':
+      $text .= t('Issuer unable to process request');
+      break;
+  }
+
+  return $text;
+}
+
+/**
+ * Returns the title of the transaction type.
+ */
+function _uc_bluepay_txn_type($type) {
+  switch (strtoupper($type)) {
+    case 'AUTH_CAPTURE':
+      return t('Authorization and capture');
+    case 'AUTH_ONLY':
+      return t('Authorization only');
+    case 'PRIOR_AUTH_CAPTURE':
+      return t('Prior authorization capture');
+    case 'CAPTURE_ONLY':
+      return t('Capture only');
+    case 'CREDIT':
+      return t('Credit');
+    case 'VOID':
+      return t('Void');
+  }
+}
+
+/**
+ * Returns the BluePay transaction type corresponding to a UC type.
+ */
+function _uc_bluepay_txn_map($type) {
+  switch ($type) {
+    case UC_CREDIT_AUTH_ONLY:
+      return 'AUTH_ONLY';
+    case UC_CREDIT_PRIOR_AUTH_CAPTURE:
+      return 'PRIOR_AUTH_CAPTURE';
+    case UC_CREDIT_AUTH_CAPTURE:
+      return 'AUTH_CAPTURE';
+    case UC_CREDIT_CREDIT:
+      return 'CREDIT';
+    case UC_CREDIT_VOID:
+      return 'VOID';
+  }
+}
+
+/**
+ * Helper function for parsing responses; adapted from sample PHP for ARB.
+ */
+function _uc_bluepay_substr_between($string, $element) {
+  $open = '<' . $element . '>';
+  $close = '</' . $element . '>';
+
+  // Fail if we can't find the open or close tag for the element.
+  if (strpos($string, $open) === FALSE || strpos($string, $close) === FALSE) {
+    return FALSE;
+  }
+
+  $start = strpos($string, $open) + strlen($open);
+  $end = strpos($string, $close);
+
+  return substr($string, $start, $end - $start);
+}
+
+/**
+ * Decrypts the login data for using BluePay APIs.
+ */
+function _uc_bluepay_login_data() {
+  static $data;
+
+  if (!empty($data)) {
+    return $data;
+  }
+
+  $md5_hash = variable_get('uc_bluepay_md5_hash', '');
+
+  // If CC encryption has been configured properly.
+  if ($key = uc_credit_encryption_key()) {
+    // Setup our encryption object.
+    $crypt = new UbercartEncryption();
+
+    // Decrypt the MD5 Hash.
+    if (!empty($md5_hash)) {
+      $md5_hash = $crypt->decrypt($key, $md5_hash);
+    }
+
+    // Store any errors.
+    uc_store_encryption_errors($crypt, 'uc_bluepay');
+  }
+
+  $data = array(
+    'md5_hash' => $md5_hash,
+  );
+
+  return $data;
+}
+
+
+function bluepay_recurring_connect($datas)
+{
+    
+    global $prod_id_cus;
+    $nids[] = $prod_id_cus;
+   
+    $query = db_select('uc_recurring_product', 'p');
+      $query->leftjoin('uc_product_features', 'f', 'p.pfid = f.pfid');
+      $result = $query->fields('p', array('pfid', 'model', 'fee_amount', 'initial_charge', 'regular_interval', 'number_intervals'))
+        ->fields('f', array('nid'))
+        ->condition('f.nid', $nids, 'IN')
+        ->execute();
+      $cs_record = $result->fetchAssoc();
+  
+    
+    $accountID = $datas['x_login'];
+$secretKey = $datas['x_tran_key'];;
+$mode = "TEST";
+
+$rebill = new BluePay(
+    $accountID,
+    $secretKey,
+    $mode
+);
+//print_r($datas);
+$rebill->setCustomerInformation(array(
+    'firstName' => $datas['x_first_name'], 
+    'lastName' => $datas['x_last_name'], 
+    'addr1' => $datas['x_address'], 
+    'addr2' => '', 
+    'city' => $datas['x_city'], 
+    'state' => $datas['x_state'], 
+    'zip' =>$datas['x_zip'], 
+    'country' => $datas['x_country'], 
+    'phone' => $datas['x_phone'], 
+    'email' => $datas['x_email'] 
+));
+ 
+$rebill->setCCInformation(array(
+    'cardNumber' => $datas['x_card_num'], // Card Number: 4111111111111111
+    'cardExpire' => $datas['x_exp_date'], // Card Expire: 12/15
+    'cvv2' => $datas['x_card_code'] // Card CVV2: 123
+));
+
+$reb_exp = explode(" ",$cs_record['regular_interval']);
+$reb_exp_txt = $reb_exp[0]." MONTH";
+
+$rebill->setRebillingInformation(array(
+   /*'rebillFirstDate' => date('Y-m-d',strtotime('+'.$cs_record['initial_charge'])), // Rebill Start Date: Jan. 5, 2015
+   'rebillExpression' => $reb_exp_txt, // Rebill Frequency: 1 MONTH
+  'rebillCycles' => $cs_record['number_intervals'], // Rebill # of Cycles: 5
+   'rebillAmount' => $cs_record['fee_amount'] // Rebill Amount: $3.50*/
+    'rebillFirstDate' => '2015-10-26', // Rebill Start Date: Jan. 5, 2015
+   'rebillExpression' => '1 MONTH', // Rebill Frequency: 1 MONTH
+   'rebillCycles' => '5', // Rebill # of Cycles: 5
+   'rebillAmount' => '9.49' // Rebill Amount: $3.50    
+        
+));
+
+$rebill->auth('0.00');
+
+// Makes the API Request with BluePay
+$rebill->process();
+
+if ($rebill->isSuccessfulResponse()) {
+    ///return true;
+}
+//else
+//return false;
+    // Read response from BluePay
+/*if ($rebill->isSuccessfulResponse()) {
+    echo 
+    'Transaction ID: '. $rebill->getTransID() . "\n" .
+    'Rebill ID: ' . $rebill->getRebillID() . "\n" .
+    'Status: '. $rebill->getStatus() . "\n" .
+    'Message: '. $rebill->getMessage() . "\n" .
+    'AVS Response: ' . $rebill->getAVSResponse() . "\n" .
+    'CVS Response: ' . $rebill->getCVV2Response() . "\n" .
+    'Masked Account: ' . $rebill->getMaskedAccount() . "\n" .
+    'Card Type: ' . $rebill->getCardType() . "\n" .
+    'Authorization Code: ' . $rebill->getAuthCode() . "\n";
+    exit;
+    
+} else {
+    echo $rebill->getMessage();
+    exit;
+}
+  */  
+    
+    
+}
+
+
+
+function uc_bluepay_unsubscribe_plan($uid) {
+    
+    
+    
+   
+  $can_account = user_load($uid,TRUE);
+  
+  
+  $an_field_items = field_get_items('user', $can_account, 'usr_last_pg');
+      
+      $last_payment = $an_field_items[0]['value'];
+      
+      if($last_payment == 'bluepay')
+      {
+  
+  
+  
+      $bluepay_field_items = field_get_items('user', $can_account, 'user_bluepay_rebill_id');
+       $bluepay_field_items2 = field_get_items('user', $can_account, 'user_bluepay_rec_cancel_status');
+  
+    
+ 
+      
+      $rebill_id = $bluepay_field_items[0]['value'];
+      $rebill_cancel_status = $bluepay_field_items2[0]['value'];
+    
+      if($rebill_id!="" && $rebill_cancel_status!='1')
+      {
+           
+          $accountID = trim(variable_get('uc_bluepay_api_login_id', ''));
+          $secretKey = trim(variable_get('uc_bluepay_api_transaction_key', ''));
+          
+          $mode_set = trim(variable_get('uc_bluepay_aim_txn_mode',''));
+          
+          if($mode_set == 'live_test')
+          $mode = "TEST";
+          else
+          $mode = "LIVE";
+         
+          $rebillCancel = new BluePay(
+        $accountID, 
+        $secretKey, 
+        $mode
+    );
+
+    # Find rebill by id and cancel rebilling cycle 
+  $rebillCancel->cancelRebillingCycle($rebill_id);
+
+    // Makes the API request to cancel the rebill
+    $rebillCancel->process();
+    
+    if ($rebillCancel->getRebStatus() == 'stopped') {
+       
+     
+        
+       // Loading account
+$edit = array(
+  'user_bluepay_rec_cancel_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => '1',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_expiration' => array(
+    'und' => array(
+      0 => array(
+        'value' => $rebillCancel->getNextDate(),
+      ),
+    ),
+  ),
+  'user_bluepay_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => $rebillCancel->getRebStatus(),
+      ),
+    ),
+  ),
+  'user_bluepay_rebill_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_trans_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'RECURRING CANCELLED',
+      ),
+    ),
+  )
+    );
+
+
+user_save($can_account, $edit);
+
+       echo json_encode(array('result'=>'success'));
+       
+        
+    }
+    else
+    {
+        
+         echo json_encode(array('result'=>'failed','messsage'=>$rebillCancel->getRebStatus()));
+        
+    }
+}
+else {
+     echo json_encode(array('result'=>'norebillid'));
+}
+     
+      }
+      else {
+          
+          
+          
+         $an_field_items = field_get_items('user', $can_account, 'user_authorizenet_rebill_id');
+          $an_field_items2 = field_get_items('user', $can_account, 'user_authorizenet_rec_trans_id');
+          $an_field_items3 = field_get_items('user', $can_account, 'user_m6_next_bill_date');
+          $next_bill_date = $an_field_items3[0]['value'];
+          
+          $an_rebill_id = $an_field_items[0]['value'];
+          $an_rebill_ref_id = $an_field_items2[0]['value'];
+          if($an_rebill_id!="")
+          {
+             
+          $result_uns = cancel_authorizenet_recurring($an_rebill_id,$an_rebill_ref_id);
+          $result_uns_dec = json_decode($result_uns,TRUE);
+          
+          if($result_uns_dec['result'] == 'success')
+          {
+              
+              
+              
+              $edit = array(
+  'user_authorizenet_rc_cncl_stat' => array(
+    'und' => array(
+      0 => array(
+        'value' => '1',
+      ),
+    ),
+  ),
+  'user_authorizenet_rec_expiration' => array(
+    'und' => array(
+      0 => array(
+        'value' => $next_bill_date,
+      ),
+    ),
+  )
+  );
+              $can_account = user_load($uid,TRUE);
+              user_save($can_account, $edit);
+
+              
+          }
+          
+          echo $result_uns;
+          }
+        
+         else {
+          echo json_encode(array('result'=>'norebillid'));
+        }
+     
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+      }
+      
+}
+
+function bp_unsubscribe_plan_cron()
+{
+    global $user;
+    $order_confirm_st = user_load($user->uid);
+    
+    $todays_date = date('Y-m-d')." "."00:00:00";
+    
+    $role_name = db_query('SELECT name FROM {role} WHERE rid = :rid', array(':rid' => 4))->fetchField();
+        
+        
+   
+     $result = db_select('field_data_user_bluepay_rec_expiration', 'c')
+    ->fields('c')
+    ->condition('user_bluepay_rec_expiration_value',$todays_date,'=')
+    ->execute()
+    ->fetchAll();
+    
+    
+    foreach($result as $reskey)
+    {
+       
+        
+        $uid = $reskey->entity_id;
+       db_delete('users_roles')
+       ->condition('uid',$uid)
+       ->condition('rid',array(7,8,4,9),'IN')
+       ->execute();
+       
+       $nid = db_insert('users_roles') 
+              ->fields(array(
+                 'uid' => $uid,
+                 'rid' => 4
+                  ))
+                 ->execute();
+       
+       
+       
+        $edit = array(
+            'user_bluepay_rec_cancel_status' => array(
+            'und' => array(
+             0 => array(
+                 'value' => '0',
+                 ),
+             ),
+        ),
+             'user_bluepay_rec_expiration' => array(
+             'und' => array(
+             0 => array(
+             'value' => '',
+        ),
+        ),
+    )
+    );
+
+$reset_ac = user_load($uid,TRUE);
+user_save($reset_ac, $edit);
+        
+    }  
+   
+        
+        
+        
+        
+        
+    
+    
+}
+
+
+
+function bp_downgrade_plan_cron()
+{
+    
+   
+   $todays_date = date('Y-m-d');
+   
+     $result = db_select('field_data_user_m6_dgrd_date', 'c')
+    ->fields('c')
+    ->condition('user_m6_dgrd_date_value',$todays_date,'=')
+    ->execute()
+    ->fetchAll();
+    
+    
+    foreach($result as $reskey)
+    {
+       
+        
+        $uid = $reskey->entity_id;
+       
+       db_delete('users_roles')
+       ->condition('uid',$uid)
+       ->condition('rid',array(7,8,4,9),'IN')
+       ->execute();
+       
+       
+      $usr_account = user_load($uid,TRUE);
+      $bluepay_field_items = field_get_items('user', $usr_account, 'user_m6_dgrd_rid');
+     
+      $usr_dwn_grd_id = $bluepay_field_items[0]['value'];
+       
+       $nid = db_insert('users_roles') 
+              ->fields(array(
+                 'uid' => $uid,
+                 'rid' => $usr_dwn_grd_id
+                  ))
+                 ->execute();
+       //echo "role id ".$usr_dwn_grd_id;
+       
+       
+       
+        $edit = array(
+            'user_m6_dgrd_date' => array(
+            'und' => array(
+             0 => array(
+                 'value' => '',
+                 ),
+             ),
+        ),
+             'user_m6_dgrd_rid' => array(
+             'und' => array(
+             0 => array(
+             'value' => '',
+        ),
+        ),
+    )
+    );
+
+$reset_ac = user_load($uid,TRUE);
+user_save($reset_ac, $edit);
+        
+    }  
+   
+        
+        
+        
+        
+        
+    
+    
+}
+
+function bp_common_cron_check()
+{
+    
+    
+    
+    
+    $server = variable_get('uc_authnet_arb_mode', 'disabled');
+    
+    
+        $accountID = trim(variable_get('uc_bluepay_api_login_id', ''));
+          $secretKey = trim(variable_get('uc_bluepay_api_transaction_key', ''));
+          
+          $mode_set = trim(variable_get('uc_bluepay_aim_txn_mode',''));
+          
+          if($mode_set == 'live_test')
+          $mode = "TEST";
+          else
+          $mode = "LIVE";
+         
+          $rebillStatus = new BluePay(
+        $accountID, 
+        $secretKey, 
+        $mode
+    );
+    
+    
+    $todays_date = date('Y-m-d',strtotime('- 1 day'));
+    $result = db_select('field_data_user_m6_next_bill_date', 'c')
+    ->fields('c')
+    ->condition('user_m6_next_bill_date_value',$todays_date,'=')
+    ->execute()
+    ->fetchAll();
+    
+    
+    foreach($result as $reskey)
+    {
+       
+        
+        $uid = $reskey->entity_id;
+        
+        
+        $usr_account = user_load($uid,TRUE);
+        
+        
+        
+        $an_field_items = field_get_items('user',$usr_account, 'usr_last_pg');
+      
+      $last_payment = $an_field_items[0]['value'];
+      
+      if($last_payment == 'bluepay')
+      {
+        
+        
+      $bluepay_field_items = field_get_items('user', $usr_account, 'user_bluepay_rebill_id');
+     
+      $usr_rebill_id = $bluepay_field_items[0]['value'];
+        
+      
+      
+      
+      
+        
+        $rebillStatus->getRebillStatus($usr_rebill_id);
+
+    // Makes the API Request to get the rebill status
+    $rebillStatus->process();
+
+    // Read response from BluePay
+    $reb_status = $rebillStatus->getRebStatus();
+    
+    if($reb_status!='active')
+    {
+        
+    
+       db_delete('users_roles')
+       ->condition('uid',$uid)
+       ->condition('rid',array(7,8,4,9),'IN')
+       ->execute();
+       
+       
+      $nid = db_insert('users_roles') 
+              ->fields(array(
+                 'uid' => $uid,
+                 'rid' => 4
+                  ))
+                 ->execute();
+       
+       
+       
+        $edit = array(
+            'user_m6_next_bill_date' => array(
+            'und' => array(
+             0 => array(
+                 'value' => '',
+                 ),
+             ),
+        ),
+             'user_bluepay_rebill_id' => array(
+             'und' => array(
+             0 => array(
+             'value' => '',
+        ),
+        ),
+    ),
+       'user_bluepay_rec_status' => array(
+             'und' => array(
+             0 => array(
+             'value' => 'RECURRING CANCELLED ANONYMOUSLY',
+        ),
+        ),
+    )
+            
+    );
+
+$reset_ac = user_load($uid,TRUE);
+user_save($reset_ac, $edit);
+        
+    }  
+   
+    }
+    else
+    {
+        
+     $an_field_items = field_get_items('user', $usr_account, 'user_authorizenet_rebill_id');
+          $an_field_items2 = field_get_items('user', $usr_account, 'user_authorizenet_rec_trans_id');
+          
+          $subscription_id = $an_field_items[0]['value'];
+          $an_ref_id = $an_field_items2[0]['value'];
+             
+         
+    $data = array(
+    'refId' => $an_ref_id,
+    'subscriptionId' => $subscription_id,
+  );
+
+  // Build the XML string.
+  $xml = _uc_authorizenet_xml_api_wrapper('ARBGetSubscriptionStatusRequest', _uc_authorizenet_array_to_xml($data));
+
+  // Send the request off to the server and get the response.
+  
+  $response = uc_authorizenet_xml_api($server, $xml);
+
+  // Parse the response into a data array.
+  $data = _uc_authorizenet_arb_parse_response($response);
+  
+  if($data['status']!='active')
+  {
+     
+      
+       db_delete('users_roles')
+       ->condition('uid',$uid)
+       ->condition('rid',array(7,8,4,9),'IN')
+       ->execute();
+       
+       
+      $nid = db_insert('users_roles') 
+              ->fields(array(
+                 'uid' => $uid,
+                 'rid' => 4
+                  ))
+                 ->execute();
+       
+       
+       
+        $edit = array(
+            'user_m6_next_bill_date' => array(
+            'und' => array(
+             0 => array(
+                 'value' => '',
+                 ),
+             ),
+        ),
+             'user_authorizenet_rebill_id' => array(
+             'und' => array(
+             0 => array(
+             'value' => '',
+        ),
+        ),
+    ),
+       'user_authorizenet_rec_status' => array(
+             'und' => array(
+             0 => array(
+             'value' => 'RECURRING CANCELLED ANONYMOUSLY',
+        ),
+        ),
+    )
+            
+    );
+
+$reset_ac = user_load($uid,TRUE);
+user_save($reset_ac, $edit);
+      
+      
+      
+  }
+        
+        
+        
+        
+        
+    }
+    }
+
+    echo 'done';
+}
+
+
+
+/*
+function uc_bluepay_field_access($op, $field, $entity_type, $entity, $account) {
+    echo "hii";
+    exit;
+  if ($field['field_name'] == 'user_bluepay_rebill_id' && $op == 'edit') {
+    // Only allow admins to edit field value
+    return user_access('administer nodes', $account);
+  }
+  return TRUE;
+}
+ 
+ */
+
+
+function bp_get_downgrade_role_id($user_order_sku)
+{
+ 
+global $user;
+   
+  
+ 
+  
+   $query_product_role = db_select('uc_roles_products', 'r')
+   ->condition('r.model', $user_order_sku, '=')
+  ->fields('r', array('rid','model'));
+   $result_product_role = $query_product_role->execute();
+    foreach($result_product_role as $item_product_role)
+	{		
+		$user_order_role_id = $item_product_role->rid;
+	  $user_order_role_model = $item_product_role->model;
+	} 
+
+        return $user_order_role_id;
+
+}
+
+
+
+function cancel_bluepay_recurring($bp_rebill_id)
+{
+    
+    
+     
+    global $user;
+           
+          $accountID = trim(variable_get('uc_bluepay_api_login_id', ''));
+          $secretKey = trim(variable_get('uc_bluepay_api_transaction_key', ''));
+          
+$mode_set = trim(variable_get('uc_bluepay_aim_txn_mode',''));
+          
+          if($mode_set == 'live_test')
+          $mode = "TEST";
+          else
+          $mode = "LIVE";
+         
+          $rebillCancel = new BluePay(
+        $accountID, 
+        $secretKey, 
+        $mode
+    );
+ 
+    # Find rebill by id and cancel rebilling cycle 
+   $rebillCancel->cancelRebillingCycle($bp_rebill_id);
+
+    // Makes the API request to cancel the rebill
+    $rebillCancel->process();
+    
+    if ($rebillCancel->isSuccessfulResponse()) {
+        
+        
+         $account = user_load($user->uid); // Loading account
+$edit = array(
+  'user_bluepay_rebill_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_trans_id' => array(
+    'und' => array(
+      0 => array(
+        'value' => '',
+      ),
+    ),
+  ),
+  'user_bluepay_rec_status' => array(
+    'und' => array(
+      0 => array(
+        'value' => 'RECURRING CANCELLED',
+      ),
+    ),
+  )
+);
+ $account = user_load($user->uid,TRUE);    
+user_save($account, $edit);
+   
+        
+        
+
+    // Reads the response from BluePay
+    /*echo 
+    'Rebill Status: ' . $rebillCancel->getRebStatus() . "\n" .
+    'Rebill ID: ' . $rebillCancel->getRebID() . "\n" .
+    'Rebill Creation Date: ' . $rebillCancel->getCreationDate() . "\n" .
+    'Rebill Next Date: ' . $rebillCancel->getNextDate() . "\n" .
+    'Rebill Last Date: ' . $rebillCancel->getLastDate() . "\n" .
+    'Rebill Expression: ' . $rebillCancel->getSchedExpr() . "\n" .
+    'Rebill Cycles Remaining: ' . $rebillCancel->getCyclesRemaining() . "\n" .
+    'Rebill Amount: ' . $rebillCancel->getRebAmount() . "\n" .
+    'Rebill Next Amount Charged: ' . $rebillCancel->getNextAmount() . "\n"; */
+    }
+    else
+    {
+
+   //$rebillCancel->getMessage();
+    }
+
+      
+    
+    
+}
+
+
+
+
+
+
